@@ -58,7 +58,7 @@ const int ledPin = LED_BUILTIN;
 int ledState = LOW;
 
 unsigned long prevMillis = 0;
-const long interval = 1000;
+long interval = 2000;
 
 String title;
 
@@ -113,6 +113,16 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
       command = "showip";
     }
 
+    if (cmd == "satudetik")
+    {
+      interval = 1000;
+    }
+
+    if (cmd == "duadetik")
+    {
+      interval = 2000;
+    }
+    
     webSocket.sendTXT(num, cmd + ":success");
     //send response to mobile, if command is "poweron" then response will be "poweron:success"
     //this response can be used to track down the success of command in mobile app.
