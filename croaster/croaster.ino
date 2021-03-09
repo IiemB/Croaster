@@ -5,54 +5,34 @@
 #include <Thermocouple.h>
 #include <MAX6675_Thermocouple.h>
 
-//--- LCD setup //
+//LCD setup
 #include <SPI.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
-#define SCREEN_WIDTH 128
-#define SCREEN_HEIGHT 32
+#define SCREEN_WIDTH 128 //screen width
+#define SCREEN_HEIGHT 32 //screen height
 
 #define OLED_RESET -1 // Reset pin # (or -1 if sharing Arduino reset pin)
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-#define NUMFLAKES 10 // Number of snowflakes in the animation example
-
-#define LOGO_HEIGHT 16
-#define LOGO_WIDTH 16
-static const unsigned char PROGMEM logo_bmp[] =
-    {B00000000, B11000000,
-     B00000001, B11000000,
-     B00000001, B11000000,
-     B00000011, B11100000,
-     B11110011, B11100000,
-     B11111110, B11111000,
-     B01111110, B11111111,
-     B00110011, B10011111,
-     B00011111, B11111100,
-     B00001101, B01110000,
-     B00011011, B10100000,
-     B00111111, B11100000,
-     B00111111, B11110000,
-     B01111100, B11110000,
-     B01110000, B01110000,
-     B00000000, B00110000};
-
-// LCD setup ---//
-
 String json; //variable for json
 
+//MAX6675 for BT
 #define SCK_PIN D8
 #define CS_PIN D6
 #define SO_PIN D7
 
+//MAX6675 for ET
 #define SCK_PIN2 D8
 #define CS_PIN2 D5
 #define SO_PIN2 D7
 
 Thermocouple *thermocouple_bt;
 Thermocouple *thermocouple_et;
+float btCorrector = 0;
+float etCorrector = 0;
 
 const int ledPin = LED_BUILTIN;
 int ledState = LOW;
@@ -63,8 +43,6 @@ long interval = 2000;
 String title;
 
 String command = "showip";
-bool etState = true;
-bool btState = true;
 
 char etStr[10];
 char btStr[10];
@@ -98,7 +76,8 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
     Serial.println(cmd);
 
     if (cmd == "readdata")
-    { //when command from app is "poweron"
+    {
+      //when command from app is "poweron"
       //recieved command from mobile app
       //we can do task according to command from mobile using if-else-else if
     }
@@ -122,7 +101,17 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
     {
       interval = 2000;
     }
-    
+
+    if (cmd.startsWith("btCorrector"))
+    {
+      btCorrector = btCorrector + cmd.substring(11).toFloat();
+    }
+
+    if (cmd.startsWith("etCorrector"))
+    {
+      etCorrector = etCorrector + cmd.substring(11).toFloat();
+    }
+
     webSocket.sendTXT(num, cmd + ":success");
     //send response to mobile, if command is "poweron" then response will be "poweron:success"
     //this response can be used to track down the success of command in mobile app.
@@ -211,7 +200,7 @@ void loop()
 
     if (ledState == LOW)
     {
-      ledState = HIGH;   
+      ledState = HIGH;
     }
     else
     {
@@ -223,30 +212,28 @@ void loop()
     if (isnan(bt))
     {
       Serial.println(F("Failed to read BT!"));
-      btState = false;
-      return;
+      bt = 0;
     }
     else
     {
-      btState = true;
+      bt = bt + btCorrector;
     }
 
     if (isnan(et))
     {
       Serial.println(F("Failed to read ET!"));
-      etState = false;
-      return;
+      et = 0;
     }
     else
     {
-      etState = true;
+      et = et + etCorrector;
     }
 
     title = "Croaster";
 
     sensorDisplay(String(et), String(bt));
 
-    json = "{\"et\":" + String(et) + ",\"bt\":" + String(bt) + "}";
+    json = "{\"et\":" + String(et) + ",\"bt\":" + String(bt) + ",\"etC\":" + String(etCorrector) + ",\"btC\":" + String(btCorrector) + "}";
 
     Serial.println("Data read Successful");
     webSocket.broadcastTXT(json);
@@ -319,11 +306,11 @@ void sensorDisplay(String et, String bt)
     display.setTextColor(SSD1306_WHITE);
     display.setCursor(0, 0);
 
-    if (etState == true)
+    if (et != "0.00")
     {
       display.println("ET:" + et + "C");
     }
-    if (btState == true)
+    if (bt != "0.00")
     {
       display.println("BT:" + bt + "C");
     }
@@ -343,14 +330,13 @@ void sensorDisplay(String et, String bt)
     display.println(title);
     display.print("IP : ");
     display.println(WiFi.localIP());
-
-    if (etState == true)
+    if (et != "0.00")
     {
-      display.println("ET : " + et + " C");
+      display.println("ET:" + et + "C");
     }
-    if (btState == true)
+    if (bt != "0.00")
     {
-      display.println("BT : " + bt + " C");
+      display.println("BT:" + bt + "C");
     }
 
     display.display();
