@@ -9,7 +9,14 @@
 ## App
 - [Arduino IDE](https://www.arduino.cc/en/software/)
 #
-
+## Library Dependencies
+- [Adafruit_BusIO](https://github.com/adafruit/Adafruit_BusIO)
+- [Adafruit-GFX-Library](https://github.com/adafruit/Adafruit-GFX-Library)
+- [Adafruit_SSD1306](https://github.com/adafruit/Adafruit_SSD1306)
+- [WebSockets](https://github.com/Links2004/arduinoWebSockets)
+- [MAX6675_Thermocouple](https://github.com/YuriiSalimov/MAX6675_Thermocouple)
+- [WiFiManager](https://github.com/tzapu/WiFiManager.git)
+#
 ## Wiring
 ####  Oled LCD SSD1306
 | SSD1306 || NodeMCU |
@@ -37,11 +44,3 @@
 | CS |<->| D5 |
 | SO |<->| D7 |
 #
-
-## Library Dependencies
-- [Adafruit_BusIO](https://github.com/adafruit/Adafruit_BusIO)
-- [Adafruit-GFX-Library](https://github.com/adafruit/Adafruit-GFX-Library)
-- [Adafruit_SSD1306](https://github.com/adafruit/Adafruit_SSD1306)
-- [WebSockets](https://github.com/Links2004/arduinoWebSockets)
-- [MAX6675_Thermocouple](https://github.com/YuriiSalimov/MAX6675_Thermocouple)
-- [WiFiManager](https://github.com/tzapu/WiFiManager.git)
