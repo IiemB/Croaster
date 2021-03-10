@@ -1,4 +1,5 @@
 # Croaster
+Coraster is device for monitoring coffee roaster machine with [Croaster App](https://github.com/IiemB/croaster-app)
 
 ## Component
 - [NodeMCU](https://www.google.com/search?hl=en&sxsrf=ALeKk034slgQQ-qStLjnv_7chJWDa-S5Gw%3A1612689502190&source=hp&ei=XrAfYNbhCNrbz7sPpMib4Aw&q=nodemcu&oq=&gs_lcp=CgZwc3ktYWIQAxgAMgcIIxDqAhAnMgcIIxDqAhAnMgcIIxDqAhAnMgcIIxDqAhAnMgcIIxDqAhAnMgcIIxDqAhAnMgcIIxDqAhAnMgcIIxDqAhAnMgcIIxDqAhAnMgcIIxDqAhAnUABYAGChHWgBcAB4AIABAIgBAJIBAJgBAKoBB2d3cy13aXqwAQo&sclient=psy-ab)
