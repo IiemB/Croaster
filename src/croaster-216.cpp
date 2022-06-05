@@ -382,6 +382,8 @@ void loop()
   handleArtisan();
   timeUpdater();
 
+  isWifiConnected = WiFi.status() == WL_CONNECTED;
+
   if (millis() - millisReadTemp >= 250)
   {
     millisReadTemp = millis();
@@ -439,15 +441,6 @@ void loop()
   if (millis() - millisWebSocket >= intervalSendData)
   {
     millisWebSocket = millis();
-
-    if (WiFi.status() == WL_CONNECTED)
-    {
-      isWifiConnected = true;
-    }
-    else
-    {
-      isWifiConnected = false;
-    }
 
     String arrJsonData[11] = {
         "{",
