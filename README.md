@@ -18,6 +18,7 @@ Build Your own Croaster now.
 
 * [Arduino IDE](https://www.arduino.cc/en/software/) or
 * [Platform IO](https://platformio.org/)
+* [NodeMCU PyFlasher](https://github.com/marcelstoer/nodemcu-pyflasher) if you want to flash .bin file (for windows or macOS),or if you are using using linux you can use [esptool](https://github.com/espressif/esptool) 
 #
 
 ## Libraries Dependencies

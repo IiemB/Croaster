@@ -86,7 +86,6 @@ void splash()
 {
   for (int i = 0; i <= 7; i++)
   {
-
     display.clear();
     display.setCursor(3, 0);
     display.print("WELCOME TO");
