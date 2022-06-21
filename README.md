@@ -21,6 +21,9 @@ Build Your own Croaster now.
 * [NodeMCU PyFlasher](https://github.com/marcelstoer/nodemcu-pyflasher) if you want to flash .bin file (for windows or macOS),or if you are using using linux you can use [esptool](https://github.com/espressif/esptool) 
 #
 
+### [.BIN Files](https://github.com/IiemB/Croaster/releases/tag/Release)
+#
+
 ## Libraries Dependencies
 
 * [ESP 8266](https://github.com/esp8266/Arduino)
