@@ -1,47 +1,88 @@
 # Croaster
-<!-- Coraster is device for monitoring coffee roaster machine with [Croaster App](https://github.com/IiemB/croaster-app) -->
+
+Coraster is device for monitoring coffee roaster machine with [Croaster App](https://play.google.com/store/apps/details?id=com.iiemb.croaster)
+
+Build Your own Croaster now.
 
 ## Component
-- [NodeMCU](https://www.google.com/search?hl=en&sxsrf=ALeKk034slgQQ-qStLjnv_7chJWDa-S5Gw%3A1612689502190&source=hp&ei=XrAfYNbhCNrbz7sPpMib4Aw&q=nodemcu&oq=&gs_lcp=CgZwc3ktYWIQAxgAMgcIIxDqAhAnMgcIIxDqAhAnMgcIIxDqAhAnMgcIIxDqAhAnMgcIIxDqAhAnMgcIIxDqAhAnMgcIIxDqAhAnMgcIIxDqAhAnMgcIIxDqAhAnMgcIIxDqAhAnUABYAGChHWgBcAB4AIABAIgBAJIBAJgBAKoBB2d3cy13aXqwAQo&sclient=psy-ab)
-- [MAX6675](https://www.google.com/search?hl=en&sxsrf=ALeKk01VCkowocv1aZqhuJ0eXzh2awhIeQ%3A1612691825963&source=hp&ei=cbkfYNnCOMjSz7sP5rO0mAU&q=max6675&oq=max6675&gs_lcp=CgZwc3ktYWIQAzIECCMQJzIECCMQJzIECCMQJzIECAAQQzICCAAyAggAMgIIADICCAAyBQgAEMsBMgIIADoHCCMQ6gIQJzoHCAAQsQMQQzoICAAQsQMQgwE6CAguEMcBEKMCOggILhCxAxCDAToHCAAQFBCHAjoFCAAQkQI6BQgAELEDUN8OWOsgYIYjaAFwAHgAgAHBAogB5QWSAQU1LjMtMZgBAKABAaoBB2d3cy13aXqwAQo&sclient=psy-ab&ved=0ahUKEwiZv6qbwdfuAhVI6XMBHeYZDVMQ4dUDCAY&uact=5) x2
-- [Thermocoule](https://www.google.com/search?hl=en&sxsrf=ALeKk00S7-Ax-oK2YpkQu3bOj4OHgYm28A%3A1612691851875&ei=i7kfYMHhNOrFz7sPztmxiAE&q=thermocouple&oq=thermocouple&gs_lcp=CgZwc3ktYWIQAzIECCMQJzIECCMQJzIECCMQJzIECAAQQzIECAAQQzIECAAQQzIECAAQQzIECAAQQzIECAAQQzIECAAQQzoHCCMQsAMQJzoHCAAQRxCwAzoQCC4QxwEQowIQsAMQyAMQQ0oFCDgSATFQvBVYvBVglRxoAXACeACAAYwDiAH7A5IBBzAuMS4wLjGYAQCgAQGqAQdnd3Mtd2l6yAELwAEB&sclient=psy-ab&ved=0ahUKEwiB09mnwdfuAhXq4nMBHc5sDBEQ4dUDCAw&uact=5) (I use type K thermocouple) 
-- [Oled LCD SS1306](https://www.google.com/search?hl=en&sxsrf=ALeKk03RkFFDBFM4KPNI0_dUTtMN7Ot6qw%3A1612692050424&ei=UrofYMitGYG_8QO9t524Ag&q=ssd1306&oq=ssd1306&gs_lcp=CgZwc3ktYWIQAzIECCMQJzIECCMQJzIECCMQJzIFCAAQkQIyBQgAEJECMgIIADICCAAyAggAMgIIADIFCAAQywE6BwgjELADECc6BwgAEEcQsAM6BwgAELADEENQ4TxY2D5gz0VoAXACeACAAWmIAf0BkgEDMi4xmAEAoAEBqgEHZ3dzLXdpesgBCsABAQ&sclient=psy-ab&ved=0ahUKEwjInrCGwtfuAhWBX3wKHb1bBycQ4dUDCAw&uact=5) I2C
-- Some wire
+
+* [NodeMCU ESP8266](https://www.google.com/search?q=nodemcu+esp8266)
+* [MAX6675](https://www.google.com/search?q=max6675) x2
+* [Thermocoule](https://www.google.com/search?q=thermocouple+tipe+k) - I'm using type K thermocouple
+* [2x16 LCD Display with I2C Interface](https://www.google.com/search?q=2x16+LCD+Display+with+I2C+Interface)
+* [DHT11](https://www.google.com/search?q=dht11) - Optional
+* [Push Button](https://www.google.com/search?q=push+button) - Optional
+* [Jumper Cable](https://www.google.com/search?q=jumper+cable) - F to F, M to F, and M to M
+
 ## App
-- [Arduino IDE](https://www.arduino.cc/en/software/)
+
+* [Arduino IDE](https://www.arduino.cc/en/software/) or
+* [Platform IO](https://platformio.org/)
 #
-## Library Dependencies
-- [Adafruit_BusIO](https://github.com/adafruit/Adafruit_BusIO)
-- [Adafruit-GFX-Library](https://github.com/adafruit/Adafruit-GFX-Library)
-- [Adafruit_SSD1306](https://github.com/adafruit/Adafruit_SSD1306)
-- [WebSockets](https://github.com/Links2004/arduinoWebSockets)
-- [MAX6675_Thermocouple](https://github.com/YuriiSalimov/MAX6675_Thermocouple)
-- [WiFiManager](https://github.com/tzapu/WiFiManager.git)
+
+## Libraries Dependencies
+
+* [ESP 8266](https://github.com/esp8266/Arduino)
+* [Time](https://github.com/PaulStoffregen/Time)
+* [LiquidCrystal_I2C](https://github.com/marcoschwartz/LiquidCrystal_I2C.git)
+* [MAX6675_Thermocouple](https://github.com/YuriiSalimov/MAX6675_Thermocouple)
+* [NTPClient](https://github.com/arduino-libraries/NTPClient)
+* [WiFiManager](https://github.com/tzapu/WiFiManager.git)
+* [Adafruit_BusIO](https://github.com/adafruit/Adafruit_BusIO)
+* [Adafruit-GFX-Library](https://github.com/adafruit/Adafruit-GFX-Library)
+* [Adafruit Unified Sensor](https://github.com/adafruit/Adafruit_Sensor)
+* [WebSockets](https://github.com/Links2004/arduinoWebSockets)
+* [DHT sensor library](https://github.com/adafruit/DHT-sensor-library)
+* [Button](https://github.com/ArduinoGetStarted/button)
 #
+
 ## Wiring
-####  Oled LCD SSD1306
-| SSD1306 || NodeMCU |
+
+####  2x16 LCD Display with I2C
+
+| LCD Dispaly || NodeMCU |
 | ------ |------| ------ |
-| GND |<->| GND |
-| VCC |<->| 3V |
-| SCL |<->| D1 |
-| SDA |<->| D2 |
+| GND |<=>| GND |
+| VCC |<=>| 3V |
+| SCL |<=>| D1 |
+| SDA |<=>| D2 |
 #
-####  MAX6675 #1 (for BT)
+
+####  Button
+
+| Button|| NodeMCU |
+| ------ |------| ------ |
+| 1st |<=>| D3 |
+| 2nd |<=>| 3V |
+#
+
+####  DHT 11
+
+| DHT 11 || NodeMCU |
+| ------ |------| ------ |
+| GND |<=>| GND |
+| VCC |<=>| 3V |
+| DATA |<=>| D4 |
+#
+
+####  MAX6675 #1 (for ET)
+
 | MAX6675 || NodeMCU |
 | ------ | ------ | ------ |
-| GND |<->| GND |
-| VCC |<->| 3V |
-| SCK |<->| D8 |
-| CS |<->| D6 |
-| SO |<->| D7 |
+| GND |<=>| GND |
+| VCC |<=>| 3V |
+| SCK |<=>| D8 |
+| SO |<=>| D7 |
+| CS |<=>| D6 |
 #
-####  MAX6675 #2 (for ET)
+
+####  MAX6675 #2 (for BT)
+
 | MAX6675 || NodeMCU |
 | ------ | ------ | ------ |
-| GND |<->| GND |
-| VCC |<->| 3V |
-| SCK |<->| D8 |
-| CS |<->| D5 |
-| SO |<->| D7 |
+| GND |<=>| GND |
+| VCC |<=>| 3V |
+| SCK |<=>| D8 |
+| SO |<=>| D7 |
+| CS |<=>| D5 |
 #
