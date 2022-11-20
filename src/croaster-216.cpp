@@ -80,7 +80,12 @@ LiquidCrystal_I2C display(0x27, 16, 2);
 uint8_t selectedAdditonalDisplay;
 
 // Setup Croaster
-float fwVersion = 2.0;
+float fwVersion = 2.1;
+const char *ssidName = "Croaster";
+
+// Croaster Connection
+bool isCroasterConnected = false;
+bool showIp = false;
 
 void splash()
 {
@@ -155,7 +160,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
   {
     debugln("# Websocket is connected");
     debugln("# " + webSocket.remoteIP(num).toString());
-    webSocket.sendTXT(num, "connected");
+    // webSocket.sendTXT(num, "connected");
   }
   break;
   case WStype_TEXT:
@@ -213,7 +218,17 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
       isEtBtSwapped = false;
     }
 
-    webSocket.sendTXT(num, cmd);
+    if (cmd == "croaster connect")
+    {
+      isCroasterConnected = true;
+    }
+
+    if (cmd == "croaster disconnect")
+    {
+      isCroasterConnected = false;
+    }
+
+    // webSocket.sendTXT(num, cmd);
     // send response to mobile, if command is "poweron" then response will be "poweron:success"
     // this response can be used to track down the success of command in mobile app.
     break;
@@ -288,9 +303,23 @@ void updateDisplay()
   {
   case 0:
     display.setCursor(0, 0);
-    display.print("Drum Temp: " + String(temp_et) + " C");
-    display.setCursor(0, 1);
-    display.print("Bean Temp: " + String(temp_bt) + " C");
+    display.print("ET: " + String(temp_et) + " " + "BT: " + String(temp_bt));
+
+    if (showIp && isWifiConnected && !isCroasterConnected)
+    {
+      display.setCursor(0, 1);
+      display.print(WiFi.localIP().toString());
+
+      showIp = false;
+    }
+    else
+    {
+      display.setCursor(0, 1);
+      display.print("RT: " + String(static_cast<int>(temp)) + "C" + " " + "RH: " + String(static_cast<int>(humd)) + "%");
+
+      showIp = true;
+    }
+
     break;
   case 1:
     display.setCursor(0, 0);
@@ -340,7 +369,7 @@ void setup()
   display.display();
   delay(2000);
 
-  if (wifiManager.autoConnect("Croaster"))
+  if (wifiManager.autoConnect(ssidName))
   {
     String connectedSSID = wifiManager.getWiFiSSID(true);
     debugln("# WiFi Connected... yeey :)");
