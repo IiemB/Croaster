@@ -1,9 +1,7 @@
 #include <Arduino.h>
 #include <SoftwareSerial.h>
 #include <ESP8266WiFi.h>
-#include <NTPClient.h>
 #include <WiFiUdp.h>
-#include <TimeLib.h>
 #include <WebSocketsServer.h>
 #include <WiFiManager.h>
 #include <Thermocouple.h>
@@ -12,15 +10,10 @@
 #include "DHT.h"
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
-#include <ezButton.h>
+#include <ArduinoJson.h>
 
 #define debug(x) Serial.print(x)
 #define debugln(x) Serial.println(x)
-
-// Artisan setup
-#define maxLenght 30
-String inString = String(maxLenght);
-bool isArtisan = true;
 
 //  Setup MAX6675
 #define SCK_PIN D8
@@ -64,24 +57,15 @@ WiFiManager wifiManager;
 // Setup WebSocket
 WebSocketsServer webSocket = WebSocketsServer(81);
 
-//  Setup time and date
-WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP, "0.id.pool.ntp.org", 25200, 60000);
-char Time[] = "TIME:00:00:00";
-char Date[] = "DATE:00/00/2000";
-byte last_second, second_, minute_, hour_, day_, month_;
-int year_;
-
-// Setup button
-ezButton button(D3);
-
 // Setup LCD
 LiquidCrystal_I2C display(0x27, 16, 2);
-uint8_t selectedAdditonalDisplay;
 
 // Setup Croaster
-float fwVersion = 2.1;
+float fwVersion = 2.2;
 const char *ssidName = "Croaster";
+
+String jsonData;
+int idJsonData = 0;
 
 // Croaster Connection
 bool isCroasterConnected = false;
@@ -140,11 +124,66 @@ void getRor(int et, int bt, float timer)
 }
 
 void configModeCallback(WiFiManager *myWiFiManager)
+
 {
   debugln("# Entered config mode");
   debug("# ");
   debugln(WiFi.softAPIP());
   debugln("# " + myWiFiManager->getConfigPortalSSID());
+}
+
+void updateJsonData()
+{
+  StaticJsonDocument<256> doc;
+
+  doc["id"] = idJsonData;
+
+  JsonObject data = doc.createNestedObject("data");
+  data["BT"] = temp_bt;
+  data["ET"] = temp_et;
+
+  JsonObject croaster = doc.createNestedObject("croaster");
+  croaster["fv"] = fwVersion;
+  croaster["timer"] = timer;
+  croaster["et"] = temp_et;
+  croaster["bt"] = temp_bt;
+  croaster["rorEt"] = ror_et;
+  croaster["rorBt"] = ror_bt;
+  croaster["humd"] = humd;
+  croaster["temp"] = temp;
+  croaster["hic"] = hic;
+
+  String tempJsonData;
+
+  serializeJson(doc, tempJsonData);
+
+  jsonData = tempJsonData;
+}
+
+void handleArtisanCommand(String cmd, uint8_t num)
+{
+
+  StaticJsonDocument<96> request;
+
+  DeserializationError error = deserializeJson(request, cmd);
+
+  if (error)
+  {
+    debug(F("deserializeJson() failed: "));
+    debugln(error.f_str());
+    return;
+  }
+
+  String command = request["command"];
+
+  idJsonData = request["id"];
+
+  if (command == "getData")
+  {
+    updateJsonData();
+
+    webSocket.sendTXT(num, jsonData);
+  }
 }
 
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
@@ -171,12 +210,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
       cmd = cmd + (char)payload[i];
     }
 
-    if (cmd == "readdata")
-    {
-      // when command from app is "poweron"
-      // recieved command from mobile app
-      // we can do task according to command from mobile using if-else-else if
-    }
+    handleArtisanCommand(cmd, num);
 
     if (cmd == "restartesp")
     {
@@ -244,111 +278,33 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
   }
 }
 
-void handleArtisan()
-{
-  if (Serial.available() > 0)
-  {
-    String command = Serial.readStringUntil('\n');
-
-    if (command == "READ")
-    {
-      String x = String(hic) + "," + String(temp_et) + "," + String(temp_bt) + ",0.00";
-      debugln(x);
-      Serial.flush();
-    }
-    else if (command == "CHAN;1200")
-    {
-      debugln("# CHAN;1200");
-      Serial.flush();
-    }
-  }
-}
-
-void timeUpdater()
-{
-  timeClient.update();
-  unsigned long unix_epoch = timeClient.getEpochTime();
-
-  second_ = second(unix_epoch);
-  if (last_second != second_)
-  {
-    minute_ = minute(unix_epoch);
-    hour_ = hour(unix_epoch);
-    day_ = day(unix_epoch);
-    month_ = month(unix_epoch);
-    year_ = year(unix_epoch);
-
-    Time[12] = second_ % 10 + 48;
-    Time[11] = second_ / 10 + 48;
-    Time[9] = minute_ % 10 + 48;
-    Time[8] = minute_ / 10 + 48;
-    Time[6] = hour_ % 10 + 48;
-    Time[5] = hour_ / 10 + 48;
-
-    Date[5] = day_ / 10 + 48;
-    Date[6] = day_ % 10 + 48;
-    Date[8] = month_ / 10 + 48;
-    Date[9] = month_ % 10 + 48;
-    Date[13] = (year_ / 10) % 10 + 48;
-    Date[14] = year_ % 10 % 10 + 48;
-
-    last_second = second_;
-  }
-}
-
 void updateDisplay()
 {
   display.clear();
-  switch (selectedAdditonalDisplay)
+  display.setCursor(0, 0);
+  display.print("ET: " + String(temp_et) + " " + "BT: " + String(temp_bt));
+
+  if (showIp && isWifiConnected && !isCroasterConnected)
   {
-  case 0:
-    display.setCursor(0, 0);
-    display.print("ET: " + String(temp_et) + " " + "BT: " + String(temp_bt));
-
-    if (showIp && isWifiConnected && !isCroasterConnected)
-    {
-      display.setCursor(0, 1);
-      display.print(WiFi.localIP().toString());
-
-      showIp = false;
-    }
-    else
-    {
-      display.setCursor(0, 1);
-      display.print("RT: " + String(static_cast<int>(temp)) + "C" + " " + "RH: " + String(static_cast<int>(humd)) + "%");
-
-      showIp = true;
-    }
-
-    break;
-  case 1:
-    display.setCursor(0, 0);
-    display.print(Time);
-    display.setCursor(0, 1);
-    display.print(Date);
-    break;
-  case 2:
-    display.setCursor(0, 0);
-    display.print("Croaster IP Addr");
     display.setCursor(0, 1);
     display.print(WiFi.localIP().toString());
-    break;
-  case 3:
-    display.setCursor(0, 0);
-    display.print("R Temp: " + String(temp) + " C");
-    display.setCursor(0, 1);
-    display.print("R Humd: " + String(humd) + " %");
-    break;
-  default:
-    break;
+
+    showIp = false;
   }
+  else
+  {
+    display.setCursor(0, 1);
+    display.print("RT: " + String(static_cast<int>(temp)) + "C" + " " + "RH: " + String(static_cast<int>(humd)) + "%");
+
+    showIp = true;
+  }
+
   display.display();
 }
 
 void setup()
 {
   Serial.begin(115200);
-  button.setDebounceTime(50);
 
   display.init();
   display.backlight();
@@ -396,7 +352,6 @@ void setup()
   }
 
   dht.begin();
-  timeClient.begin();
   webSocket.begin();                 // websocket Begin
   webSocket.onEvent(webSocketEvent); // set Event for websocket
   debugln("# Websocket is started");
@@ -404,11 +359,8 @@ void setup()
 
 void loop()
 {
-  button.loop();
   wifiManager.process();
   webSocket.loop();
-  handleArtisan();
-  timeUpdater();
 
   isWifiConnected = WiFi.status() == WL_CONNECTED;
 
@@ -449,7 +401,6 @@ void loop()
       humd = 0;
       temp = 0;
       hic = 0;
-      return;
     }
     else
     {
@@ -470,37 +421,12 @@ void loop()
   {
     millisWebSocket = millis();
 
-    String arrJsonData[11] = {
-        "{",
-        "\"fv\":" + String(fwVersion),
-        ",\"timer\":" + String(timer),
-        ",\"et\":" + String(temp_et),
-        ",\"bt\":" + String(temp_bt),
-        ",\"rorEt\":" + String(ror_et),
-        ",\"rorBt\":" + String(ror_bt),
-        ",\"humd\":" + String(humd),
-        ",\"temp\":" + String(temp),
-        ",\"hic\":" + String(hic),
-        "}",
-    };
-
-    String jsonData;
-
-    for (int i = 0; i <= 10; i++)
-    {
-      jsonData = jsonData + arrJsonData[i];
-    }
+    updateJsonData();
 
     webSocket.broadcastTXT(jsonData);
     debugln("# isWifiConnected: " + String(isWifiConnected));
     debugln("# isEtBtSwapped: " + String(isEtBtSwapped));
     debugln("# intervalSendData: " + String(intervalSendData));
     debugln("# Json Data: " + jsonData);
-  }
-
-  if (button.isPressed())
-  {
-    if (++selectedAdditonalDisplay == 4)
-      selectedAdditonalDisplay = 0;
   }
 }
