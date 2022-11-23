@@ -2,6 +2,8 @@
 
 Coraster is device for monitoring coffee roaster machine with [Croaster App](https://play.google.com/store/apps/details?id=com.iiemb.croaster)
 
+[<img src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png" alt="Get it on Google Play" height="80">](https://play.google.com/store/apps/details?id=org.mariotaku.twidere)
+
 Build Your own Croaster now.
 
 ## Component
@@ -11,33 +13,30 @@ Build Your own Croaster now.
 * [Thermocoule](https://www.google.com/search?q=thermocouple+tipe+k) - I'm using type K thermocouple
 * [2x16 LCD Display with I2C Interface](https://www.google.com/search?q=2x16+LCD+Display+with+I2C+Interface)
 * [DHT11](https://www.google.com/search?q=dht11) - Optional
-* [Push Button](https://www.google.com/search?q=push+button) - Optional
-* [Jumper Cable](https://www.google.com/search?q=jumper+cable) - F to F, M to F, and M to M
+* [Jumper Cable](https://www.google.com/search?q=jumper+cable) - F to F
 
 ## App
 
 * [Arduino IDE](https://www.arduino.cc/en/software/) or
 * [Platform IO](https://platformio.org/)
-* [NodeMCU PyFlasher](https://github.com/marcelstoer/nodemcu-pyflasher) if you want to flash .bin file (for windows or macOS),or if you are using using linux you can use [esptool](https://github.com/espressif/esptool) 
+* [NodeMCU PyFlasher](https://github.com/marcelstoer/nodemcu-pyflasher) if you want to flash .bin file (for windows or macOS), or if you are using using linux you can use [esptool](https://github.com/espressif/esptool) 
 #
 
-### [.BIN Files](https://github.com/IiemB/Croaster/releases/tag/Release)
+### [. BIN Files](https://github.com/IiemB/Croaster/releases/tag/Release)
+
 #
 
 ## Libraries Dependencies
 
 * [ESP 8266](https://github.com/esp8266/Arduino)
-* [Time](https://github.com/PaulStoffregen/Time)
 * [LiquidCrystal_I2C](https://github.com/marcoschwartz/LiquidCrystal_I2C.git)
 * [MAX6675_Thermocouple](https://github.com/YuriiSalimov/MAX6675_Thermocouple)
-* [NTPClient](https://github.com/arduino-libraries/NTPClient)
 * [WiFiManager](https://github.com/tzapu/WiFiManager.git)
 * [Adafruit_BusIO](https://github.com/adafruit/Adafruit_BusIO)
 * [Adafruit-GFX-Library](https://github.com/adafruit/Adafruit-GFX-Library)
 * [Adafruit Unified Sensor](https://github.com/adafruit/Adafruit_Sensor)
 * [WebSockets](https://github.com/Links2004/arduinoWebSockets)
 * [DHT sensor library](https://github.com/adafruit/DHT-sensor-library)
-* [Button](https://github.com/ArduinoGetStarted/button)
 #
 
 ## Wiring
@@ -50,14 +49,6 @@ Build Your own Croaster now.
 | VCC |<=>| 3V |
 | SCL |<=>| D1 |
 | SDA |<=>| D2 |
-#
-
-####  Button
-
-| Button|| NodeMCU |
-| ------ |------| ------ |
-| 1st |<=>| D3 |
-| 2nd |<=>| 3V |
 #
 
 ####  DHT 11
