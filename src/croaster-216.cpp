@@ -4,9 +4,9 @@
 #include <WiFiUdp.h>
 #include <WebSocketsServer.h>
 #include <WiFiManager.h>
-#include <Thermocouple.h>
-#include <MAX6675_Thermocouple.h>
-#include <SPI.h>
+// #include <Thermocouple.h>
+// #include <MAX6675_Thermocouple.h>
+// #include <SPI.h>
 #include "DHT.h"
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
@@ -21,8 +21,8 @@
 #define CS_PIN_BT D5
 #define CS_PIN_ET D6
 
-Thermocouple *thermocouple_bt;
-Thermocouple *thermocouple_et;
+// Thermocouple *thermocouple_bt;
+// Thermocouple *thermocouple_et;
 float timer = 0;
 int temp_et = 0;
 int temp_bt = 0;
@@ -311,8 +311,8 @@ void setup()
 
   splash();
 
-  thermocouple_bt = new MAX6675_Thermocouple(SCK_PIN, CS_PIN_BT, SO_PIN);
-  thermocouple_et = new MAX6675_Thermocouple(SCK_PIN, CS_PIN_ET, SO_PIN);
+  // thermocouple_bt = new MAX6675_Thermocouple(SCK_PIN, CS_PIN_BT, SO_PIN);
+  // thermocouple_et = new MAX6675_Thermocouple(SCK_PIN, CS_PIN_ET, SO_PIN);
 
   wifiManager.setConfigPortalBlocking(false);
   wifiManager.setAPCallback(configModeCallback);
@@ -367,45 +367,54 @@ void loop()
   if (millis() - millisReadTemp >= 250)
   {
     millisReadTemp = millis();
-    if (isEtBtSwapped)
-    {
-      temp_bt = thermocouple_et->readCelsius();
-      temp_et = thermocouple_bt->readCelsius();
-    }
-    else
-    {
-      temp_et = thermocouple_et->readCelsius();
-      temp_bt = thermocouple_bt->readCelsius();
-    }
+    // if (isEtBtSwapped)
+    // {
+    //   temp_bt = thermocouple_et->readCelsius();
+    //   temp_et = thermocouple_bt->readCelsius();
+    // }
+    // else
+    // {
+    //   temp_et = thermocouple_et->readCelsius();
+    //   temp_bt = thermocouple_bt->readCelsius();
+    // }
+
+    // NOTE DUMMY
+    temp_et = random(30, 36);
+    temp_bt = random(30, 36);
 
     timer = millis() * 0.001;
 
-    if (isnan(temp_bt) || temp_bt > 9000)
-    {
-      debugln("# Failed to read BT!");
-      temp_bt = 0;
-    }
+    // if (isnan(temp_bt) || temp_bt > 9000)
+    // {
+    //   debugln("# Failed to read BT!");
+    //   temp_bt = 0;
+    // }
 
-    if (isnan(temp_et) || temp_et > 9000)
-    {
-      debugln("# Failed to read ET!");
-      temp_et = 0;
-    }
+    // if (isnan(temp_et) || temp_et > 9000)
+    // {
+    //   debugln("# Failed to read ET!");
+    //   temp_et = 0;
+    // }
 
-    humd = dht.readHumidity();
-    temp = dht.readTemperature();
+    // humd = dht.readHumidity();
+    // temp = dht.readTemperature();
 
-    if (isnan(humd) || isnan(temp))
-    {
-      debugln("# Failed to read from DHT sensor!");
-      humd = 0;
-      temp = 0;
-      hic = 0;
-    }
-    else
-    {
-      hic = dht.computeHeatIndex(temp, humd, false);
-    }
+    // if (isnan(humd) || isnan(temp))
+    // {
+    //   debugln("# Failed to read from DHT sensor!");
+    //   humd = 0;
+    //   temp = 0;
+    //   hic = 0;
+    // }
+    // else
+    // {
+    //   hic = dht.computeHeatIndex(temp, humd, false);
+    // }
+
+    // NOTE DUMMY
+    humd = random(30, 40);
+    temp = random(30, 40);
+    hic = dht.computeHeatIndex(temp, humd, false);
   }
 
   if (millis() - millisUpdateDisplay >= 1500)
@@ -424,9 +433,16 @@ void loop()
     updateJsonData();
 
     webSocket.broadcastTXT(jsonData);
-    debugln("# isWifiConnected: " + String(isWifiConnected));
+
+    debugln("");
+    if (isWifiConnected)
+    {
+      debugln("# " + WiFi.localIP().toString());
+    }
+
     debugln("# isEtBtSwapped: " + String(isEtBtSwapped));
     debugln("# intervalSendData: " + String(intervalSendData));
     debugln("# Json Data: " + jsonData);
+    debugln("");
   }
 }
