@@ -49,6 +49,7 @@ unsigned long millisIp = 0;
 unsigned long millisInvertDisplay = 0;
 unsigned long millisUpdateDisplay = 0;
 unsigned long intervalSendData = 3000;
+unsigned long millisUpdateROR = 0;
 
 //  Setup WiFiManager
 bool isWifiConnected = false;
@@ -89,42 +90,7 @@ void splash()
   delay(3000);
 }
 
-void getRor(int et, int bt, float timer)
-{
-  if (isArrInitialized)
-  {
-    for (int i = 0; i <= 59; i++)
-    {
-      arrEt[i] = arrEt[i + 1];
-      arrBt[i] = arrBt[i + 1];
-      arrTimer[i] = arrTimer[i + 1];
-    }
-
-    arrEt[59] = et;
-    arrBt[59] = bt;
-    arrTimer[59] = timer;
-
-    int32_t dEt = arrEt[59] - arrEt[0];
-    int32_t dBt = arrBt[59] - arrBt[0];
-    float dT = arrTimer[59] - arrTimer[0];
-
-    ror_et = (dEt / dT) * 60;
-    ror_bt = (dBt / dT) * 60;
-  }
-  else
-  {
-    for (int i = 0; i <= 59; i++)
-    {
-      arrEt[i] = et;
-      arrBt[i] = bt;
-      arrTimer[i] = timer;
-    }
-    isArrInitialized = true;
-  }
-}
-
 void configModeCallback(WiFiManager *myWiFiManager)
-
 {
   debugln("# Entered config mode");
   debug("# ");
@@ -280,26 +246,149 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
 
 void updateDisplay()
 {
-  display.clear();
-  display.setCursor(0, 0);
-  display.print("ET: " + String(temp_et) + " " + "BT: " + String(temp_bt));
 
-  if (showIp && isWifiConnected && !isCroasterConnected)
+  if (millis() - millisUpdateDisplay >= 1500)
   {
-    display.setCursor(0, 1);
-    display.print(WiFi.localIP().toString());
+    millisUpdateDisplay = millis();
 
-    showIp = false;
+    display.clear();
+    display.setCursor(0, 0);
+    display.print("ET: " + String(temp_et) + " " + "BT: " + String(temp_bt));
+
+    if (showIp && isWifiConnected && !isCroasterConnected)
+    {
+      display.setCursor(0, 1);
+      display.print(WiFi.localIP().toString());
+
+      showIp = false;
+    }
+    else
+    {
+      display.setCursor(0, 1);
+      display.print("RT: " + String(static_cast<int>(temp)) + "C" + " " + "RH: " + String(static_cast<int>(humd)) + "%");
+
+      showIp = true;
+    }
+
+    display.display();
   }
-  else
+}
+
+void readSensorData()
+{
+  if (millis() - millisReadTemp >= 250)
   {
-    display.setCursor(0, 1);
-    display.print("RT: " + String(static_cast<int>(temp)) + "C" + " " + "RH: " + String(static_cast<int>(humd)) + "%");
+    millisReadTemp = millis();
+    // if (isEtBtSwapped)
+    // {
+    //   temp_bt = thermocouple_et->readCelsius();
+    //   temp_et = thermocouple_bt->readCelsius();
+    // }
+    // else
+    // {
+    //   temp_et = thermocouple_et->readCelsius();
+    //   temp_bt = thermocouple_bt->readCelsius();
+    // }
 
-    showIp = true;
+    // NOTE DUMMY
+    temp_et = random(30, 36);
+    temp_bt = random(30, 36);
+
+    timer = millis() * 0.001;
+
+    // if (isnan(temp_bt) || temp_bt > 9000)
+    // {
+    //   debugln("# Failed to read BT!");
+    //   temp_bt = 0;
+    // }
+
+    // if (isnan(temp_et) || temp_et > 9000)
+    // {
+    //   debugln("# Failed to read ET!");
+    //   temp_et = 0;
+    // }
+
+    // humd = dht.readHumidity();
+    // temp = dht.readTemperature();
+
+    // if (isnan(humd) || isnan(temp))
+    // {
+    //   debugln("# Failed to read from DHT sensor!");
+    //   humd = 0;
+    //   temp = 0;
+    //   hic = 0;
+    // }
+    // else
+    // {
+    //   hic = dht.computeHeatIndex(temp, humd, false);
+    // }
+
+    // NOTE DUMMY
+    humd = random(30, 40);
+    temp = random(30, 40);
+    hic = dht.computeHeatIndex(temp, humd, false);
   }
+}
 
-  display.display();
+void updateROR(int et, int bt, float timer)
+{
+  if (millis() - millisUpdateROR >= 1000)
+  {
+    millisUpdateROR = millis();
+
+    if (isArrInitialized)
+    {
+      for (int i = 0; i <= 59; i++)
+      {
+        arrEt[i] = arrEt[i + 1];
+        arrBt[i] = arrBt[i + 1];
+        arrTimer[i] = arrTimer[i + 1];
+      }
+
+      arrEt[59] = et;
+      arrBt[59] = bt;
+      arrTimer[59] = timer;
+
+      int32_t dEt = arrEt[59] - arrEt[0];
+      int32_t dBt = arrBt[59] - arrBt[0];
+      float dT = arrTimer[59] - arrTimer[0];
+
+      ror_et = (dEt / dT) * 60;
+      ror_bt = (dBt / dT) * 60;
+    }
+    else
+    {
+      for (int i = 0; i <= 59; i++)
+      {
+        arrEt[i] = et;
+        arrBt[i] = bt;
+        arrTimer[i] = timer;
+      }
+      isArrInitialized = true;
+    }
+
+    updateJsonData();
+  }
+}
+
+void sendDataToCroaster()
+{
+  if (millis() - millisWebSocket >= intervalSendData)
+  {
+    millisWebSocket = millis();
+
+    debugln("");
+    if (isWifiConnected)
+    {
+      webSocket.broadcastTXT(jsonData);
+      debugln("# " + WiFi.localIP().toString());
+    }
+
+    debugln("# isEtBtSwapped: " + String(isEtBtSwapped));
+    debugln("# intervalSendData: " + String(intervalSendData));
+    debugln("# Json Data: " + jsonData);
+    debugln("");
+  }
 }
 
 void setup()
@@ -364,85 +453,11 @@ void loop()
 
   isWifiConnected = WiFi.status() == WL_CONNECTED;
 
-  if (millis() - millisReadTemp >= 250)
-  {
-    millisReadTemp = millis();
-    // if (isEtBtSwapped)
-    // {
-    //   temp_bt = thermocouple_et->readCelsius();
-    //   temp_et = thermocouple_bt->readCelsius();
-    // }
-    // else
-    // {
-    //   temp_et = thermocouple_et->readCelsius();
-    //   temp_bt = thermocouple_bt->readCelsius();
-    // }
+  readSensorData();
 
-    // NOTE DUMMY
-    temp_et = random(30, 36);
-    temp_bt = random(30, 36);
+  updateROR(temp_et, temp_bt, timer);
 
-    timer = millis() * 0.001;
+  updateDisplay();
 
-    // if (isnan(temp_bt) || temp_bt > 9000)
-    // {
-    //   debugln("# Failed to read BT!");
-    //   temp_bt = 0;
-    // }
-
-    // if (isnan(temp_et) || temp_et > 9000)
-    // {
-    //   debugln("# Failed to read ET!");
-    //   temp_et = 0;
-    // }
-
-    // humd = dht.readHumidity();
-    // temp = dht.readTemperature();
-
-    // if (isnan(humd) || isnan(temp))
-    // {
-    //   debugln("# Failed to read from DHT sensor!");
-    //   humd = 0;
-    //   temp = 0;
-    //   hic = 0;
-    // }
-    // else
-    // {
-    //   hic = dht.computeHeatIndex(temp, humd, false);
-    // }
-
-    // NOTE DUMMY
-    humd = random(30, 40);
-    temp = random(30, 40);
-    hic = dht.computeHeatIndex(temp, humd, false);
-  }
-
-  if (millis() - millisUpdateDisplay >= 1500)
-  {
-    millisUpdateDisplay = millis();
-
-    getRor(temp_et, temp_bt, timer);
-
-    updateDisplay();
-  }
-
-  if (millis() - millisWebSocket >= intervalSendData)
-  {
-    millisWebSocket = millis();
-
-    updateJsonData();
-
-    webSocket.broadcastTXT(jsonData);
-
-    debugln("");
-    if (isWifiConnected)
-    {
-      debugln("# " + WiFi.localIP().toString());
-    }
-
-    debugln("# isEtBtSwapped: " + String(isEtBtSwapped));
-    debugln("# intervalSendData: " + String(intervalSendData));
-    debugln("# Json Data: " + jsonData);
-    debugln("");
-  }
+  sendDataToCroaster();
 }
