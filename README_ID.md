@@ -1,12 +1,12 @@
 # Croaster
 
-Coraster is device for monitoring coffee roaster machine with [Croaster App](https://play.google.com/store/apps/details?id=com.iiemb.croaster) and can be connect with [Artisan](git@github.com:artisan-roaster-scope/artisan.git)
+Croaster adalah alat untuk memantau memantau proses penyangraian kopi dengan menggunakan [Croaster App](https://play.google.com/store/apps/details?id=com.iiemb.croaster) dan dapat dihubungkan dengan [Artisan](git@github.com:artisan-roaster-scope/artisan.git)
 
 [<img src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png" alt="Get it on Google Play" height="80">](https://play.google.com/store/apps/details?id=org.mariotaku.twidere)
 
-Build Your own Croaster now.
+Buat Croaster Anda sekarang!
 
-## Component
+## Komponen
 
 * [NodeMCU ESP8266](https://www.google.com/search?q=nodemcu+esp8266)
 * [MAX6675](https://www.google.com/search?q=max6675) x2
@@ -15,7 +15,7 @@ Build Your own Croaster now.
 * [DHT11](https://www.google.com/search?q=dht11) - Optional
 * [Jumper Cable](https://www.google.com/search?q=jumper+cable) - F to F
 
-## App
+## Aplikasi
 
 * [Arduino IDE](https://www.arduino.cc/en/software/) or
 * [Platform IO](https://platformio.org/)
@@ -26,7 +26,7 @@ Build Your own Croaster now.
 
 #
 
-## Libraries Dependencies
+## Library yang dibutuhkan
 
 * [ESP 8266](https://github.com/esp8266/Arduino)
 * [LiquidCrystal_I2C](https://github.com/marcoschwartz/LiquidCrystal_I2C.git)
@@ -39,7 +39,7 @@ Build Your own Croaster now.
 * [DHT sensor library](https://github.com/adafruit/DHT-sensor-library)
 #
 
-## Wiring
+## Pengkabelan
 
 ####  2x16 LCD Display with I2C
 
