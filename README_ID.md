@@ -22,7 +22,7 @@ Buat Croaster Anda sekarang!
 
 * [Arduino IDE](https://www.arduino.cc/en/software/) atau
 * [Platform IO](https://platformio.org/)
-* [NodeMCU PyFlasher](https://github.com/marcelstoer/nodemcu-pyflasher) if you want to flash .bin file (for windows or macOS), or if you are using using linux you can use [esptool](https://github.com/espressif/esptool) 
+* [NodeMCU PyFlasher](https://github.com/marcelstoer/nodemcu-pyflasher) Jika Anda ingin menginstall .bin file (untuk windows atau macOS), bisa menggunakan [esptool](https://github.com/espressif/esptool) 
 #
 
 ### [. BIN Files](https://github.com/IiemB/Croaster/releases/tag/Release)
