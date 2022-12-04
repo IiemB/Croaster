@@ -1,18 +1,21 @@
 # Croaster
 
-Coraster is device for monitoring coffee roaster machine with [Croaster App](https://play.google.com/store/apps/details?id=com.iiemb.croaster) and can be connect with [Artisan](https://github.com/artisan-roaster-scope/artisan)
+#### Coraster is device for monitoring coffee roaster machine with [Croaster App](https://play.google.com/store/apps/details?id=com.iiemb.croaster) and can be connect with [Artisan Reoaster Scope](https://github.com/artisan-roaster-scope/artisan)
 
-[<img src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png" alt="Get it on Google Play" height="80">](https://play.google.com/store/apps/details?id=com.iiemb.croaster)
+[![Croaster](https://i.ibb.co/BtSCgP0/icon.png)](https://play.google.com/store/apps/details?id=com.iiemb.croaster)
+[![Artisan](https://i.ibb.co/JxS5ZsD/artisan.png)](https://github.com/artisan-roaster-scope/artisan) 
 
-Build Your own Croaster now.
+#### Build Your own Croaster now.
+
+---
 
 ## Component
 
 * [NodeMCU ESP8266](https://www.google.com/search?q=nodemcu+esp8266)
 * [MAX6675](https://www.google.com/search?q=max6675) x2
-* [Thermocoule](https://www.google.com/search?q=thermocouple+tipe+k) - I'm using type K thermocouple
+* [Thermocoule](https://www.google.com/search?q=thermocouple+tipe+k) 
 * [2x16 LCD Display with I2C Interface](https://www.google.com/search?q=2x16+LCD+Display+with+I2C+Interface)
-* [DHT11](https://www.google.com/search?q=dht11) - Optional
+* [DHT11](https://www.google.com/search?q=dht11) 
 * [Jumper Cable](https://www.google.com/search?q=jumper+cable) - F to F
 
 ## App

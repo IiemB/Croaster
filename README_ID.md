@@ -1,23 +1,26 @@
 # Croaster
 
-Croaster adalah alat untuk memantau memantau proses penyangraian kopi dengan menggunakan [Croaster App](https://play.google.com/store/apps/details?id=com.iiemb.croaster) dan dapat dihubungkan dengan [Artisan](https://github.com/artisan-roaster-scope/artisan)
+#### Croaster adalah alat untuk memantau memantau proses penyangraian kopi dengan menggunakan [Croaster App](https://play.google.com/store/apps/details?id=com.iiemb.croaster) dan dapat dihubungkan dengan [Artisan Roaster Scope](https://github.com/artisan-roaster-scope/artisan)
 
-[<img src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png" alt="Get it on Google Play" height="80">](https://play.google.com/store/apps/details?id=com.iiemb.croaster)
+[![Croaster](https://i.ibb.co/BtSCgP0/icon.png)](https://play.google.com/store/apps/details?id=com.iiemb.croaster)
+[![Artisan](https://i.ibb.co/JxS5ZsD/artisan.png)](https://github.com/artisan-roaster-scope/artisan) 
 
 Buat Croaster Anda sekarang!
+
+---
 
 ## Komponen
 
 * [NodeMCU ESP8266](https://www.google.com/search?q=nodemcu+esp8266)
 * [MAX6675](https://www.google.com/search?q=max6675) x2
-* [Thermocoule](https://www.google.com/search?q=thermocouple+tipe+k) - I'm using type K thermocouple
+* [Thermocoule](https://www.google.com/search?q=thermocouple+tipe+k) 
 * [2x16 LCD Display with I2C Interface](https://www.google.com/search?q=2x16+LCD+Display+with+I2C+Interface)
-* [DHT11](https://www.google.com/search?q=dht11) - Optional
-* [Jumper Cable](https://www.google.com/search?q=jumper+cable) - F to F
+* [DHT11](https://www.google.com/search?q=dht11)
+* [Kabel Jumper](https://www.google.com/search?q=jumper+cable) - F to F
 
 ## Aplikasi
 
-* [Arduino IDE](https://www.arduino.cc/en/software/) or
+* [Arduino IDE](https://www.arduino.cc/en/software/) atau
 * [Platform IO](https://platformio.org/)
 * [NodeMCU PyFlasher](https://github.com/marcelstoer/nodemcu-pyflasher) if you want to flash .bin file (for windows or macOS), or if you are using using linux you can use [esptool](https://github.com/espressif/esptool) 
 #
