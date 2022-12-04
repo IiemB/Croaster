@@ -1,9 +1,9 @@
 # Croaster
 
-#### Croaster adalah alat untuk memantau memantau proses penyangraian kopi dengan menggunakan [Croaster App](https://play.google.com/store/apps/details?id=com.iiemb.croaster) dan dapat dihubungkan dengan [Artisan Roaster Scope](https://github.com/artisan-roaster-scope/artisan)
+#### Croaster adalah alat untuk memantau memantau proses penyangraian kopi dengan menggunakan [Croaster App](https://play.google.com/store/apps/details?id=com.iiemb.croaster) dan dapat dihubungkan dengan [Artisan Roaster Scope](https://artisan-scope.org/)
 
 [![Croaster](https://i.ibb.co/BtSCgP0/icon.png)](https://play.google.com/store/apps/details?id=com.iiemb.croaster)
-[![Artisan](https://i.ibb.co/JxS5ZsD/artisan.png)](https://github.com/artisan-roaster-scope/artisan) 
+[![Artisan](https://i.ibb.co/JxS5ZsD/artisan.png)](https://artisan-scope.org/) 
 
 Buat Croaster Anda sekarang!
 

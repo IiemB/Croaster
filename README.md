@@ -1,9 +1,9 @@
 # Croaster
 
-#### Coraster is device for monitoring coffee roaster machine with [Croaster App](https://play.google.com/store/apps/details?id=com.iiemb.croaster) and can be connect with [Artisan Reoaster Scope](https://github.com/artisan-roaster-scope/artisan)
+#### Coraster is device for monitoring coffee roaster machine with [Croaster App](https://play.google.com/store/apps/details?id=com.iiemb.croaster) and can be connect with [Artisan Reoaster Scope](https://artisan-scope.org/)
 
 [![Croaster](https://i.ibb.co/BtSCgP0/icon.png)](https://play.google.com/store/apps/details?id=com.iiemb.croaster)
-[![Artisan](https://i.ibb.co/JxS5ZsD/artisan.png)](https://github.com/artisan-roaster-scope/artisan) 
+[![Artisan](https://i.ibb.co/JxS5ZsD/artisan.png)](https://artisan-scope.org/) 
 
 #### Build Your own Croaster now.
 
