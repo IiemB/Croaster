@@ -40,6 +40,8 @@ private:
 
     float hic = 0;
 
+    bool useDummyData;
+
     void updateROR()
     {
         if (!(millis() - millisUpdateROR >= 1000))
@@ -90,47 +92,56 @@ private:
 
         timer = millis() * 0.001;
 
-        //     temp_bt = thermocouple_et->readCelsius();
-        //     temp_et = thermocouple_bt->readCelsius();
+        if (useDummyData)
+        {
+            // NOTE DUMMY
+            temp_et = random(30, 36);
+            temp_bt = random(30, 36);
 
-        // if (isnan(temp_bt) || temp_bt > 9000)
-        // {
-        //     debugln("# Failed to read BT!");
-        //     temp_bt = 0;
-        // }
+            humd = random(30, 40);
+            temp = random(30, 40);
+            hic = dht.computeHeatIndex(temp, humd, false);
+        }
+        else
+        {
+            temp_bt = thermocouple_et->readCelsius();
+            temp_et = thermocouple_bt->readCelsius();
 
-        // if (isnan(temp_et) || temp_et > 9000)
-        // {
-        //     debugln("# Failed to read ET!");
-        //     temp_et = 0;
-        // }
+            if (isnan(temp_bt) || temp_bt > 9000)
+            {
+                debugln("# Failed to read BT!");
+                temp_bt = 0;
+            }
 
-        // NOTE DUMMY
-        temp_et = random(30, 36);
-        temp_bt = random(30, 36);
+            if (isnan(temp_et) || temp_et > 9000)
+            {
+                debugln("# Failed to read ET!");
+                temp_et = 0;
+            }
 
-        // humd = dht.readHumidity();
-        // temp = dht.readTemperature();
+            humd = dht.readHumidity();
+            temp = dht.readTemperature();
 
-        // if (isnan(humd) || isnan(temp))
-        // {
-        //     debugln("# Failed to read from DHT sensor!");
-        //     humd = 0;
-        //     temp = 0;
-        //     hic = 0;
-        // }
-        // else
-        // {
-        //     hic = dht.computeHeatIndex(temp, humd, false);
-        // }
-
-        // NOTE DUMMY
-        humd = random(30, 40);
-        temp = random(30, 40);
-        hic = dht.computeHeatIndex(temp, humd, false);
+            if (isnan(humd) || isnan(temp))
+            {
+                debugln("# Failed to read from DHT sensor!");
+                humd = 0;
+                temp = 0;
+                hic = 0;
+            }
+            else
+            {
+                hic = dht.computeHeatIndex(temp, humd, false);
+            }
+        }
     }
 
 public:
+    Croaster(bool dummy)
+    {
+        useDummyData = dummy;
+    }
+
     const char *ssidName = "Croaster v2.3";
     float fwVersion = 2.3;
 

@@ -8,7 +8,7 @@
 #include <ArduinoJson.h>
 #include <Croaster.h>
 
-Croaster croaster;
+Croaster croaster(true);
 
 unsigned long millisWebSocket = 0;
 unsigned long millisUpdateDisplay = 0;
