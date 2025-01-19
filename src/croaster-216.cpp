@@ -8,7 +8,7 @@
 #include <ArduinoJson.h>
 #include <Croaster.h>
 
-Croaster croaster(true);
+Croaster croaster(true, "2.3");
 
 unsigned long millisWebSocket = 0;
 unsigned long millisUpdateDisplay = 0;
@@ -229,7 +229,7 @@ void setup()
   display.setCursor(0, 0);
   display.print("Firmware Version");
   display.setCursor(0, 1);
-  display.print(String(croaster.fwVersion));
+  display.print(String(croaster.versionName));
   display.display();
   delay(2000);
 

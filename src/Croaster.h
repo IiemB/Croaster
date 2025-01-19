@@ -57,6 +57,7 @@ private:
                 arrBt[i] = temp_bt;
                 arrTimer[i] = timer;
             }
+
             isArrInitialized = true;
 
             return;
@@ -137,13 +138,18 @@ private:
     }
 
 public:
-    Croaster(bool dummy)
+    Croaster(bool dummy, String version)
     {
         useDummyData = dummy;
+
+        versionName = version;
     }
 
-    const char *ssidName = "Croaster v2.3";
-    float fwVersion = 2.3;
+    String versionName;
+
+    String ssidNameStr = "Croaster v" + String(versionName);
+
+    const char *ssidName = ssidNameStr.c_str();
 
     unsigned long intervalSendData = 3000;
 
@@ -175,6 +181,7 @@ public:
         StaticJsonDocument<384> doc;
 
         doc["id"] = idJsonData;
+        doc["roasterID"] = ssidNameStr;
 
         if (message != "")
         {
@@ -188,7 +195,7 @@ public:
         data["ET"] = temp_et;
 
         JsonObject croaster = doc.createNestedObject("croaster");
-        croaster["fv"] = fwVersion;
+        croaster["fv"] = versionName;
         croaster["timer"] = timer;
         croaster["et"] = temp_et;
         croaster["bt"] = temp_bt;
