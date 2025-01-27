@@ -7,7 +7,7 @@
 #include <Croaster.h>
 
 // Globals
-Croaster croaster(true, 2.4);
+Croaster croaster(true, 2.42);
 
 WiFiManager wifiManager;
 WebSocketsServer webSocket(81);
@@ -34,8 +34,14 @@ void setup()
   display.backlight();
   croaster.init();
 
+  wifiManager.setDebugOutput(croaster.useDummyData);
   wifiManager.setConfigPortalBlocking(false);
   wifiManager.setAPCallback(configModeCallback);
+
+  wifiManager.setClass("invert");
+
+  // set custom ip for portal
+  wifiManager.setAPStaticIPConfig(IPAddress(10, 0, 1, 1), IPAddress(10, 0, 1, 1), IPAddress(255, 255, 255, 0));
 
   if (wifiManager.autoConnect(croaster.ssidName.c_str()))
     debugln("# WiFi Connected");

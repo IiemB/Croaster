@@ -30,8 +30,6 @@ private:
     unsigned long lastSensorRead = 0;
     unsigned long lastRORUpdate = 0;
 
-    bool useDummyData;
-
     float convertTemperature(float tempCelsius)
     {
         if (temperatureUnit == "F") // Fahrenheit
@@ -150,7 +148,7 @@ private:
     }
 
 public:
-    Croaster(bool dummyMode, const float &version)
+    Croaster(bool dummyMode, const double &version)
         : dht(DHT_PIN, DHTTYPE),
           useDummyData(dummyMode),
           versionCode(version),
@@ -166,9 +164,11 @@ public:
         delete thermocoupleET;
     }
 
+    bool useDummyData;
+
     String temperatureUnit = "C";
 
-    float versionCode;
+    double versionCode;
 
     String ssidName;
 
