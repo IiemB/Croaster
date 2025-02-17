@@ -1,3 +1,5 @@
+#  ⚠️ UNDER DEVELOPMENT ⚠️
+
 # Croaster
 
 Coraster is device for monitoring coffee roaster machine with [Croaster App](https://play.google.com/store/apps/details?id=com.iiemb.croaster)

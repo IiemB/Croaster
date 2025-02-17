@@ -6,14 +6,16 @@
 
 // Debug Macros
 #define debug(x) Serial.print(x)
+#define debugf(x, y) Serial.printf(x, y)
 #define debugln(x) Serial.println(x)
 
 // Pin Definitions
-#define SCK_PIN D8
-#define SO_PIN D7
-#define CS_PIN_BT D5
-#define CS_PIN_ET D6
-#define DHT_PIN D4
+#define SCK_PIN 7
+#define SO_PIN 6
+#define CS_PIN_BT 5
+#define CS_PIN_ET 8
+#define DHT_PIN 10
+
 #define DHTTYPE DHT11
 
 // Croaster Class Definition
