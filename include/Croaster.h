@@ -1,5 +1,4 @@
 #include <Arduino.h>
-#include <DHT.h>
 #include <MAX6675_Thermocouple.h>
 #include <WebSocketsServer.h>
 #include <ArduinoJson.h>
@@ -14,9 +13,6 @@
 #define SO_PIN 6
 #define CS_PIN_BT 5
 #define CS_PIN_ET 8
-#define DHT_PIN 10
-
-#define DHTTYPE DHT11
 
 // Croaster Class Definition
 class Croaster
@@ -24,7 +20,6 @@ class Croaster
 private:
     Thermocouple *thermocoupleBT;
     Thermocouple *thermocoupleET;
-    DHT dht;
 
     float etHistory[60] = {}, btHistory[60] = {}, timeHistory[60] = {};
     bool historyInitialized = false;
@@ -74,15 +69,11 @@ private:
         {
             tempBT = random(30, 40);
             tempET = random(30, 40);
-            humidity = random(30, 50);
-            tempR = random(20, 30);
         }
         else
         {
             tempBT = thermocoupleBT->readCelsius();
             tempET = thermocoupleET->readCelsius();
-            humidity = dht.readHumidity();
-            tempR = dht.readTemperature();
 
             if (isnan(tempBT))
             {
@@ -96,16 +87,8 @@ private:
                 tempET = 0;
             }
 
-            if (isnan(humidity) || isnan(tempR))
-            {
-                debugln("# Error: Failed to read DHT sensor!");
-                humidity = 0;
-                tempR = 0;
-            }
-
             tempBT = convertTemperature(tempBT);
             tempET = convertTemperature(tempET);
-            tempR = convertTemperature(tempR);
         }
     }
 
@@ -151,10 +134,9 @@ private:
 
 public:
     Croaster(bool dummyMode, const double &version)
-        : dht(DHT_PIN, DHTTYPE),
-          useDummyData(dummyMode),
+        : useDummyData(dummyMode),
           versionCode(version),
-          ssidName("Croaster V" + String(version))
+          ssidName("Croaster V" + String(version) + " BLE")
     {
         thermocoupleBT = new MAX6675_Thermocouple(SCK_PIN, CS_PIN_BT, SO_PIN);
         thermocoupleET = new MAX6675_Thermocouple(SCK_PIN, CS_PIN_ET, SO_PIN);
@@ -174,15 +156,11 @@ public:
 
     String ssidName;
 
-    float timer = 0, rorET = 0, rorBT = 0, tempET = 0, tempBT = 0, humidity = 0, tempR = 0;
+    float timer = 0, rorET = 0, rorBT = 0, tempET = 0, tempBT = 0;
     unsigned long intervalSendData = 3000;
     int idJsonData = 0;
 
-    void init()
-    {
-        dht.begin();
-        debugln("# Croaster Initialized.");
-    }
+    String ipAddress = "";
 
     void loop()
     {
@@ -207,12 +185,14 @@ public:
     }
 
     String getJsonData(const String &message = "", const bool &skipCroaster = false)
-
     {
         StaticJsonDocument<384> doc;
 
         doc["id"] = idJsonData;
         doc["roasterID"] = ssidName;
+
+        if (!ipAddress.isEmpty())
+            doc["ipAddress"] = ipAddress;
 
         if (!message.isEmpty())
             doc["message"] = message;
@@ -225,7 +205,7 @@ public:
         {
             JsonObject croaster = doc.createNestedObject("croaster");
 
-            croaster["version"] = "V" + String(versionCode);
+            croaster["version"] = "V" + String(versionCode) + " BLE";
             croaster["versionCode"] = versionCode;
             croaster["interval"] = intervalSendData;
             croaster["timer"] = timer;
@@ -233,8 +213,6 @@ public:
             croaster["tempBT"] = tempBT;
             croaster["rorET"] = rorET;
             croaster["rorBT"] = rorBT;
-            croaster["humidity"] = humidity;
-            croaster["tempR"] = tempR;
             croaster["tempUnit"] = String(temperatureUnit);
         }
 
