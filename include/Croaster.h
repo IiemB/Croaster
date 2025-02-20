@@ -4,8 +4,8 @@
 #include <ArduinoJson.h>
 
 // Debug Macros
-#define debug(x) Serial.print(x)
-#define debugf(x, y) Serial.printf(x, y)
+// #define debug(x) Serial.print(x)
+// #define debugf(x, y) Serial.printf(x, y)
 #define debugln(x) Serial.println(x)
 
 // Pin Definitions

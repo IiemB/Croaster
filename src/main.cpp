@@ -51,13 +51,13 @@ class MyServerCallbacks : public BLEServerCallbacks
     void onConnect(BLEServer *pServer) override
     {
         bleDeviceConnected = true;
-        debugln("✅ Client Connected");
+        debugln("# Client Connected");
     }
 
     void onDisconnect(BLEServer *pServer) override
     {
         bleDeviceConnected = false;
-        debugln("❌ Client Disconnected");
+        debugln("# Client Disconnected");
         BLEDevice::startAdvertising(); // Restart advertising
     }
 };
@@ -158,39 +158,39 @@ class MySecurityCallbacks : public BLESecurityCallbacks
 {
     uint32_t onPassKeyRequest()
     {
-        debugln("🔒 Passkey Request");
+        debugln("# Passkey Request");
         return passkey;
     }
     void onPassKeyNotify(uint32_t pass_key)
     {
-        debugf("🔑 Passkey: %06d\n", pass_key);
+        debugln("# Passkey: %06d\n" + pass_key);
     }
     bool onConfirmPIN(uint32_t pin)
     {
-        debugln("✅ PIN Confirmed");
+        debugln("# PIN Confirmed");
         return pin == passkey;
     }
     bool onSecurityRequest()
     {
-        debugln("🔐 Security Request");
+        debugln("# Security Request");
         return true;
     }
     void onAuthenticationComplete(esp_ble_auth_cmpl_t cmpl)
     {
         if (cmpl.success)
         {
-            debugln("✅ Authentication Success");
+            debugln("# Authentication Success");
         }
         else
         {
-            debugln("❌ Authentication Failed");
+            debugln("# Authentication Failed");
         }
     }
 };
 
 void setup()
 {
-    Serial.begin(115200);
+    Serial.begin(9600);
 
     while (!Serial)
         ;
@@ -233,7 +233,7 @@ void setup()
     pAdvertising->addServiceUUID(SERVICE_UUID);
     BLEDevice::startAdvertising();
 
-    debugln("📡 Bluetooth Logger ready and waiting for commands");
+    debugln("# Bluetooth Logger ready and waiting for commands");
 
     wifiManager.setDebugOutput(false);
     wifiManager.setConfigPortalBlocking(false);
