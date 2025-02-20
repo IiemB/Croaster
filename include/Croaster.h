@@ -133,7 +133,7 @@ private:
     }
 
 public:
-    Croaster(bool dummyMode, const double &version)
+    Croaster(const double &version, bool dummyMode = false)
         : useDummyData(dummyMode),
           versionCode(version),
           ssidName("Croaster V" + String(version) + " BLE")

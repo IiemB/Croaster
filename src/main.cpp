@@ -11,15 +11,15 @@
 #include <Croaster.h>
 
 // BLE UUIDs
-#define SERVICE_UUID "12345678-1234-1234-1234-123456789abc"
-#define CHARACTERISTIC_UUID "abcd1234-5678-90ab-cdef-1234567890ab"
+#define SERVICE_UUID "1cc9b045-a6e9-4bd5-b874-07d4f2d57843"
+#define CHARACTERISTIC_UUID "d56d0059-ad65-43f3-b971-431d48f89a69"
 
 // Global Variables
 BLEServer *pServer = nullptr;
 BLECharacteristic *pCharacteristic = nullptr;
 bool bleDeviceConnected = false;
 
-Croaster croaster(true, 2.42);
+Croaster croaster(2.43, true);
 
 WiFiManager wifiManager;
 WebSocketsServer webSocket(81);
@@ -42,6 +42,8 @@ void handleWebSocketEvent(const String &cmd, uint8_t num);
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length);
 void configModeCallback(WiFiManager *myWiFiManager);
 void showBLELogs();
+void restartESP();
+void eraseESP();
 
 // Callback for Client Connection
 class MyServerCallbacks : public BLEServerCallbacks
@@ -110,7 +112,7 @@ class MyCharacteristicCallbacks : public BLECharacteristicCallbacks
 
                     pCharacteristic->notify();
 
-                    ESP.restart();
+                    restartESP();
 
                     return;
                 }
@@ -123,9 +125,7 @@ class MyCharacteristicCallbacks : public BLECharacteristicCallbacks
 
                     pCharacteristic->notify();
 
-                    wifiManager.erase();
-
-                    ESP.restart();
+                    eraseESP();
 
                     return;
                 }
@@ -216,10 +216,7 @@ void setup()
         BLECharacteristic::PROPERTY_READ |
             BLECharacteristic::PROPERTY_NOTIFY |
             BLECharacteristic::PROPERTY_WRITE |
-            BLECharacteristic::PROPERTY_WRITE_NR |
-            BLECharacteristic::PROPERTY_NOTIFY);
-
-    pCharacteristic->addDescriptor(new BLE2902());
+            BLECharacteristic::PROPERTY_WRITE_NR);
 
     // Enable Security
     BLESecurity *pSecurity = new BLESecurity();
@@ -356,11 +353,7 @@ void handleWebSocketEvent(const String &cmd, uint8_t num)
         {
             String jsonData = croaster.getJsonData(socketEventMessage);
 
-            webSocket.sendTXT(num, jsonData);
-
-            wifiManager.erase();
-
-            ESP.restart();
+            eraseESP();
 
             return;
         }
@@ -439,4 +432,16 @@ void showBLELogs()
         debugln(("[BLE] " + logMessage).c_str());
         delay(1000);
     }
+}
+
+void restartESP()
+{
+    ESP.restart();
+}
+
+void eraseESP()
+{
+    wifiManager.erase();
+
+    restartESP();
 }
