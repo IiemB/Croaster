@@ -418,19 +418,19 @@ void configModeCallback(WiFiManager *myWiFiManager)
 
 void showBLELogs()
 {
-    if (millis() - lastShowBleLogs < 1500)
+    if (millis() - lastShowBleLogs < 5000)
         return;
 
     lastShowBleLogs = millis();
 
+    String status = "NOT CONNECTED";
+
     if (bleDeviceConnected)
     {
-        String logMessage = "Log: " + String(millis());
-        pCharacteristic->setValue(logMessage.c_str());
-        pCharacteristic->notify();
-        debugln(("[BLE] " + logMessage).c_str());
-        delay(1000);
+        status = "CONNECTED";
     }
+
+    debugln(("# [BLE] " + status).c_str());
 }
 
 void restartESP()
