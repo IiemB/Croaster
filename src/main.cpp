@@ -3,7 +3,6 @@
 #include <BLEUtils.h>
 #include <BLEServer.h>
 #include <BLE2902.h>
-#include <SPI.h>
 #include <WiFiManager.h>
 #include <WebSocketsServer.h>
 #include <LiquidCrystal_I2C.h>
@@ -19,7 +18,7 @@ BLEServer *pServer = nullptr;
 BLECharacteristic *pCharacteristic = nullptr;
 bool bleDeviceConnected = false;
 
-Croaster croaster(2.43, true);
+Croaster croaster(2.44, true);
 
 WiFiManager wifiManager;
 WebSocketsServer webSocket(81);
@@ -190,7 +189,7 @@ class MySecurityCallbacks : public BLESecurityCallbacks
 
 void setup()
 {
-    Serial.begin(9600);
+    Serial.begin(115200);
 
     while (!Serial)
         ;
