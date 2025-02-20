@@ -200,7 +200,7 @@ void setup()
 
     display.backlight();
 
-    debugln("🚀 Starting BLE Server...");
+    debugln("# Starting BLE Server...");
 
     // Initialize BLE
     BLEDevice::init(croaster.ssidName.c_str());
