@@ -19,7 +19,7 @@ BLECharacteristic *pDataCharacteristic = nullptr;
 
 bool bleDeviceConnected = false;
 
-Croaster croaster(2.45, true);
+Croaster croaster(2.46, true);
 
 WiFiManager wifiManager;
 WebSocketsServer webSocket(81);
@@ -192,9 +192,6 @@ class MySecurityCallbacks : public BLESecurityCallbacks
 void setup()
 {
     Serial.begin(115200);
-
-    while (!Serial)
-        ;
 
     delay(1000);
 
