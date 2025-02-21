@@ -11,11 +11,12 @@
 
 // BLE UUIDs
 #define SERVICE_UUID "1cc9b045-a6e9-4bd5-b874-07d4f2d57843"
-#define CHARACTERISTIC_UUID "d56d0059-ad65-43f3-b971-431d48f89a69"
+#define DATA_UUID "d56d0059-ad65-43f3-b971-431d48f89a69"
 
 // Global Variables
 BLEServer *pServer = nullptr;
-BLECharacteristic *pCharacteristic = nullptr;
+BLECharacteristic *pDataCharacteristic = nullptr;
+
 bool bleDeviceConnected = false;
 
 Croaster croaster(2.44, true);
@@ -28,7 +29,6 @@ uint32_t passkey = 123456; // Set your PIN here
 
 unsigned long lastWebSocketSend = 0;
 unsigned long lastDisplayUpdate = 0;
-unsigned long lastShowBleLogs = 0;
 
 bool showIp = false;
 
@@ -40,7 +40,6 @@ void broadcastData();
 void handleWebSocketEvent(const String &cmd, uint8_t num);
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length);
 void configModeCallback(WiFiManager *myWiFiManager);
-void showBLELogs();
 void restartESP();
 void eraseESP();
 
@@ -83,8 +82,11 @@ class MyCharacteristicCallbacks : public BLECharacteristicCallbacks
             if (deserializeJson(request, cmd))
             {
                 debugln("# Invalid JSON command");
+
                 return;
             }
+
+            debugln("# [BLE] [cmd] " + cmd);
 
             // Handle Commands and Send Responses
 
@@ -207,11 +209,11 @@ void setup()
     pServer = BLEDevice::createServer();
     pServer->setCallbacks(new MyServerCallbacks());
 
-    // Create BLE Service and Characteristic
+    // Create BLE Service and Characteristics
     BLEService *pService = pServer->createService(SERVICE_UUID);
 
-    pCharacteristic = pService->createCharacteristic(
-        CHARACTERISTIC_UUID,
+    pDataCharacteristic = pService->createCharacteristic(
+        DATA_UUID,
         BLECharacteristic::PROPERTY_READ |
             BLECharacteristic::PROPERTY_NOTIFY |
             BLECharacteristic::PROPERTY_WRITE |
@@ -223,8 +225,8 @@ void setup()
     pSecurity->setAuthenticationMode(ESP_LE_AUTH_BOND);
 
     // Add Descriptor for Notifications
-    pCharacteristic->addDescriptor(new BLE2902());
-    pCharacteristic->setCallbacks(new MyCharacteristicCallbacks());
+    pDataCharacteristic->addDescriptor(new BLE2902());
+    pDataCharacteristic->setCallbacks(new MyCharacteristicCallbacks());
 
     // Start Service and Advertising
     pService->start();
@@ -259,7 +261,6 @@ void loop()
     croaster.loop();
     updateDisplay();
     broadcastData();
-    showBLELogs();
 }
 
 // Function Implementations
@@ -416,26 +417,9 @@ void configModeCallback(WiFiManager *myWiFiManager)
     debugln("# Config mode: " + WiFi.softAPIP().toString());
 }
 
-void showBLELogs()
-{
-    if (millis() - lastShowBleLogs < 5000)
-        return;
-
-    lastShowBleLogs = millis();
-
-    String status = "NOT CONNECTED";
-
-    if (bleDeviceConnected)
-    {
-        status = "CONNECTED";
-    }
-
-    debugln(("# [BLE] " + status).c_str());
-}
-
 void restartESP()
 {
-    ESP.restart();
+    wifiManager.reboot();
 }
 
 void eraseESP()
