@@ -14,7 +14,7 @@ def convert_main():
     if not os.path.exists(target_directory):
         os.makedirs(target_directory)
 
-    target_file = os.path.join(target_directory, "main.ino")
+    target_file = os.path.join(target_directory, "Croaster.ino")
 
     with open(source_file, "r") as src, open(target_file, "w") as dest:
         for line in src:
