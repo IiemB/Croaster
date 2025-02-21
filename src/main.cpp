@@ -19,7 +19,7 @@ BLECharacteristic *pDataCharacteristic = nullptr;
 
 bool bleDeviceConnected = false;
 
-Croaster croaster(2.44, true);
+Croaster croaster(2.45, true);
 
 WiFiManager wifiManager;
 WebSocketsServer webSocket(81);
