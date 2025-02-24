@@ -410,11 +410,18 @@ void blinkLED()
 {
   unsigned long intervalLED = 500;
 
-  if (bleDeviceConnected)
-    intervalLED = 1500;
+  if (WiFi.isConnected() && bleDeviceConnected)
+  {
+    intervalLED = 1000;
+  }
+  else
+  {
+    if (WiFi.isConnected())
+      intervalLED = 3000;
 
-  if (WiFi.isConnected())
-    intervalLED = 200;
+    if (bleDeviceConnected)
+      intervalLED = 2000;
+  }
 
   if (millis() - lastBlinkLed < intervalLED)
     return;
