@@ -46,388 +46,388 @@ void eraseESP();
 // Callback for Client Connection
 class MyServerCallbacks : public BLEServerCallbacks
 {
-    void onConnect(BLEServer *pServer) override
-    {
-        bleDeviceConnected = true;
-        debugln("# Client Connected");
-    }
+  void onConnect(BLEServer *pServer) override
+  {
+    bleDeviceConnected = true;
+    debugln("# Client Connected");
+  }
 
-    void onDisconnect(BLEServer *pServer) override
-    {
-        bleDeviceConnected = false;
-        debugln("# Client Disconnected");
-        BLEDevice::startAdvertising(); // Restart advertising
-    }
+  void onDisconnect(BLEServer *pServer) override
+  {
+    bleDeviceConnected = false;
+    debugln("# Client Disconnected");
+    BLEDevice::startAdvertising(); // Restart advertising
+  }
 };
 
 // Callback for Data Written from Client
 class MyCharacteristicCallbacks : public BLECharacteristicCallbacks
 {
-    void onWrite(BLECharacteristic *pCharacteristic) override
+  void onWrite(BLECharacteristic *pCharacteristic) override
+  {
+    String receivedData = (pCharacteristic->getValue()).c_str();
+
+    if (receivedData.length() > 0)
     {
-        String receivedData = (pCharacteristic->getValue()).c_str();
+      // Convert HEX to string
+      String cmd = "";
 
-        if (receivedData.length() > 0)
+      for (char c : receivedData)
+      {
+        cmd += (char)c;
+      }
+
+      StaticJsonDocument<96> request;
+
+      if (deserializeJson(request, cmd))
+      {
+        debugln("# Invalid JSON command");
+
+        return;
+      }
+
+      debugln("# [BLE] [cmd] " + cmd);
+
+      // Handle Commands and Send Responses
+
+      if (request["command"].is<String>())
+      {
+        String command = request["command"];
+
+        if (command == "getData")
         {
-            // Convert HEX to string
-            String cmd = "";
+          String jsonData = croaster.getJsonData(command);
 
-            for (char c : receivedData)
-            {
-                cmd += (char)c;
-            }
+          pCharacteristic->setValue(jsonData.c_str());
 
-            StaticJsonDocument<96> request;
+          pCharacteristic->notify();
 
-            if (deserializeJson(request, cmd))
-            {
-                debugln("# Invalid JSON command");
-
-                return;
-            }
-
-            debugln("# [BLE] [cmd] " + cmd);
-
-            // Handle Commands and Send Responses
-
-            if (request["command"].is<String>())
-            {
-                String command = request["command"];
-
-                if (command == "getData")
-                {
-                    String jsonData = croaster.getJsonData(command);
-
-                    pCharacteristic->setValue(jsonData.c_str());
-
-                    pCharacteristic->notify();
-
-                    return;
-                }
-
-                if (command == "restartesp")
-                {
-                    String jsonData = croaster.getJsonData(command);
-
-                    pCharacteristic->setValue(jsonData.c_str());
-
-                    pCharacteristic->notify();
-
-                    restartESP();
-
-                    return;
-                }
-
-                if (command == "erase")
-                {
-                    String jsonData = croaster.getJsonData(command);
-
-                    pCharacteristic->setValue(jsonData.c_str());
-
-                    pCharacteristic->notify();
-
-                    eraseESP();
-
-                    return;
-                }
-            }
-
-            if (request["command"].is<JsonObject>())
-            {
-                JsonObject command = request["command"];
-
-                if (command.containsKey("tempUnit") && command["tempUnit"].is<String>())
-                {
-                    String tempUnit = command["tempUnit"]; // Read tempUnit value
-
-                    croaster.changeTemperatureUnit(tempUnit);
-
-                    String jsonData = croaster.getJsonData(tempUnit);
-
-                    pCharacteristic->setValue(jsonData.c_str());
-
-                    pCharacteristic->notify();
-
-                    return;
-                }
-            }
+          return;
         }
+
+        if (command == "restartesp")
+        {
+          String jsonData = croaster.getJsonData(command);
+
+          pCharacteristic->setValue(jsonData.c_str());
+
+          pCharacteristic->notify();
+
+          restartESP();
+
+          return;
+        }
+
+        if (command == "erase")
+        {
+          String jsonData = croaster.getJsonData(command);
+
+          pCharacteristic->setValue(jsonData.c_str());
+
+          pCharacteristic->notify();
+
+          eraseESP();
+
+          return;
+        }
+      }
+
+      if (request["command"].is<JsonObject>())
+      {
+        JsonObject command = request["command"];
+
+        if (command.containsKey("tempUnit") && command["tempUnit"].is<String>())
+        {
+          String tempUnit = command["tempUnit"]; // Read tempUnit value
+
+          croaster.changeTemperatureUnit(tempUnit);
+
+          String jsonData = croaster.getJsonData(tempUnit);
+
+          pCharacteristic->setValue(jsonData.c_str());
+
+          pCharacteristic->notify();
+
+          return;
+        }
+      }
     }
+  }
 };
 
 class MySecurityCallbacks : public BLESecurityCallbacks
 {
-    uint32_t onPassKeyRequest()
+  uint32_t onPassKeyRequest()
+  {
+    debugln("# Passkey Request");
+    return passkey;
+  }
+  void onPassKeyNotify(uint32_t pass_key)
+  {
+    debugln("# Passkey: %06d\n" + pass_key);
+  }
+  bool onConfirmPIN(uint32_t pin)
+  {
+    debugln("# PIN Confirmed");
+    return pin == passkey;
+  }
+  bool onSecurityRequest()
+  {
+    debugln("# Security Request");
+    return true;
+  }
+  void onAuthenticationComplete(esp_ble_auth_cmpl_t cmpl)
+  {
+    if (cmpl.success)
     {
-        debugln("# Passkey Request");
-        return passkey;
+      debugln("# Authentication Success");
     }
-    void onPassKeyNotify(uint32_t pass_key)
+    else
     {
-        debugln("# Passkey: %06d\n" + pass_key);
+      debugln("# Authentication Failed");
     }
-    bool onConfirmPIN(uint32_t pin)
-    {
-        debugln("# PIN Confirmed");
-        return pin == passkey;
-    }
-    bool onSecurityRequest()
-    {
-        debugln("# Security Request");
-        return true;
-    }
-    void onAuthenticationComplete(esp_ble_auth_cmpl_t cmpl)
-    {
-        if (cmpl.success)
-        {
-            debugln("# Authentication Success");
-        }
-        else
-        {
-            debugln("# Authentication Failed");
-        }
-    }
+  }
 };
 
 void setup()
 {
-    Serial.begin(115200);
+  Serial.begin(115200);
 
-    Wire.begin(SDA, SCL);
+  Wire.begin(SDA, SCL);
 
-    delay(1000);
+  delay(1000);
 
-    display.init();
+  display.init();
 
-    display.backlight();
+  display.backlight();
 
-    debugln("# Starting BLE Server...");
+  debugln("# Setting up WiFi Manager");
 
-    // Initialize BLE
-    BLEDevice::init(croaster.ssidName.c_str());
-    pServer = BLEDevice::createServer();
-    pServer->setCallbacks(new MyServerCallbacks());
+  wifiManager.setDebugOutput(croaster.useDummyData);
+  wifiManager.setConfigPortalBlocking(false);
+  wifiManager.setAPCallback(configModeCallback);
 
-    // Create BLE Service and Characteristics
-    BLEService *pService = pServer->createService(SERVICE_UUID);
+  wifiManager.setClass("invert");
 
-    pDataCharacteristic = pService->createCharacteristic(
-        DATA_UUID,
-        BLECharacteristic::PROPERTY_READ |
-            BLECharacteristic::PROPERTY_NOTIFY |
-            BLECharacteristic::PROPERTY_WRITE |
-            BLECharacteristic::PROPERTY_WRITE_NR);
+  // set custom ip for portal
+  wifiManager.setAPStaticIPConfig(IPAddress(10, 0, 1, 1), IPAddress(10, 0, 1, 1), IPAddress(255, 255, 255, 0));
 
-    // Enable Security
-    BLESecurity *pSecurity = new BLESecurity();
-    pSecurity->setStaticPIN(passkey);
-    pSecurity->setAuthenticationMode(ESP_LE_AUTH_BOND);
+  if (wifiManager.autoConnect(croaster.ssidName.c_str()))
+    debugln("# WiFi Connected");
 
-    // Add Descriptor for Notifications
-    pDataCharacteristic->addDescriptor(new BLE2902());
-    pDataCharacteristic->setCallbacks(new MyCharacteristicCallbacks());
+  debugln("# Starting BLE Server");
 
-    // Start Service and Advertising
-    pService->start();
-    BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
-    pAdvertising->addServiceUUID(SERVICE_UUID);
-    BLEDevice::startAdvertising();
+  // Initialize BLE
+  BLEDevice::init(croaster.ssidName.c_str());
+  pServer = BLEDevice::createServer();
+  pServer->setCallbacks(new MyServerCallbacks());
 
-    debugln("# Bluetooth Logger ready and waiting for commands");
+  // Create BLE Service and Characteristics
+  BLEService *pService = pServer->createService(SERVICE_UUID);
 
-    wifiManager.setDebugOutput(croaster.useDummyData);
-    wifiManager.setConfigPortalBlocking(false);
-    wifiManager.setAPCallback(configModeCallback);
+  pDataCharacteristic = pService->createCharacteristic(
+      DATA_UUID,
+      BLECharacteristic::PROPERTY_READ |
+          BLECharacteristic::PROPERTY_NOTIFY |
+          BLECharacteristic::PROPERTY_WRITE |
+          BLECharacteristic::PROPERTY_WRITE_NR);
 
-    wifiManager.setClass("invert");
+  // Enable Security
+  BLESecurity *pSecurity = new BLESecurity();
+  pSecurity->setStaticPIN(passkey);
+  pSecurity->setAuthenticationMode(ESP_LE_AUTH_BOND);
 
-    // set custom ip for portal
-    wifiManager.setAPStaticIPConfig(IPAddress(10, 0, 1, 1), IPAddress(10, 0, 1, 1), IPAddress(255, 255, 255, 0));
+  // Add Descriptor for Notifications
+  pDataCharacteristic->addDescriptor(new BLE2902());
+  pDataCharacteristic->setCallbacks(new MyCharacteristicCallbacks());
 
-    if (wifiManager.autoConnect(croaster.ssidName.c_str()))
-        debugln("# WiFi Connected");
+  // Start Service and Advertising
+  pService->start();
+  BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
+  pAdvertising->addServiceUUID(SERVICE_UUID);
+  BLEDevice::startAdvertising();
 
-    debugln("# Wifi ready");
+  debugln("# Bluetooth Logger ready and waiting for commands");
 
-    webSocket.begin();
-    webSocket.onEvent(webSocketEvent);
-    debugln("# WebSocket started");
+  webSocket.begin();
+  webSocket.onEvent(webSocketEvent);
+  debugln("# WebSocket started");
 }
 
 void loop()
 {
 
-    wifiManager.process();
-    webSocket.loop();
-    croaster.loop();
-    updateDisplay();
-    broadcastData();
+  wifiManager.process();
+  webSocket.loop();
+  croaster.loop();
+  updateDisplay();
+  broadcastData();
 }
 
 // Function Implementations
 
 void updateDisplay()
 {
-    if (millis() - lastDisplayUpdate < 1500)
-        return;
+  if (millis() - lastDisplayUpdate < 1500)
+    return;
 
-    lastDisplayUpdate = millis();
+  lastDisplayUpdate = millis();
 
-    String textET = "ET: " + String(int(trunc(croaster.tempET)));
-    String textBT = "BT: " + String(int(trunc(croaster.tempBT)));
+  String textET = "ET: " + String(int(trunc(croaster.tempET)));
+  String textBT = "BT: " + String(int(trunc(croaster.tempBT)));
 
-    display.clear();
-    display.setCursor(0, 0);
-    display.print(textET + " " + textBT);
-    display.setCursor(0, 1);
-    if (WiFi.isConnected())
-    {
-        display.print(WiFi.localIP().toString());
-    }
-    else
-    {
-        display.print("10.0.1.1");
-    }
+  display.clear();
+  display.setCursor(0, 0);
+  display.print(textET + " " + textBT);
+  display.setCursor(0, 1);
+  if (WiFi.isConnected())
+  {
+    display.print(WiFi.localIP().toString());
+  }
+  else
+  {
+    display.print("10.0.1.1");
+  }
 }
 
 void broadcastData()
 {
-    if (millis() - lastWebSocketSend < croaster.intervalSendData)
-        return;
+  if (millis() - lastWebSocketSend < croaster.intervalSendData)
+    return;
 
-    lastWebSocketSend = millis();
+  lastWebSocketSend = millis();
 
-    String jsonData = croaster.getJsonData(socketEventMessage);
+  String jsonData = croaster.getJsonData(socketEventMessage);
 
-    webSocket.broadcastTXT(jsonData);
+  webSocket.broadcastTXT(jsonData);
 
-    debugln("");
-    debugln("# " + WiFi.localIP().toString());
-    debugln("# Json Data: " + jsonData);
+  debugln("");
+  debugln("# " + WiFi.localIP().toString());
+  debugln("# Json Data: " + jsonData);
 
-    socketEventMessage = "";
+  socketEventMessage = "";
 }
 
 void handleWebSocketEvent(const String &cmd, uint8_t num)
 {
-    StaticJsonDocument<96> request;
+  StaticJsonDocument<96> request;
 
-    if (deserializeJson(request, cmd))
+  if (deserializeJson(request, cmd))
+  {
+    debugln("# Invalid JSON command");
+    return;
+  }
+
+  if (request["command"].is<String>())
+  {
+    String command = request["command"];
+
+    socketEventMessage = command;
+
+    // Send data to Artisan
+    if (command == "getData")
     {
-        debugln("# Invalid JSON command");
-        return;
+      croaster.idJsonData = request["id"];
+
+      socketEventMessage = "";
+
+      String jsonData = croaster.getJsonData(socketEventMessage, true);
+
+      webSocket.broadcastTXT(jsonData);
+
+      debugln("");
+      debugln("# Json Data Artisan: " + jsonData);
+
+      return;
     }
 
-    if (request["command"].is<String>())
+    if (command == "restartesp")
     {
-        String command = request["command"];
+      String jsonData = croaster.getJsonData(socketEventMessage);
 
-        socketEventMessage = command;
+      webSocket.sendTXT(num, jsonData);
 
-        // Send data to Artisan
-        if (command == "getData")
-        {
-            croaster.idJsonData = request["id"];
+      ESP.restart();
 
-            socketEventMessage = "";
-
-            String jsonData = croaster.getJsonData(socketEventMessage, true);
-
-            webSocket.broadcastTXT(jsonData);
-
-            debugln("");
-            debugln("# Json Data Artisan: " + jsonData);
-
-            return;
-        }
-
-        if (command == "restartesp")
-        {
-            String jsonData = croaster.getJsonData(socketEventMessage);
-
-            webSocket.sendTXT(num, jsonData);
-
-            ESP.restart();
-
-            return;
-        }
-
-        if (command == "erase")
-        {
-            String jsonData = croaster.getJsonData(socketEventMessage);
-
-            eraseESP();
-
-            return;
-        }
+      return;
     }
 
-    if (request["command"].is<JsonObject>())
+    if (command == "erase")
     {
-        JsonObject command = request["command"];
+      String jsonData = croaster.getJsonData(socketEventMessage);
 
-        // Handle interval update
-        if (command.containsKey("interval") && command["interval"].is<int>())
-        {
-            int intervalSeconds = command["interval"]; // Read interval value
+      eraseESP();
 
-            croaster.intervalSendData = intervalSeconds * 1000; // Convert seconds to milliseconds
-
-            debugln("# Interval updated to " + String(intervalSeconds) + " seconds");
-
-            socketEventMessage = String(intervalSeconds) + "seconds";
-        }
-
-        if (command.containsKey("tempUnit") && command["tempUnit"].is<String>())
-        {
-            String tempUnit = command["tempUnit"]; // Read tempUnit value
-
-            croaster.changeTemperatureUnit(tempUnit);
-
-            debugln("# Temperature Unit updated to " + tempUnit);
-
-            socketEventMessage = tempUnit;
-        }
+      return;
     }
+  }
+
+  if (request["command"].is<JsonObject>())
+  {
+    JsonObject command = request["command"];
+
+    // Handle interval update
+    if (command.containsKey("interval") && command["interval"].is<int>())
+    {
+      int intervalSeconds = command["interval"]; // Read interval value
+
+      croaster.intervalSendData = intervalSeconds * 1000; // Convert seconds to milliseconds
+
+      debugln("# Interval updated to " + String(intervalSeconds) + " seconds");
+
+      socketEventMessage = String(intervalSeconds) + "seconds";
+    }
+
+    if (command.containsKey("tempUnit") && command["tempUnit"].is<String>())
+    {
+      String tempUnit = command["tempUnit"]; // Read tempUnit value
+
+      croaster.changeTemperatureUnit(tempUnit);
+
+      debugln("# Temperature Unit updated to " + tempUnit);
+
+      socketEventMessage = tempUnit;
+    }
+  }
 }
 
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
 {
-    switch (type)
-    {
-    case WStype_DISCONNECTED:
-        debugln("# WebSocket disconnected");
-        break;
+  switch (type)
+  {
+  case WStype_DISCONNECTED:
+    debugln("# WebSocket disconnected");
+    break;
 
-    case WStype_CONNECTED:
-        debugln("# WebSocket connected");
+  case WStype_CONNECTED:
+    debugln("# WebSocket connected");
 
-        croaster.ipAddress = WiFi.localIP().toString();
+    croaster.ipAddress = WiFi.localIP().toString();
 
-        break;
+    break;
 
-    case WStype_TEXT:
-        handleWebSocketEvent(String((char *)payload), num);
-        break;
+  case WStype_TEXT:
+    handleWebSocketEvent(String((char *)payload), num);
+    break;
 
-    default:
-        break;
-    }
+  default:
+    break;
+  }
 }
 
 void configModeCallback(WiFiManager *myWiFiManager)
 {
-    debugln("# Config mode: " + WiFi.softAPIP().toString());
+  debugln("# Config mode: " + WiFi.softAPIP().toString());
 }
 
 void restartESP()
 {
-    wifiManager.reboot();
+  wifiManager.reboot();
 }
 
 void eraseESP()
 {
-    wifiManager.erase();
+  wifiManager.erase();
 
-    restartESP();
+  restartESP();
 }
