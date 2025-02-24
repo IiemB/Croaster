@@ -28,6 +28,9 @@ uint32_t passkey = 123456; // Set your PIN here
 unsigned long lastWebSocketSend = 0;
 unsigned long lastDisplayUpdate = 0;
 
+unsigned long lastBlinkLed = 0;
+bool isLedOn = false;
+
 String socketEventMessage = "";
 
 // Function Prototypes
@@ -37,6 +40,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
 void configModeCallback(WiFiManager *myWiFiManager);
 void restartESP();
 void eraseESP();
+void blinkLED();
 
 // Callback for Client Connection
 class MyServerCallbacks : public BLEServerCallbacks
@@ -188,6 +192,10 @@ void setup()
 {
   Serial.begin(115200);
 
+  pinMode(LED_BUILTIN, OUTPUT);
+
+  digitalWrite(LED_BUILTIN, LOW);
+
   delay(1000);
 
   debugln("# Setting up WiFi Manager");
@@ -245,11 +253,11 @@ void setup()
 
 void loop()
 {
-
   wifiManager.process();
   webSocket.loop();
   croaster.loop();
   broadcastData();
+  blinkLED();
 }
 
 // Function Implementations
@@ -361,6 +369,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
   {
   case WStype_DISCONNECTED:
     debugln("# WebSocket disconnected");
+
     break;
 
   case WStype_CONNECTED:
@@ -372,6 +381,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
 
   case WStype_TEXT:
     handleWebSocketEvent(String((char *)payload), num);
+
     break;
 
   default:
@@ -394,4 +404,31 @@ void eraseESP()
   wifiManager.erase();
 
   restartESP();
+}
+
+void blinkLED()
+{
+  unsigned long intervalLED = 500;
+
+  if (bleDeviceConnected)
+    intervalLED = 1500;
+
+  if (WiFi.isConnected())
+    intervalLED = 200;
+
+  if (millis() - lastBlinkLed < intervalLED)
+    return;
+
+  lastBlinkLed = millis();
+
+  if (isLedOn)
+  {
+    digitalWrite(LED_BUILTIN, LOW);
+    isLedOn = false;
+  }
+  else
+  {
+    digitalWrite(LED_BUILTIN, HIGH);
+    isLedOn = true;
+  }
 }
