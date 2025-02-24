@@ -9,10 +9,10 @@
 #define debugln(x) Serial.println(x)
 
 // Pin Definitions
-#define SCK_PIN 7
-#define SO_PIN 6
-#define CS_PIN_BT 5
-#define CS_PIN_ET 8
+#define SCK_PIN 0
+#define SO_PIN 1
+#define CS_PIN_BT 2
+#define CS_PIN_ET 3
 
 // Croaster Class Definition
 class Croaster

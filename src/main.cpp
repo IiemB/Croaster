@@ -8,6 +8,7 @@
 #include <LiquidCrystal_I2C.h>
 #include <ArduinoJson.h>
 #include <Croaster.h>
+#include <Wire.h>
 
 // BLE UUIDs
 #define SERVICE_UUID "1cc9b045-a6e9-4bd5-b874-07d4f2d57843"
@@ -19,18 +20,17 @@ BLECharacteristic *pDataCharacteristic = nullptr;
 
 bool bleDeviceConnected = false;
 
-Croaster croaster(2.46, true);
+Croaster croaster(2.47, true);
 
 WiFiManager wifiManager;
 WebSocketsServer webSocket(81);
+
 LiquidCrystal_I2C display(0x27, 16, 2);
 
 uint32_t passkey = 123456; // Set your PIN here
 
 unsigned long lastWebSocketSend = 0;
 unsigned long lastDisplayUpdate = 0;
-
-bool showIp = false;
 
 String socketEventMessage = "";
 
@@ -193,6 +193,8 @@ void setup()
 {
     Serial.begin(115200);
 
+    Wire.begin(SDA, SCL);
+
     delay(1000);
 
     display.init();
@@ -233,7 +235,7 @@ void setup()
 
     debugln("# Bluetooth Logger ready and waiting for commands");
 
-    wifiManager.setDebugOutput(false);
+    wifiManager.setDebugOutput(croaster.useDummyData);
     wifiManager.setConfigPortalBlocking(false);
     wifiManager.setAPCallback(configModeCallback);
 
@@ -244,6 +246,8 @@ void setup()
 
     if (wifiManager.autoConnect(croaster.ssidName.c_str()))
         debugln("# WiFi Connected");
+
+    debugln("# Wifi ready");
 
     webSocket.begin();
     webSocket.onEvent(webSocketEvent);
@@ -269,18 +273,20 @@ void updateDisplay()
 
     lastDisplayUpdate = millis();
 
+    String textET = "ET: " + String(int(trunc(croaster.tempET)));
+    String textBT = "BT: " + String(int(trunc(croaster.tempBT)));
+
     display.clear();
     display.setCursor(0, 0);
-    display.print("ET: " + String(croaster.tempET) + " BT: " + String(croaster.tempBT));
+    display.print(textET + " " + textBT);
     display.setCursor(0, 1);
-    if (showIp)
+    if (WiFi.isConnected())
     {
         display.print(WiFi.localIP().toString());
-        showIp = false;
     }
     else
     {
-        showIp = true;
+        display.print("10.0.1.1");
     }
 }
 
