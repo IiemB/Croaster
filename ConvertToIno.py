@@ -4,7 +4,7 @@ def convert_main():
     cwd = os.getcwd()
     
     source_file = f"{cwd}/src/main.cpp"
-    target_directory = f"{cwd}/croaster/"
+    target_directory = f"{cwd}/croaster-arduino/"
     
     
     if not os.path.exists(source_file):
@@ -14,7 +14,7 @@ def convert_main():
     if not os.path.exists(target_directory):
         os.makedirs(target_directory)
 
-    target_file = os.path.join(target_directory, "croaster.ino")
+    target_file = os.path.join(target_directory, "croaster-arduino.ino")
 
     with open(source_file, "r") as src, open(target_file, "w") as dest:
         for line in src:
@@ -26,7 +26,7 @@ def convert_croaster():
     cwd = os.getcwd()
     
     source_file = f"{cwd}/include/Croaster.h"
-    target_directory = f"{cwd}/croaster/"
+    target_directory = f"{cwd}/croaster-arduino/"
     
     
     if not os.path.exists(source_file):

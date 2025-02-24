@@ -5,10 +5,8 @@
 #include <BLE2902.h>
 #include <WiFiManager.h>
 #include <WebSocketsServer.h>
-#include <LiquidCrystal_I2C.h>
 #include <ArduinoJson.h>
 #include <Croaster.h>
-#include <Wire.h>
 
 // BLE UUIDs
 #define SERVICE_UUID "1cc9b045-a6e9-4bd5-b874-07d4f2d57843"
@@ -20,12 +18,10 @@ BLECharacteristic *pDataCharacteristic = nullptr;
 
 bool bleDeviceConnected = false;
 
-Croaster croaster(2.47, true);
+Croaster croaster(2.48, true);
 
 WiFiManager wifiManager;
 WebSocketsServer webSocket(81);
-
-LiquidCrystal_I2C display(0x27, 16, 2);
 
 uint32_t passkey = 123456; // Set your PIN here
 
@@ -35,7 +31,6 @@ unsigned long lastDisplayUpdate = 0;
 String socketEventMessage = "";
 
 // Function Prototypes
-void updateDisplay();
 void broadcastData();
 void handleWebSocketEvent(const String &cmd, uint8_t num);
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length);
@@ -193,13 +188,7 @@ void setup()
 {
   Serial.begin(115200);
 
-  Wire.begin(SDA, SCL);
-
   delay(1000);
-
-  display.init();
-
-  display.backlight();
 
   debugln("# Setting up WiFi Manager");
 
@@ -260,35 +249,10 @@ void loop()
   wifiManager.process();
   webSocket.loop();
   croaster.loop();
-  updateDisplay();
   broadcastData();
 }
 
 // Function Implementations
-
-void updateDisplay()
-{
-  if (millis() - lastDisplayUpdate < 1500)
-    return;
-
-  lastDisplayUpdate = millis();
-
-  String textET = "ET: " + String(int(trunc(croaster.tempET)));
-  String textBT = "BT: " + String(int(trunc(croaster.tempBT)));
-
-  display.clear();
-  display.setCursor(0, 0);
-  display.print(textET + " " + textBT);
-  display.setCursor(0, 1);
-  if (WiFi.isConnected())
-  {
-    display.print(WiFi.localIP().toString());
-  }
-  else
-  {
-    display.print("10.0.1.1");
-  }
-}
 
 void broadcastData()
 {
