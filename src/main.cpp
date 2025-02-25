@@ -18,7 +18,7 @@ BLECharacteristic *pDataCharacteristic = nullptr;
 
 bool bleDeviceConnected = false;
 
-Croaster croaster(2.48, true);
+Croaster croaster(2.51, true);
 
 WiFiManager wifiManager;
 WebSocketsServer webSocket(81);
@@ -129,6 +129,22 @@ class MyCharacteristicCallbacks : public BLECharacteristicCallbacks
 
           return;
         }
+
+        if (command == "dummyOn")
+        {
+          croaster.useDummyData = true;
+          croaster.resetHistory();
+
+          return;
+        }
+
+        if (command == "dummyOff")
+        {
+          croaster.useDummyData = false;
+          croaster.resetHistory();
+
+          return;
+        }
       }
 
       if (request["command"].is<JsonObject>())
@@ -200,11 +216,13 @@ void setup()
 
   debugln("# Setting up WiFi Manager");
 
-  wifiManager.setDebugOutput(croaster.useDummyData);
+  wifiManager.setDebugOutput(true);
   wifiManager.setConfigPortalBlocking(false);
   wifiManager.setAPCallback(configModeCallback);
 
   wifiManager.setClass("invert");
+
+  wifiManager.setConnectTimeout(10);
 
   // set custom ip for portal
   wifiManager.setAPStaticIPConfig(IPAddress(10, 0, 1, 1), IPAddress(10, 0, 1, 1), IPAddress(255, 255, 255, 0));
@@ -329,6 +347,22 @@ void handleWebSocketEvent(const String &cmd, uint8_t num)
       String jsonData = croaster.getJsonData(socketEventMessage);
 
       eraseESP();
+
+      return;
+    }
+
+    if (command == "dummyOn")
+    {
+      croaster.useDummyData = true;
+      croaster.resetHistory();
+
+      return;
+    }
+
+    if (command == "dummyOff")
+    {
+      croaster.useDummyData = false;
+      croaster.resetHistory();
 
       return;
     }

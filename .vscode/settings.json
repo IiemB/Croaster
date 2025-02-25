@@ -5,6 +5,7 @@
         "*.arb": "json",
         "ostream": "cpp",
         "print": "cpp",
-        "cmath": "cpp"
+        "cmath": "cpp",
+        "new": "cpp"
     }
 }

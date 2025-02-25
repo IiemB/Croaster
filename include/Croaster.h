@@ -1,26 +1,23 @@
 #include <Arduino.h>
-#include <MAX6675_Thermocouple.h>
+#include <max6675.h>
 #include <WebSocketsServer.h>
 #include <ArduinoJson.h>
 
-// Debug Macros
-// #define debug(x) Serial.print(x)
-// #define debugf(x, y) Serial.printf(x, y)
 #define debugln(x) Serial.println(x)
 
 // Pin Definitions
-#define SCK_PIN 0
-#define SO_PIN 1
-#define CS_PIN_BT 2
-#define CS_PIN_ET 3
+#define SCK_PIN 4
+#define SO_PIN 5
+#define CS_PIN_BT 7
+#define CS_PIN_ET 6
+
+MAX6675 thermocoupleBT(SCK_PIN, CS_PIN_BT, SO_PIN);
+MAX6675 thermocoupleET(SCK_PIN, CS_PIN_ET, SO_PIN);
 
 // Croaster Class Definition
 class Croaster
 {
 private:
-    Thermocouple *thermocoupleBT;
-    Thermocouple *thermocoupleET;
-
     float etHistory[60] = {}, btHistory[60] = {}, timeHistory[60] = {};
     bool historyInitialized = false;
 
@@ -43,21 +40,6 @@ private:
         }
     }
 
-    // Reset history
-    void resetHistory()
-    {
-        for (int i = 0; i < 60; i++)
-        {
-            etHistory[i] = tempET;
-            btHistory[i] = tempBT;
-            timeHistory[i] = timer;
-        }
-
-        historyInitialized = false;
-
-        debugln("# Temperature histories reset due to unit change.");
-    }
-
     void readSensors()
     {
         if (millis() - lastSensorRead < 250)
@@ -72,23 +54,23 @@ private:
         }
         else
         {
-            tempBT = thermocoupleBT->readCelsius();
-            tempET = thermocoupleET->readCelsius();
+            float bt = thermocoupleBT.readCelsius();
+            float et = thermocoupleET.readCelsius();
 
-            if (isnan(tempBT))
+            if (isnan(bt))
             {
                 debugln("# Error: Failed to read BT!");
-                tempBT = 0;
+                bt = 0;
             }
 
-            if (isnan(tempET))
+            if (isnan(et))
             {
                 debugln("# Error: Failed to read ET!");
-                tempET = 0;
+                et = 0;
             }
 
-            tempBT = convertTemperature(tempBT);
-            tempET = convertTemperature(tempET);
+            tempBT = convertTemperature(bt);
+            tempET = convertTemperature(et);
         }
     }
 
@@ -138,14 +120,6 @@ public:
           versionCode(version),
           ssidName("Croaster V" + String(version) + " BLE")
     {
-        thermocoupleBT = new MAX6675_Thermocouple(SCK_PIN, CS_PIN_BT, SO_PIN);
-        thermocoupleET = new MAX6675_Thermocouple(SCK_PIN, CS_PIN_ET, SO_PIN);
-    }
-
-    ~Croaster()
-    {
-        delete thermocoupleBT;
-        delete thermocoupleET;
     }
 
     bool useDummyData;
@@ -221,5 +195,20 @@ public:
         serializeJson(doc, jsonOutput);
 
         return jsonOutput;
+    }
+
+    // Reset history
+    void resetHistory()
+    {
+        for (int i = 0; i < 60; i++)
+        {
+            etHistory[i] = tempET;
+            btHistory[i] = tempBT;
+            timeHistory[i] = timer;
+        }
+
+        historyInitialized = false;
+
+        debugln("# Temperature histories reset due to unit change.");
     }
 };
