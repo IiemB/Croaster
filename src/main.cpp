@@ -7,18 +7,26 @@
 #include <WebSocketsServer.h>
 #include <ArduinoJson.h>
 #include <Croaster.h>
+#include <DisplayManager.h>
+
+#define SCREEN_WIDTH 128 // OLED display width, in pixels
+#define SCREEN_HEIGHT 64 // OLED display height, in pixels
 
 // BLE UUIDs
 #define SERVICE_UUID "1cc9b045-a6e9-4bd5-b874-07d4f2d57843"
 #define DATA_UUID "d56d0059-ad65-43f3-b971-431d48f89a69"
+
+double version = 2.52;
+
+DisplayManager displayManager(SCREEN_WIDTH, SCREEN_HEIGHT, version);
+
+Croaster croaster(version, true);
 
 // Global Variables
 BLEServer *pServer = nullptr;
 BLECharacteristic *pDataCharacteristic = nullptr;
 
 bool bleDeviceConnected = false;
-
-Croaster croaster(2.51, true);
 
 WiFiManager wifiManager;
 WebSocketsServer webSocket(81);
@@ -267,6 +275,13 @@ void setup()
   webSocket.begin();
   webSocket.onEvent(webSocketEvent);
   debugln("# WebSocket started");
+
+  // Initialize OLED display
+  if (!displayManager.begin())
+  {
+    for (;;)
+      ; // Halt if display fails
+  }
 }
 
 void loop()
@@ -294,6 +309,8 @@ void broadcastData()
   debugln("");
   debugln("# " + WiFi.localIP().toString());
   debugln("# Json Data: " + jsonData);
+
+  displayManager.updateDisplay(croaster.tempET, croaster.tempBT, croaster.temperatureUnit);
 
   socketEventMessage = "";
 }

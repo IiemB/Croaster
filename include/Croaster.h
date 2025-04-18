@@ -26,6 +26,8 @@ private:
 
     float convertTemperature(float tempCelsius)
     {
+        if (isnan(tempCelsius)) // Handle invalid input
+            return NAN;
         if (temperatureUnit == "F") // Fahrenheit
         {
             return (tempCelsius * 9.0 / 5.0) + 32.0;
@@ -59,18 +61,23 @@ private:
 
             if (isnan(bt))
             {
-                debugln("# Error: Failed to read BT!");
-                bt = 0;
+                debugln("# Error: Failed to read BT! Setting to null.");
+                tempBT = NAN; // Indicate invalid reading
+            }
+            else
+            {
+                tempBT = convertTemperature(bt);
             }
 
             if (isnan(et))
             {
-                debugln("# Error: Failed to read ET!");
-                et = 0;
+                debugln("# Error: Failed to read ET! Setting to null.");
+                tempET = NAN; // Indicate invalid reading
             }
-
-            tempBT = convertTemperature(bt);
-            tempET = convertTemperature(et);
+            else
+            {
+                tempET = convertTemperature(et);
+            }
         }
     }
 
@@ -83,11 +90,12 @@ private:
 
         if (!historyInitialized)
         {
+            // Initialize history with 60 seconds of data
             for (int i = 0; i < 60; i++)
             {
-                etHistory[i] = tempET;
-                btHistory[i] = tempBT;
-                timeHistory[i] = timer;
+                etHistory[i] = isnan(tempET) ? 0 : tempET;
+                btHistory[i] = isnan(tempBT) ? 0 : tempBT;
+                timeHistory[i] = timer - (59 - i); // Simulate 60 seconds of past timestamps
             }
 
             historyInitialized = true;
@@ -95,6 +103,7 @@ private:
             return;
         }
 
+        // Shift history
         for (int i = 0; i < 59; i++)
         {
             etHistory[i] = etHistory[i + 1];
@@ -102,23 +111,52 @@ private:
             timeHistory[i] = timeHistory[i + 1];
         }
 
-        etHistory[59] = tempET;
-        btHistory[59] = tempBT;
-        timeHistory[59] = timer;
+        // Update ET history and RoR if valid
+        if (!isnan(tempET))
+        {
+            etHistory[59] = tempET;
+            float deltaET = etHistory[59] - etHistory[0];
+            float deltaTimer = timeHistory[59] - timeHistory[0];
+            if (deltaTimer > 0.1) // Prevent division by near-zero
+                rorET = (deltaET / deltaTimer) * 60;
+            else
+            {
+                rorET = 0;
+            }
+        }
+        else
+        {
+            etHistory[59] = etHistory[58]; // Retain last valid value
+            rorET = 0;                     // Reset RoR for invalid reading
+            debugln("# Skipping ET ROR update due to invalid reading.");
+        }
 
-        float deltaET = etHistory[59] - etHistory[0];
-        float deltaBT = btHistory[59] - btHistory[0];
-        float deltaTimer = timeHistory[59] - timeHistory[0];
-
-        rorET = (deltaET / deltaTimer) * 60;
-        rorBT = (deltaBT / deltaTimer) * 60;
+        // Update BT history and RoR if valid
+        if (!isnan(tempBT))
+        {
+            btHistory[59] = tempBT;
+            float deltaBT = btHistory[59] - btHistory[0];
+            float deltaTimer = timeHistory[59] - timeHistory[0];
+            if (deltaTimer > 0.1) // Prevent division by near-zero
+                rorBT = (deltaBT / deltaTimer) * 60;
+            else
+            {
+                rorBT = 0;
+            }
+        }
+        else
+        {
+            btHistory[59] = btHistory[58]; // Retain last valid value
+            rorBT = 0;                     // Reset RoR for invalid reading
+            debugln("# Skipping BT ROR update due to invalid reading.");
+        }
     }
 
 public:
     Croaster(const double &version, bool dummyMode = false)
         : useDummyData(dummyMode),
           versionCode(version),
-          ssidName("Croaster V" + String(version) + " BLE")
+          ssidName("Croaster V" + String(version))
     {
     }
 
@@ -172,21 +210,44 @@ public:
             doc["message"] = message;
 
         JsonObject data = doc.createNestedObject("data");
-        data["BT"] = tempBT;
-        data["ET"] = tempET;
+        if (isnan(tempBT))
+            data["BT"].set(nullptr); // Set null for invalid BT
+        else
+            data["BT"] = tempBT;
+
+        if (isnan(tempET))
+            data["ET"].set(nullptr); // Set null for invalid ET
+        else
+            data["ET"] = tempET;
 
         if (!skipCroaster)
         {
             JsonObject croaster = doc.createNestedObject("croaster");
 
-            croaster["version"] = "V" + String(versionCode) + " BLE";
+            croaster["version"] = "V" + String(versionCode);
             croaster["versionCode"] = versionCode;
             croaster["interval"] = intervalSendData;
             croaster["timer"] = timer;
-            croaster["tempET"] = tempET;
-            croaster["tempBT"] = tempBT;
-            croaster["rorET"] = rorET;
-            croaster["rorBT"] = rorBT;
+            if (isnan(tempBT))
+                croaster["tempBT"].set(nullptr); // Set null for invalid BT
+            else
+                croaster["tempBT"] = tempBT;
+
+            if (isnan(tempET))
+                croaster["tempET"].set(nullptr); // Set null for invalid ET
+            else
+                croaster["tempET"] = tempET;
+
+            if (isnan(tempET))
+                croaster["rorET"].set(nullptr); // Set null for invalid ET
+            else
+                croaster["rorET"] = rorET;
+
+            if (isnan(tempBT))
+                croaster["rorBT"].set(nullptr); // Set null for invalid BT
+            else
+                croaster["rorBT"] = rorBT;
+
             croaster["tempUnit"] = String(temperatureUnit);
         }
 
@@ -202,9 +263,9 @@ public:
     {
         for (int i = 0; i < 60; i++)
         {
-            etHistory[i] = tempET;
-            btHistory[i] = tempBT;
-            timeHistory[i] = timer;
+            etHistory[i] = isnan(tempET) ? 0 : tempET;
+            btHistory[i] = isnan(tempBT) ? 0 : tempBT;
+            timeHistory[i] = timer - (59 - i); // Simulate 60 seconds of past timestamps
         }
 
         historyInitialized = false;
