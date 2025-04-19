@@ -20,7 +20,7 @@ double version = 2.52;
 
 DisplayManager displayManager(SCREEN_WIDTH, SCREEN_HEIGHT, version);
 
-Croaster croaster(version, true);
+Croaster croaster(version, false);
 
 // Global Variables
 BLEServer *pServer = nullptr;

@@ -117,7 +117,7 @@ private:
             etHistory[59] = tempET;
             float deltaET = etHistory[59] - etHistory[0];
             float deltaTimer = timeHistory[59] - timeHistory[0];
-            if (deltaTimer > 0.1) // Prevent division by near-zero
+            if (deltaTimer > 0) // Prevent division by near-zero
                 rorET = (deltaET / deltaTimer) * 60;
             else
             {
@@ -137,7 +137,7 @@ private:
             btHistory[59] = tempBT;
             float deltaBT = btHistory[59] - btHistory[0];
             float deltaTimer = timeHistory[59] - timeHistory[0];
-            if (deltaTimer > 0.1) // Prevent division by near-zero
+            if (deltaTimer > 0) // Prevent division by near-zero
                 rorBT = (deltaBT / deltaTimer) * 60;
             else
             {
