@@ -25,7 +25,6 @@ private:
 
     void drawTemperature(String label, float temp, int yCursor, String tempUnit)
     {
-
         // Format temperature text
         String tempText;
 
@@ -36,7 +35,7 @@ private:
 
         int textLenght = tempText.length();
 
-        int tempX = 128 - (18 * textLenght);
+        int tempX = display.width() - (18 * textLenght);
 
         display.setTextSize(1);
         display.setCursor(0, yCursor); // Left-aligned label
@@ -45,6 +44,76 @@ private:
         display.setTextSize(3); // 24px height for digits
         display.setCursor(tempX, yCursor);
         display.print(tempText);
+    }
+
+    void testdrawline()
+    {
+        int16_t i;
+
+        display.clearDisplay(); // Clear display buffer
+
+        for (i = 0; i < display.width(); i += 4)
+        {
+            display.drawLine(0, 0, i, display.height() - 1, SSD1306_WHITE);
+            display.display(); // Update screen with each newly-drawn line
+            delay(1);
+        }
+        for (i = 0; i < display.height(); i += 4)
+        {
+            display.drawLine(0, 0, display.width() - 1, i, SSD1306_WHITE);
+            display.display();
+            delay(1);
+        }
+        delay(250);
+
+        display.clearDisplay();
+
+        for (i = 0; i < display.width(); i += 4)
+        {
+            display.drawLine(0, display.height() - 1, i, 0, SSD1306_WHITE);
+            display.display();
+            delay(1);
+        }
+        for (i = display.height() - 1; i >= 0; i -= 4)
+        {
+            display.drawLine(0, display.height() - 1, display.width() - 1, i, SSD1306_WHITE);
+            display.display();
+            delay(1);
+        }
+        delay(250);
+
+        display.clearDisplay();
+
+        for (i = display.width() - 1; i >= 0; i -= 4)
+        {
+            display.drawLine(display.width() - 1, display.height() - 1, i, 0, SSD1306_WHITE);
+            display.display();
+            delay(1);
+        }
+        for (i = display.height() - 1; i >= 0; i -= 4)
+        {
+            display.drawLine(display.width() - 1, display.height() - 1, 0, i, SSD1306_WHITE);
+            display.display();
+            delay(1);
+        }
+        delay(250);
+
+        display.clearDisplay();
+
+        for (i = 0; i < display.height(); i += 4)
+        {
+            display.drawLine(display.width() - 1, 0, 0, i, SSD1306_WHITE);
+            display.display();
+            delay(1);
+        }
+        for (i = 0; i < display.width(); i += 4)
+        {
+            display.drawLine(display.width() - 1, 0, i, display.height() - 1, SSD1306_WHITE);
+            display.display();
+            delay(1);
+        }
+
+        delay(2000); // Pause for 2 seconds
     }
 
 public:
@@ -66,7 +135,7 @@ public:
         // Initialize OLED display
         if (!display.begin(SSD1306_SWITCHCAPVCC, i2cAddress))
         {
-            debugln(F("SSD1306 allocation failed"));
+            debugln(F("# SSD1306 allocation failed"));
             return false;
         }
 
@@ -77,7 +146,9 @@ public:
         // Set text color to white
         display.setTextColor(SSD1306_WHITE);
 
-        debugln(F("SSD1306 initialization succeed"));
+        debugln(F("# SSD1306 initialization succeed"));
+
+        testdrawline();
 
         return true;
     }
