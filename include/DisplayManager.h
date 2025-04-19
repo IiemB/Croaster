@@ -4,8 +4,6 @@
 #include <Adafruit_SSD1306.h>
 
 // OLED Display Configuration
-#define SCREEN_WIDTH 128
-#define SCREEN_HEIGHT 64
 #define OLED_RESET -1 // Reset pin not used
 
 // DisplayManager Class
@@ -13,14 +11,26 @@ class DisplayManager
 {
 private:
     Adafruit_SSD1306 display;
+
     const int screenWidth;
     const int screenHeight;
 
-    void drawHeader()
+    bool showIp = false;
+
+    void drawHeader(String ip = "")
     {
+        String text = "CROASTER V" + String(versionCode);
+
+        if (showIp && !ip.isEmpty())
+        {
+            text = ip;
+        }
+
         display.setTextSize(1); // 8px height
         display.setCursor(0, 0);
-        display.println("CROASTER V" + String(versionCode));
+        display.print(text);
+
+        showIp = !showIp;
     }
 
     void drawTemperature(String label, float temp, int yCursor, String tempUnit)
@@ -153,14 +163,13 @@ public:
         return true;
     }
 
-    void updateDisplay(float tempET, float tempBT, String tempUnit)
+    void updateDisplay(float tempET, float tempBT, String tempUnit, String ip)
     {
-
         // Clear the display buffer
         display.clearDisplay();
 
         // Draw all components
-        drawHeader();
+        drawHeader(ip);
         drawTemperature("ET", tempET, 16, tempUnit);
         drawTemperature("BT", tempBT, 43, tempUnit);
 

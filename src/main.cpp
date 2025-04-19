@@ -26,7 +26,7 @@ Croaster croaster(version, false);
 BLEServer *pServer = nullptr;
 BLECharacteristic *pDataCharacteristic = nullptr;
 
-bool bleDeviceConnected = false;
+bool bleDeviceConnected, wifiConnected = false;
 
 WiFiManager wifiManager;
 WebSocketsServer webSocket(81);
@@ -306,11 +306,18 @@ void broadcastData()
 
   webSocket.broadcastTXT(jsonData);
 
+  String ip = WiFi.localIP().toString();
+
   debugln("");
-  debugln("# " + WiFi.localIP().toString());
+  debugln("# " + ip);
   debugln("# Json Data: " + jsonData);
 
-  displayManager.updateDisplay(croaster.tempET, croaster.tempBT, croaster.temperatureUnit);
+  if (!wifiConnected)
+  {
+    ip = "";
+  }
+
+  displayManager.updateDisplay(croaster.tempET, croaster.tempBT, croaster.temperatureUnit, ip);
 
   socketEventMessage = "";
 }
@@ -461,13 +468,15 @@ void blinkLED()
 {
   unsigned long intervalLED = 500;
 
-  if (WiFi.isConnected() && bleDeviceConnected)
+  wifiConnected = WiFi.isConnected();
+
+  if (wifiConnected && bleDeviceConnected)
   {
     intervalLED = 1000;
   }
   else
   {
-    if (WiFi.isConnected())
+    if (wifiConnected)
       intervalLED = 3000;
 
     if (bleDeviceConnected)
