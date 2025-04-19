@@ -6,14 +6,11 @@ void main(List<String> args) {
       sourcePath: './src/main.cpp',
       destPath: './croaster-arduino/croaster-arduino.ino',
     ),
-    (
-      sourcePath: './include/Croaster.h',
-      destPath: './croaster-arduino/Croaster.h',
-    ),
-    (
-      sourcePath: './include/DisplayManager.h',
-      destPath: './croaster-arduino/DisplayManager.h',
-    ),
+    for (final file in Directory('./include/').listSync())
+      (
+        sourcePath: file.path,
+        destPath: file.path.replaceAll('include', 'croaster-arduino'),
+      ),
   ];
 
   for (var job in jobs) {
