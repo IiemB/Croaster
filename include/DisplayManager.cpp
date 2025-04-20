@@ -70,17 +70,14 @@ void DisplayManager::testDrawLine()
     display.clearDisplay();
 }
 
-void DisplayManager::setData(CroasterCore &croaster, String ipAddr)
+void DisplayManager::loop(CroasterCore &croaster, String ipAddr)
 {
     et = croaster.tempET;
     bt = croaster.tempBT;
     unit = croaster.temperatureUnit;
     ip = ipAddr;
-}
 
-void DisplayManager::loop(unsigned long interval)
-{
-    if (millis() - lastUpdate < interval)
+    if (millis() - lastUpdate < croaster.intervalSendData)
         return;
 
     lastUpdate = millis();

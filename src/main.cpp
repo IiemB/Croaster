@@ -8,7 +8,7 @@
 
 // === Global Instances ===
 DisplayManager displayManager(SCREEN_WIDTH, SCREEN_HEIGHT, version);
-CroasterCore croaster(version, false);
+CroasterCore croaster(version, dummyMode);
 
 // Shared state flags
 bool bleDeviceConnected = false;
@@ -49,13 +49,12 @@ void setup()
 // === Arduino Loop ===
 void loop()
 {
-  wifiManager.process();                                                            // Non-blocking WiFi config portal
-  webSocket.loop();                                                                 // Handle WebSocket messages
-  croaster.loop();                                                                  // Read sensors, compute ROR
-  broadcastData(croaster);                                                          // Send data
-  displayManager.setData(croaster, wifiConnected ? WiFi.localIP().toString() : ""); // Sets the latest display values to show
-  displayManager.loop(croaster.intervalSendData);                                   // Update display values to show
-  blinkLED();                                                                       // Blink based on connection state
+  wifiManager.process();                                                         // Non-blocking WiFi config portal
+  webSocket.loop();                                                              // Handle WebSocket messages
+  croaster.loop();                                                               // Read sensors, compute ROR
+  broadcastData(croaster);                                                       // Send data
+  displayManager.loop(croaster, wifiConnected ? WiFi.localIP().toString() : ""); // Update display values to show
+  blinkLED();                                                                    // Blink based on connection state
 }
 
 // === LED Blinker for Status Feedback ===
