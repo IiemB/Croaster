@@ -1,4 +1,4 @@
-#include "DisplayManager.h"
+#include "CroasterCore.h"
 #include "Constants.h"
 
 DisplayManager::DisplayManager(int width, int height, const double &version, uint8_t i2cAddr)
@@ -71,7 +71,7 @@ void DisplayManager::testDrawLine()
     display.clearDisplay();
 }
 
-void DisplayManager::updateDisplay(TempsManager &croaster, String ipAddr)
+void DisplayManager::updateDisplay(CroasterCore &croaster, String ipAddr)
 {
     if (millis() - lastUpdate < croaster.intervalSendData)
         return;

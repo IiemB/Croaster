@@ -2,7 +2,7 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include "Constants.h"
-#include "TempsManager.h"
+#include "CroasterCore.h"
 
 /**
  * Handles rendering temperature and status data to the OLED display.
@@ -38,5 +38,5 @@ public:
     /**
      * Update and sets the latest display values to show.
      */
-    void updateDisplay(TempsManager &croaster, String ipAddr);
+    void updateDisplay(CroasterCore &croaster, String ipAddr);
 };

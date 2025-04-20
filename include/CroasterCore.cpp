@@ -1,14 +1,14 @@
-#include "TempsManager.h"
+#include "CroasterCore.h"
 
 MAX6675 thermocoupleBT(SCK_PIN, CS_PIN_BT, SO_PIN);
 MAX6675 thermocoupleET(SCK_PIN, CS_PIN_ET, SO_PIN);
 
-TempsManager::TempsManager(const double &version, bool dummyMode)
+CroasterCore::CroasterCore(const double &version, bool dummyMode)
     : useDummyData(dummyMode),
       versionCode(version),
       ssidName("Croaster V" + String(version)) {}
 
-float TempsManager::convertTemperature(float tempCelsius)
+float CroasterCore::convertTemperature(float tempCelsius)
 {
     if (isnan(tempCelsius))
         return NAN;
@@ -19,7 +19,7 @@ float TempsManager::convertTemperature(float tempCelsius)
     return tempCelsius;
 }
 
-void TempsManager::readSensors()
+void CroasterCore::readSensors()
 {
     if (millis() - lastSensorRead < 250)
         return;
@@ -41,7 +41,7 @@ void TempsManager::readSensors()
     }
 }
 
-void TempsManager::updateROR()
+void CroasterCore::updateROR()
 {
     if (millis() - lastRORUpdate < 1000)
         return;
@@ -95,13 +95,13 @@ void TempsManager::updateROR()
     }
 }
 
-void TempsManager::loop()
+void CroasterCore::loop()
 {
     readSensors();
     updateROR();
 }
 
-void TempsManager::changeTemperatureUnit(String unit)
+void CroasterCore::changeTemperatureUnit(String unit)
 {
     if (unit == "C" || unit == "F" || unit == "K")
     {
@@ -115,7 +115,7 @@ void TempsManager::changeTemperatureUnit(String unit)
     }
 }
 
-void TempsManager::resetHistory()
+void CroasterCore::resetHistory()
 {
     for (int i = 0; i < 60; i++)
     {
@@ -127,7 +127,7 @@ void TempsManager::resetHistory()
     debugln("# Temperature histories reset due to unit change.");
 }
 
-String TempsManager::getJsonData(const String &message, const bool &skipCroaster)
+String CroasterCore::getJsonData(const String &message, const bool &skipCroaster)
 {
     StaticJsonDocument<384> doc;
     doc["id"] = idJsonData;

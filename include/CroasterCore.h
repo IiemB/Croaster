@@ -5,7 +5,7 @@
 #include "Constants.h"
 #include "PinConfig.h"
 
-class TempsManager
+class CroasterCore
 {
 private:
     float etHistory[60] = {}, btHistory[60] = {}, timeHistory[60] = {};
@@ -18,7 +18,7 @@ private:
     void updateROR();
 
 public:
-    TempsManager(const double &version, bool dummyMode = false);
+    CroasterCore(const double &version, bool dummyMode = false);
 
     bool useDummyData;
     String temperatureUnit = "C";

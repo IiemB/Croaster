@@ -29,10 +29,10 @@ public:
 class MyCharacteristicCallbacks : public BLECharacteristicCallbacks
 {
 private:
-    TempsManager *croaster;
+    CroasterCore *croaster;
 
 public:
-    MyCharacteristicCallbacks(TempsManager *tm) : croaster(tm) {}
+    MyCharacteristicCallbacks(CroasterCore *croaster) : croaster(tm) {}
 
     void onWrite(BLECharacteristic *pCharacteristic) override
     {
@@ -84,7 +84,7 @@ public:
     }
 };
 
-void setupBLE(TempsManager &croaster, bool &bleDeviceConnected)
+void setupBLE(CroasterCore &croaster, bool &bleDeviceConnected)
 {
     BLEDevice::init(croaster.ssidName.c_str());
     pServer = BLEDevice::createServer();

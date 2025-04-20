@@ -3,12 +3,12 @@
 #include "BleManager.h"
 #include "WiFiManagerUtil.h"
 #include "WebSocketManager.h"
-#include "TempsManager.h"
+#include "CroasterCore.h"
 #include "DisplayManager.h"
 
 // === Global Instances ===
 DisplayManager displayManager(SCREEN_WIDTH, SCREEN_HEIGHT, version);
-TempsManager croaster(version, false);
+CroasterCore croaster(version, false);
 
 // Shared state flags
 bool bleDeviceConnected = false;

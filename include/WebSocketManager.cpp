@@ -7,7 +7,7 @@ WebSocketsServer webSocket(81);
 String socketEventMessage = "";
 unsigned long lastWebSocketSend = 0;
 
-void handleWebSocketEvent(const String &cmd, uint8_t num, TempsManager &croaster)
+void handleWebSocketEvent(const String &cmd, uint8_t num, CroasterCore &croaster)
 {
     StaticJsonDocument<96> doc;
 
@@ -80,14 +80,14 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
         debugln("# WebSocket connected");
         break;
     case WStype_TEXT:
-        handleWebSocketEvent(String((char *)payload), num, *(TempsManager *)nullptr); // Patched later
+        handleWebSocketEvent(String((char *)payload), num, *(CroasterCore *)nullptr); // Patched later
         break;
     default:
         break;
     }
 }
 
-void setupWebSocket(TempsManager &croaster)
+void setupWebSocket(CroasterCore &croaster)
 {
     webSocket.begin();
     webSocket.onEvent([&croaster](uint8_t num, WStype_t type, uint8_t *payload, size_t length)
@@ -95,7 +95,7 @@ void setupWebSocket(TempsManager &croaster)
     debugln("# WebSocket started");
 }
 
-void broadcastData(TempsManager &croaster)
+void broadcastData(CroasterCore &croaster)
 {
     if (millis() - lastWebSocketSend < croaster.intervalSendData)
         return;

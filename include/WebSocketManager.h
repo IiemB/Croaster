@@ -1,6 +1,6 @@
 #pragma once
 #include <WebSocketsServer.h>
-#include "TempsManager.h"
+#include "CroasterCore.h"
 #include "DisplayManager.h"
 
 extern WebSocketsServer webSocket;
@@ -8,9 +8,9 @@ extern WebSocketsServer webSocket;
 /**
  * Initializes WebSocket server and its event handler.
  */
-void setupWebSocket(TempsManager &croaster);
+void setupWebSocket(CroasterCore &croaster);
 
 /**
  * Sends sensor data over WebSocket and updates OLED.
  */
-void broadcastData(TempsManager &croaster);
+void broadcastData(CroasterCore &croaster);
