@@ -1,4 +1,4 @@
-#include "CroasterCore.h"
+#include "DisplayManager.h"
 #include "Constants.h"
 
 DisplayManager::DisplayManager(int width, int height, const double &version, uint8_t i2cAddr)
@@ -40,7 +40,6 @@ void DisplayManager::drawHeader(String ipAddr)
 void DisplayManager::drawTemperature(String label, float temp, int yCursor, String tempUnit)
 {
     String tempText = isnan(temp) ? "N/A" : String(temp, 1) + tempUnit;
-
     int tempX = display.width() - (18 * tempText.length());
 
     display.setTextSize(1);
@@ -71,15 +70,18 @@ void DisplayManager::testDrawLine()
     display.clearDisplay();
 }
 
-void DisplayManager::updateDisplay(CroasterCore &croaster, String ipAddr)
+void DisplayManager::setData(CroasterCore &croaster, String ipAddr)
 {
-    if (millis() - lastUpdate < croaster.intervalSendData)
-        return;
-
     et = croaster.tempET;
     bt = croaster.tempBT;
     unit = croaster.temperatureUnit;
     ip = ipAddr;
+}
+
+void DisplayManager::loop(unsigned long interval)
+{
+    if (millis() - lastUpdate < interval)
+        return;
 
     lastUpdate = millis();
 

@@ -32,7 +32,7 @@ private:
     CroasterCore *croaster;
 
 public:
-    MyCharacteristicCallbacks(CroasterCore *croaster) : croaster(tm) {}
+    MyCharacteristicCallbacks(CroasterCore *croaster) : croaster(croaster) {}
 
     void onWrite(BLECharacteristic *pCharacteristic) override
     {

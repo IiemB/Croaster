@@ -18,11 +18,6 @@ private:
     bool showIp = false;
     unsigned long lastUpdate = 0;
 
-    String ip;
-    float et = NAN;
-    float bt = NAN;
-    String unit = "C";
-
     void drawHeader(String ip = "");
     void drawTemperature(String label, float temp, int yCursor, String tempUnit);
     void testDrawLine();
@@ -30,13 +25,23 @@ private:
 public:
     DisplayManager(int width, int height, const double &version, uint8_t i2cAddress = 0x3C);
 
-        /**
+    String ip;
+    float et = NAN;
+    float bt = NAN;
+    String unit = "C";
+
+    /**
      * Initializes the OLED display. Returns false if failed.
      */
     bool begin();
 
     /**
-     * Update and sets the latest display values to show.
+     * Should be called inside loop() to handle timed updates.
      */
-    void updateDisplay(CroasterCore &croaster, String ipAddr);
+    void loop(unsigned long interval);
+
+    /**
+     * Sets the latest display values to show.
+     */
+    void setData(CroasterCore &croaster, String ip);
 };

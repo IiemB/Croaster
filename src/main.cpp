@@ -49,12 +49,13 @@ void setup()
 // === Arduino Loop ===
 void loop()
 {
-  wifiManager.process();                                                                  // Non-blocking WiFi config portal
-  webSocket.loop();                                                                       // Handle WebSocket messages
-  croaster.loop();                                                                        // Read sensors, compute ROR
-  broadcastData(croaster);                                                                // Send data
-  displayManager.updateDisplay(croaster, wifiConnected ? WiFi.localIP().toString() : ""); // Update display
-  blinkLED();                                                                             // Blink based on connection state
+  wifiManager.process();                                                            // Non-blocking WiFi config portal
+  webSocket.loop();                                                                 // Handle WebSocket messages
+  croaster.loop();                                                                  // Read sensors, compute ROR
+  broadcastData(croaster);                                                          // Send data
+  displayManager.setData(croaster, wifiConnected ? WiFi.localIP().toString() : ""); // Sets the latest display values to show
+  displayManager.loop(croaster.intervalSendData);                                   // Update display values to show
+  blinkLED();                                                                       // Blink based on connection state
 }
 
 // === LED Blinker for Status Feedback ===
