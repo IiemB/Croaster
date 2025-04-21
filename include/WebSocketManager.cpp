@@ -1,3 +1,4 @@
+#include "CommandHandler.h"
 #include "WebSocketManager.h"
 #include <ArduinoJson.h>
 #if defined(ESP32)
@@ -13,63 +14,19 @@ unsigned long lastWebSocketSend = 0;
 
 void handleWebSocketEvent(const String &cmd, uint8_t num, CroasterCore &croaster)
 {
-    StaticJsonDocument<96> doc;
+    bool restart = false, erase = false;
+    String response;
 
-    if (deserializeJson(doc, cmd))
+    if (handleCommand(cmd, croaster, response, restart, erase))
     {
-        debugln("# WebSocket: Invalid JSON");
-        return;
-    }
-
-    if (doc["command"].is<String>())
-    {
-        String command = doc["command"];
-        socketEventMessage = command;
-
-        if (command == "getData")
+        if (!response.isEmpty())
         {
-            croaster.idJsonData = doc["id"];
-            String res = croaster.getJsonData("", true);
-            webSocket.broadcastTXT(res);
-            return;
+            webSocket.sendTXT(num, response);
         }
-
-        if (command == "restartesp")
-        {
-            String data = croaster.getJsonData(command);
-            webSocket.sendTXT(num, data);
-            ESP.restart();
-        }
-        else if (command == "erase")
-        {
+        if (erase)
             eraseESP();
-        }
-        else if (command == "dummyOn")
-        {
-            croaster.useDummyData = true;
-            croaster.resetHistory();
-        }
-        else if (command == "dummyOff")
-        {
-            croaster.useDummyData = false;
-            croaster.resetHistory();
-        }
-    }
-
-    if (doc["command"].is<JsonObject>())
-    {
-        JsonObject cmd = doc["command"];
-        if (cmd.containsKey("interval"))
-        {
-            croaster.intervalSendData = cmd["interval"].as<int>() * 1000;
-            socketEventMessage = String(cmd["interval"].as<int>()) + "seconds";
-        }
-        if (cmd.containsKey("tempUnit"))
-        {
-            String unit = cmd["tempUnit"];
-            croaster.changeTemperatureUnit(unit);
-            socketEventMessage = unit;
-        }
+        if (restart)
+            ESP.restart();
     }
 }
 
@@ -103,12 +60,15 @@ void broadcastData(CroasterCore &croaster)
 {
     if (millis() - lastWebSocketSend < croaster.intervalSendData)
         return;
+
     lastWebSocketSend = millis();
 
     String jsonData = croaster.getJsonData(socketEventMessage);
     webSocket.broadcastTXT(jsonData);
 
     String ip = WiFi.localIP().toString();
+    debugln("# IP: " + ip);
+
     debugln("# JSON: " + jsonData);
 
     socketEventMessage = "";

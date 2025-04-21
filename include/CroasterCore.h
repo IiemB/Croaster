@@ -1,19 +1,25 @@
 #pragma once
 #include <Arduino.h>
 #include <ArduinoJson.h>
-#include <max6675.h>
+#include <Thermocouple.h>
+#include <MAX6675_Thermocouple.h>
+#include <SmoothThermocouple.h>
 #include "Constants.h"
 #include "PinConfig.h"
 
 class CroasterCore
 {
 private:
+    Thermocouple *thermocoupleBT;
+    Thermocouple *thermocoupleET;
+
     float etHistory[60] = {}, btHistory[60] = {}, timeHistory[60] = {};
     bool historyInitialized = false;
     unsigned long lastSensorRead = 0;
     unsigned long lastRORUpdate = 0;
 
     float convertTemperature(float tempCelsius);
+    float readCelcius(Thermocouple *thermocouple);
     void readSensors();
     void updateROR();
 

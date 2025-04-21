@@ -1,12 +1,14 @@
 #include "CroasterCore.h"
 
-MAX6675 thermocoupleBT(SCK_PIN, CS_PIN_BT, SO_PIN);
-MAX6675 thermocoupleET(SCK_PIN, CS_PIN_ET, SO_PIN);
-
 CroasterCore::CroasterCore(const double &version, bool dummyMode)
     : useDummyData(dummyMode),
       versionCode(version),
-      ssidName("Croaster V" + String(version)) {}
+      ssidName("Croaster V" + String(version))
+{
+
+    thermocoupleBT = new SmoothThermocouple(new MAX6675_Thermocouple(SCK_PIN, CS_PIN_BT, SO_PIN), SMOOTHING_FACTOR);
+    thermocoupleET = new SmoothThermocouple(new MAX6675_Thermocouple(SCK_PIN, CS_PIN_ET, SO_PIN), SMOOTHING_FACTOR);
+}
 
 float CroasterCore::convertTemperature(float tempCelsius)
 {
@@ -19,25 +21,52 @@ float CroasterCore::convertTemperature(float tempCelsius)
     return tempCelsius;
 }
 
+float CroasterCore::readCelcius(Thermocouple *thermocouple)
+{
+    float value = thermocouple->readCelsius();
+
+    if (value > 0.0)
+    {
+        return value;
+    }
+
+    return NAN;
+}
+
 void CroasterCore::readSensors()
 {
     if (millis() - lastSensorRead < 250)
         return;
     lastSensorRead = millis();
-    timer = millis() / 1000.0;
+    timer = lastSensorRead / 1000.0;
 
     if (useDummyData)
     {
         tempBT = random(30, 40);
         tempET = random(30, 40);
+
+        return;
+    }
+
+    float bt = readCelcius(thermocoupleBT);
+    float et = readCelcius(thermocoupleET);
+
+    if (isnan(bt))
+    {
+        tempBT = NAN; // Indicate invalid reading
     }
     else
     {
-        float bt = thermocoupleBT.readCelsius();
-        float et = thermocoupleET.readCelsius();
+        tempBT = convertTemperature(bt);
+    }
 
-        tempBT = isnan(bt) ? NAN : convertTemperature(bt);
-        tempET = isnan(et) ? NAN : convertTemperature(et);
+    if (isnan(et))
+    {
+        tempET = NAN; // Indicate invalid reading
+    }
+    else
+    {
+        tempET = convertTemperature(et);
     }
 }
 
@@ -45,20 +74,24 @@ void CroasterCore::updateROR()
 {
     if (millis() - lastRORUpdate < 1000)
         return;
+
     lastRORUpdate = millis();
 
     if (!historyInitialized)
     {
         for (int i = 0; i < 60; i++)
         {
-            etHistory[i] = isnan(tempET) ? 0 : tempET;
-            btHistory[i] = isnan(tempBT) ? 0 : tempBT;
-            timeHistory[i] = timer - (59 - i);
+            etHistory[i] = isnan(tempET) ? 0 : tempET; // Use 0 if NAN to initialize
+            btHistory[i] = isnan(tempBT) ? 0 : tempBT; // Use 0 if NAN to initialize
+            timeHistory[i] = timer;
         }
+
         historyInitialized = true;
+
         return;
     }
 
+    // Shift history
     for (int i = 0; i < 59; i++)
     {
         etHistory[i] = etHistory[i + 1];
@@ -66,34 +99,41 @@ void CroasterCore::updateROR()
         timeHistory[i] = timeHistory[i + 1];
     }
 
+    timeHistory[59] = timer; // Update timer history
+
     float deltaTimer = timeHistory[59] - timeHistory[0];
 
-    // Update RoR ET
+    // Update ET history and RoR if valid
     if (!isnan(tempET))
     {
         etHistory[59] = tempET;
         float deltaET = etHistory[59] - etHistory[0];
-        rorET = deltaTimer > 0 ? (deltaET / deltaTimer) * 60 : NAN;
+
+        bool validDelta = deltaET > 0 && deltaTimer > 0;
+
+        rorET = validDelta ? (deltaET / deltaTimer) * 60 : 0;
     }
     else
     {
-        rorET = NAN;
+        etHistory[59] = etHistory[58]; // Retain last valid value
+        rorET = 0;                     // Reset RoR for invalid reading
     }
 
-    // Update RoR BT
+    // Update BT history and RoR if valid
     if (!isnan(tempBT))
     {
         btHistory[59] = tempBT;
         float deltaBT = btHistory[59] - btHistory[0];
-        rorBT = deltaTimer > 0 ? (deltaBT / deltaTimer) * 60 : NAN;
+
+        bool validDelta = deltaBT > 0 && deltaTimer > 0;
+
+        rorBT = validDelta ? (deltaBT / deltaTimer) * 60 : 0;
     }
     else
     {
-        rorBT = NAN;
+        btHistory[59] = btHistory[58]; // Retain last valid value
+        rorBT = 0;                     // Reset RoR for invalid reading
     }
-
-    etHistory[59] = etHistory[58];
-    btHistory[59] = btHistory[58];
 }
 
 void CroasterCore::loop()
@@ -120,64 +160,57 @@ void CroasterCore::resetHistory()
 {
     for (int i = 0; i < 60; i++)
     {
-        etHistory[i] = isnan(tempET) ? 0 : tempET;
-        btHistory[i] = isnan(tempBT) ? 0 : tempBT;
-        timeHistory[i] = timer - (59 - i);
+        etHistory[i] = isnan(tempET) ? 0 : tempET; // Use 0 if NAN
+        btHistory[i] = isnan(tempBT) ? 0 : tempBT; // Use 0 if NAN
+        timeHistory[i] = timer;
     }
+
     historyInitialized = false;
+
     debugln("# Temperature histories reset due to unit change.");
 }
 
 String CroasterCore::getJsonData(const String &message, const bool &skipCroaster)
 {
     StaticJsonDocument<384> doc;
+
     doc["id"] = idJsonData;
     doc["roasterID"] = ssidName;
 
     if (!ipAddress.isEmpty())
         doc["ipAddress"] = ipAddress;
+
     if (!message.isEmpty())
         doc["message"] = message;
 
     JsonObject data = doc.createNestedObject("data");
-
-    if (isnan(tempBT))
-        data["BT"].set(nullptr);
-    else
+    if (!isnan(tempBT))
         data["BT"] = tempBT;
-
-    if (isnan(tempET))
-        data["ET"].set(nullptr);
-    else
+    if (!isnan(tempET))
         data["ET"] = tempET;
 
     if (!skipCroaster)
     {
         JsonObject croaster = doc.createNestedObject("croaster");
+
         croaster["version"] = "V" + String(versionCode);
         croaster["versionCode"] = versionCode;
         croaster["interval"] = intervalSendData;
         croaster["timer"] = timer;
-        if (isnan(tempBT))
-            croaster["tempBT"].set(nullptr);
-        else
+        if (!isnan(tempBT))
             croaster["tempBT"] = tempBT;
-        if (isnan(tempET))
-            croaster["tempET"].set(nullptr);
-        else
+        if (!isnan(tempET))
             croaster["tempET"] = tempET;
-        if (isnan(rorBT))
-            croaster["rorBT"].set(nullptr);
-        else
-            croaster["rorBT"] = rorBT;
-        if (isnan(rorET))
-            croaster["rorET"].set(nullptr);
-        else
+        if (!isnan(tempET))
             croaster["rorET"] = rorET;
+        if (!isnan(tempBT))
+            croaster["rorBT"] = rorBT;
         croaster["tempUnit"] = temperatureUnit;
     }
 
-    String output;
-    serializeJson(doc, output);
-    return output;
+    String jsonOutput;
+
+    serializeJson(doc, jsonOutput);
+
+    return jsonOutput;
 }

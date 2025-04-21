@@ -13,6 +13,8 @@ void main(List<String> args) {
       ),
   ];
 
+  print("Copying files...");
+
   for (var job in jobs) {
     moveFile(job.sourcePath, job.destPath);
   }

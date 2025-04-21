@@ -15,6 +15,10 @@
 #define debugln(x) Serial.println(x)
 
 // Firmware version
-const double version = 3.0;
+const double version = 3.02;
 
+// Dummy mode
 const bool dummyMode = false;
+
+// Smoothing factor of a temperature value
+#define SMOOTHING_FACTOR 5

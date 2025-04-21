@@ -1,5 +1,6 @@
 #if defined(ESP32)
 
+#include "CommandHandler.h"
 #include "BleManager.h"
 #include "WiFiManagerUtil.h"
 
@@ -39,49 +40,21 @@ public:
     void onWrite(BLECharacteristic *pCharacteristic) override
     {
         String raw = pCharacteristic->getValue().c_str();
-        StaticJsonDocument<96> doc;
 
-        if (deserializeJson(doc, raw))
+        bool restart = false, erase = false;
+        String response;
+
+        if (handleCommand(raw, *croaster, response, restart, erase))
         {
-            debugln("# [BLE] Invalid JSON command");
-            return;
-        }
-
-        if (doc["command"].is<String>())
-        {
-            String command = doc["command"];
-            String res = croaster->getJsonData(command);
-
-            pCharacteristic->setValue(res.c_str());
-            pCharacteristic->notify();
-
-            if (command == "restartesp")
-                restartESP();
-            else if (command == "erase")
-                eraseESP();
-            else if (command == "dummyOn")
+            if (!response.isEmpty())
             {
-                croaster->useDummyData = true;
-                croaster->resetHistory();
-            }
-            else if (command == "dummyOff")
-            {
-                croaster->useDummyData = false;
-                croaster->resetHistory();
-            }
-        }
-
-        if (doc["command"].is<JsonObject>())
-        {
-            JsonObject cmd = doc["command"];
-            if (cmd.containsKey("tempUnit"))
-            {
-                String unit = cmd["tempUnit"];
-                croaster->changeTemperatureUnit(unit);
-                String res = croaster->getJsonData(unit);
-                pCharacteristic->setValue(res.c_str());
+                pCharacteristic->setValue(response.c_str());
                 pCharacteristic->notify();
             }
+            if (erase)
+                eraseESP();
+            if (restart)
+                restartESP();
         }
     }
 };
