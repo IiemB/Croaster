@@ -1,3 +1,11 @@
+#if defined(ESP8266)
+#pragma message "ESP8266 stuff happening!"
+#elif defined(ESP32)
+#pragma message "ESP32 stuff happening!"
+#else
+#error "This ain't a ESP8266 or ESP32!"
+#endif
+
 #include <Arduino.h>
 #include "Constants.h"
 #include "BleManager.h"
@@ -35,15 +43,11 @@ void setup()
 
   // Initialize managers
   setupWiFiManager(croaster.ssidName);
+#if defined(ESP32)
   setupBLE(croaster, bleDeviceConnected);
+#endif
   setupWebSocket(croaster);
-
-  if (!displayManager.begin())
-  {
-    debugln("# Display init failed. Halting.");
-    while (true)
-      ; // Freeze
-  }
+  displayManager.begin();
 }
 
 // === Arduino Loop ===

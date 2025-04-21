@@ -66,18 +66,18 @@ void CroasterCore::updateROR()
         timeHistory[i] = timeHistory[i + 1];
     }
 
+    float deltaTimer = timeHistory[59] - timeHistory[0];
+
     // Update RoR ET
     if (!isnan(tempET))
     {
         etHistory[59] = tempET;
         float deltaET = etHistory[59] - etHistory[0];
-        float deltaTimer = timeHistory[59] - timeHistory[0];
-        rorET = deltaTimer > 0 ? (deltaET / deltaTimer) * 60 : 0;
+        rorET = deltaTimer > 0 ? (deltaET / deltaTimer) * 60 : NAN;
     }
     else
     {
-        etHistory[59] = etHistory[58];
-        rorET = 0;
+        rorET = NAN;
     }
 
     // Update RoR BT
@@ -85,14 +85,15 @@ void CroasterCore::updateROR()
     {
         btHistory[59] = tempBT;
         float deltaBT = btHistory[59] - btHistory[0];
-        float deltaTimer = timeHistory[59] - timeHistory[0];
-        rorBT = deltaTimer > 0 ? (deltaBT / deltaTimer) * 60 : 0;
+        rorBT = deltaTimer > 0 ? (deltaBT / deltaTimer) * 60 : NAN;
     }
     else
     {
-        btHistory[59] = btHistory[58];
-        rorBT = 0;
+        rorBT = NAN;
     }
+
+    etHistory[59] = etHistory[58];
+    btHistory[59] = btHistory[58];
 }
 
 void CroasterCore::loop()
@@ -165,11 +166,11 @@ String CroasterCore::getJsonData(const String &message, const bool &skipCroaster
             croaster["tempET"].set(nullptr);
         else
             croaster["tempET"] = tempET;
-        if (isnan(tempBT))
+        if (isnan(rorBT))
             croaster["rorBT"].set(nullptr);
         else
             croaster["rorBT"] = rorBT;
-        if (isnan(tempET))
+        if (isnan(rorET))
             croaster["rorET"].set(nullptr);
         else
             croaster["rorET"] = rorET;

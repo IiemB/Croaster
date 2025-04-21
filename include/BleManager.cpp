@@ -1,3 +1,5 @@
+#if defined(ESP32)
+
 #include "BleManager.h"
 #include "WiFiManagerUtil.h"
 
@@ -112,3 +114,5 @@ void setupBLE(CroasterCore &croaster, bool &bleDeviceConnected)
 
     debugln("# BLE Server ready");
 }
+
+#endif

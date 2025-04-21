@@ -1,4 +1,7 @@
 #pragma once
+
+#if defined(ESP32) // Only include for ESP32 boards
+
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEServer.h>
@@ -12,3 +15,5 @@
  * @param bleDeviceConnected Flag to be updated on client connection/disconnection.
  */
 void setupBLE(CroasterCore &croaster, bool &bleDeviceConnected);
+
+#endif
