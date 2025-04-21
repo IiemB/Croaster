@@ -7,6 +7,7 @@
 #include <BLEServer.h>
 #include <BLE2902.h>
 #include "CroasterCore.h"
+#include "DisplayManager.h"
 #include "Constants.h"
 
 /**
@@ -14,6 +15,6 @@
  * @param croaster Reference to the CroasterCore instance for handling commands.
  * @param bleDeviceConnected Flag to be updated on client connection/disconnection.
  */
-void setupBLE(CroasterCore &croaster, bool &bleDeviceConnected);
+void setupBLE(CroasterCore &croaster, DisplayManager &displayManager, bool &bleDeviceConnected);
 
 #endif

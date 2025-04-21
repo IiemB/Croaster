@@ -8,7 +8,7 @@ extern WebSocketsServer webSocket;
 /**
  * Initializes WebSocket server and its event handler.
  */
-void setupWebSocket(CroasterCore &croaster);
+void setupWebSocket(CroasterCore &croaster, DisplayManager &displayManager);
 
 /**
  * Sends sensor data over WebSocket and updates OLED.

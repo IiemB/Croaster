@@ -33,9 +33,13 @@ class MyCharacteristicCallbacks : public BLECharacteristicCallbacks
 {
 private:
     CroasterCore *croaster;
+    DisplayManager *displayManager;
 
 public:
-    MyCharacteristicCallbacks(CroasterCore *croaster) : croaster(croaster) {}
+    MyCharacteristicCallbacks(CroasterCore *croaster, DisplayManager *displayManager) : croaster(croaster),
+                                                                                        displayManager(displayManager)
+    {
+    }
 
     void onWrite(BLECharacteristic *pCharacteristic) override
     {
@@ -44,7 +48,7 @@ public:
         bool restart = false, erase = false;
         String response;
 
-        if (handleCommand(raw, *croaster, response, restart, erase))
+        if (handleCommand(raw, *croaster, *displayManager, response, restart, erase))
         {
             if (!response.isEmpty())
             {
@@ -59,7 +63,7 @@ public:
     }
 };
 
-void setupBLE(CroasterCore &croaster, bool &bleDeviceConnected)
+void setupBLE(CroasterCore &croaster, DisplayManager &displayManager, bool &bleDeviceConnected)
 {
     BLEDevice::init(croaster.ssidName.c_str());
     pServer = BLEDevice::createServer();
@@ -74,7 +78,7 @@ void setupBLE(CroasterCore &croaster, bool &bleDeviceConnected)
             BLECharacteristic::PROPERTY_WRITE_NR);
 
     pDataCharacteristic->addDescriptor(new BLE2902());
-    pDataCharacteristic->setCallbacks(new MyCharacteristicCallbacks(&croaster));
+    pDataCharacteristic->setCallbacks(new MyCharacteristicCallbacks(&croaster, &displayManager));
 
     BLESecurity *pSecurity = new BLESecurity();
     pSecurity->setStaticPIN(passkey);

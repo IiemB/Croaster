@@ -2,7 +2,7 @@
 #include "Constants.h"
 #include "WiFiManagerUtil.h"
 
-bool handleCommand(const String &json, CroasterCore &croaster, String &responseOut, bool &restart, bool &erase)
+bool handleCommand(const String &json, CroasterCore &croaster, DisplayManager &displayManager, String &responseOut, bool &restart, bool &erase)
 {
     StaticJsonDocument<96> doc;
 
@@ -50,6 +50,10 @@ bool handleCommand(const String &json, CroasterCore &croaster, String &responseO
         {
             croaster.useDummyData = false;
             croaster.resetHistory();
+        }
+        else if (cmd == "rotateScreen")
+        {
+            displayManager.rotateScreen();
         }
 
         return true;

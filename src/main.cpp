@@ -47,12 +47,12 @@ void setup()
   delay(1000);
 
   // Initialize managers
+  displayManager.begin();
   setupWiFiManager(croaster.ssidName);
 #if defined(ESP32)
-  setupBLE(croaster, bleDeviceConnected);
+  setupBLE(croaster, displayManager, bleDeviceConnected);
 #endif
-  setupWebSocket(croaster);
-  displayManager.begin();
+  setupWebSocket(croaster, displayManager);
 }
 
 // === Arduino Loop ===

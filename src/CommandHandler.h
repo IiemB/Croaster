@@ -1,6 +1,7 @@
 #pragma once
 #include <ArduinoJson.h>
 #include "CroasterCore.h"
+#include "DisplayManager.h"
 
 /**
  * Parses and handles incoming BLE or WebSocket JSON commands.
@@ -12,4 +13,4 @@
  * @param erase        Set to true if erase is requested
  * @return true if command is valid and handled, false otherwise
  */
-bool handleCommand(const String &json, CroasterCore &croaster, String &responseOut, bool &restart, bool &erase);
+bool handleCommand(const String &json, CroasterCore &croaster, DisplayManager &displayManager, String &responseOut, bool &restart, bool &erase);

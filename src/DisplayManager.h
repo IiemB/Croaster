@@ -21,12 +21,19 @@ private:
     String ip;
     float et = NAN;
     float bt = NAN;
+    float rorET = NAN;
+    float rorBT = NAN;
     String unit = "C";
 
     int screenRotation = 0;
 
+    unsigned long lastInversionToggle = 0;
+    bool isDisplayInverted = false;
+    const unsigned long inversionInterval = 60000;
+    const unsigned long inversionDuration = 5000;
+
     void drawHeader(String ip = "");
-    void drawTemperature(String label, float temp, int yCursor, String tempUnit);
+    void drawTemperature(String label, float temp, float ror, int yCursor, String tempUnit);
     void testDrawLine();
 
 public:
@@ -42,5 +49,8 @@ public:
      */
     void loop(CroasterCore &croaster, String ip);
 
+    /**
+     * Rotates the screen display.
+     */
     void rotateScreen();
 };

@@ -12,12 +12,12 @@ WebSocketsServer webSocket(81);
 String socketEventMessage = "";
 unsigned long lastWebSocketSend = 0;
 
-void handleWebSocketEvent(const String &cmd, uint8_t num, CroasterCore &croaster)
+void handleWebSocketEvent(const String &cmd, uint8_t num, CroasterCore &croaster, DisplayManager &displayManager)
 {
     bool restart = false, erase = false;
     String response;
 
-    if (handleCommand(cmd, croaster, response, restart, erase))
+    if (handleCommand(cmd, croaster, displayManager, response, restart, erase))
     {
         if (!response.isEmpty())
         {
@@ -41,18 +41,18 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
         debugln("# WebSocket connected");
         break;
     case WStype_TEXT:
-        handleWebSocketEvent(String((char *)payload), num, *(CroasterCore *)nullptr); // Patched later
+        handleWebSocketEvent(String((char *)payload), num, *(CroasterCore *)nullptr, *(DisplayManager *)nullptr); // Patched later
         break;
     default:
         break;
     }
 }
 
-void setupWebSocket(CroasterCore &croaster)
+void setupWebSocket(CroasterCore &croaster, DisplayManager &displayManager)
 {
     webSocket.begin();
-    webSocket.onEvent([&croaster](uint8_t num, WStype_t type, uint8_t *payload, size_t length)
-                      { handleWebSocketEvent(String((char *)payload), num, croaster); });
+    webSocket.onEvent([&croaster, &displayManager](uint8_t num, WStype_t type, uint8_t *payload, size_t length)
+                      { handleWebSocketEvent(String((char *)payload), num, croaster, displayManager); });
     debugln("# WebSocket started");
 }
 
