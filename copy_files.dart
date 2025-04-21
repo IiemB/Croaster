@@ -1,15 +1,19 @@
 import 'dart:io';
 
 void main(List<String> args) {
+  final files =
+      Directory('./src/').listSync()
+        ..removeWhere((element) => element.path.contains('main.cpp'));
+
   final jobs = [
     (
       sourcePath: './src/main.cpp',
       destPath: './croaster-arduino/croaster-arduino.ino',
     ),
-    for (final file in Directory('./include/').listSync())
+    for (final file in files)
       (
         sourcePath: file.path,
-        destPath: file.path.replaceAll('include', 'croaster-arduino'),
+        destPath: file.path.replaceAll('src', 'croaster-arduino'),
       ),
   ];
 
