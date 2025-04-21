@@ -14,7 +14,14 @@ bool handleCommand(const String &json, CroasterCore &croaster, String &responseO
 
     restart = false;
     erase = false;
+
     responseOut = "";
+
+    String jsonOutput;
+
+    serializeJson(doc, jsonOutput);
+
+    debugln("# [CMD] " + jsonOutput);
 
     if (doc["command"].is<String>())
     {
