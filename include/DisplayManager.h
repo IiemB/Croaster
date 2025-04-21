@@ -23,6 +23,8 @@ private:
     float bt = NAN;
     String unit = "C";
 
+    int screenRotation = 0;
+
     void drawHeader(String ip = "");
     void drawTemperature(String label, float temp, int yCursor, String tempUnit);
     void testDrawLine();
@@ -39,4 +41,6 @@ public:
      * Should be called inside loop() to handle timed updates.
      */
     void loop(CroasterCore &croaster, String ip);
+
+    void rotateScreen();
 };

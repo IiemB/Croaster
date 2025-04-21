@@ -88,3 +88,13 @@ void DisplayManager::loop(CroasterCore &croaster, String ipAddr)
     drawTemperature("BT", bt, 43, unit);
     display.display();
 }
+
+void DisplayManager::rotateScreen()
+{
+    if (screenRotation < 3)
+        screenRotation = screenRotation + 1;
+    else
+        screenRotation = 0;
+
+    display.setRotation(screenRotation);
+}
