@@ -1,12 +1,13 @@
 #include "DisplayManager.h"
 #include "Constants.h"
 
-DisplayManager::DisplayManager(int width, int height, const double &version, uint8_t i2cAddr)
+DisplayManager::DisplayManager(int width, int height, uint8_t i2cAddr)
     : display(width, height, &Wire, OLED_RESET),
       screenWidth(width),
       screenHeight(height),
-      versionCode(version),
-      i2cAddress(i2cAddr) {}
+      i2cAddress(i2cAddr)
+{
+}
 
 bool DisplayManager::begin()
 {
@@ -25,7 +26,7 @@ bool DisplayManager::begin()
 
 void DisplayManager::drawHeader(String ipAddr)
 {
-    String text = "CROASTER V" + String(versionCode);
+    String text = "CROASTER V" + String(version);
     if (showIp && !ipAddr.isEmpty())
     {
         text = ipAddr;

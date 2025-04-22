@@ -1,9 +1,10 @@
 #include "CroasterCore.h"
+#include "DeviceIdentity.h"
+#include "Constants.h"
 
-CroasterCore::CroasterCore(const double &version, bool dummyMode)
+CroasterCore::CroasterCore(bool dummyMode)
     : useDummyData(dummyMode),
-      versionCode(version),
-      ssidName("Croaster V" + String(version))
+      ssidName(getDeviceName("[", "] Croaster V" + String(version)))
 {
 
     thermocoupleBT = new SmoothThermocouple(new MAX6675_Thermocouple(SCK_PIN, CS_PIN_BT, SO_PIN), SMOOTHING_FACTOR);
@@ -193,8 +194,8 @@ String CroasterCore::getJsonData(const String &message, const bool &skipCroaster
     {
         JsonObject croaster = doc.createNestedObject("croaster");
 
-        croaster["version"] = "V" + String(versionCode);
-        croaster["versionCode"] = versionCode;
+        croaster["version"] = "V" + String(version);
+        croaster["versionCode"] = version;
         croaster["interval"] = intervalSendData;
         croaster["timer"] = timer;
         if (!isnan(tempBT))

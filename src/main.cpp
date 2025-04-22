@@ -15,8 +15,8 @@
 #include "DisplayManager.h"
 
 // === Global Instances ===
-DisplayManager displayManager(SCREEN_WIDTH, SCREEN_HEIGHT, version);
-CroasterCore croaster(version, dummyMode);
+DisplayManager displayManager(SCREEN_WIDTH, SCREEN_HEIGHT);
+CroasterCore croaster(dummyMode);
 
 // Shared state flags
 bool bleDeviceConnected = false;

@@ -24,11 +24,10 @@ private:
     void updateROR();
 
 public:
-    CroasterCore(const double &version, bool dummyMode = false);
+    CroasterCore(bool dummyMode = false);
 
     bool useDummyData;
     String temperatureUnit = "C";
-    double versionCode;
     String ssidName;
     float timer = 0, rorET = 0, rorBT = 0, tempET = 0, tempBT = 0;
     unsigned long intervalSendData = 3000;

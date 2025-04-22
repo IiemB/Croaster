@@ -13,9 +13,11 @@ private:
     Adafruit_SSD1306 display;
     const int screenWidth;
     const int screenHeight;
-    double versionCode;
+
     uint8_t i2cAddress;
+
     bool showIp = false;
+
     unsigned long lastUpdate = 0;
 
     String ip;
@@ -37,7 +39,7 @@ private:
     void testDrawLine();
 
 public:
-    DisplayManager(int width, int height, const double &version, uint8_t i2cAddress = 0x3C);
+    DisplayManager(int width, int height, uint8_t i2cAddress = 0x3C);
 
     /**
      * Initializes the OLED display. Returns false if failed.
