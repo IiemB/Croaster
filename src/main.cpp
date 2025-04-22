@@ -37,22 +37,18 @@ void blinkLED();
 void setup()
 {
   Serial.begin(115200);
-  while (!Serial)
-  {
-    yield(); // Wait for Serial to initialize without blocking
-  }
 
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
   delay(1000);
 
   // Initialize managers
-  displayManager.begin();
   setupWiFiManager(croaster.ssidName);
 #if defined(ESP32)
   setupBLE(croaster, displayManager, bleDeviceConnected);
 #endif
   setupWebSocket(croaster, displayManager);
+  displayManager.begin();
 }
 
 // === Arduino Loop ===
