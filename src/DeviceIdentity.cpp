@@ -16,7 +16,15 @@ String getUniqueChipId()
 #endif
 }
 
-String getDeviceName(String prefix, String suffix)
+String getShortChipId(uint8_t length)
 {
-    return prefix + getUniqueChipId() + suffix;
+    String fullId = getUniqueChipId();
+    if (length >= fullId.length())
+        return fullId;
+    return fullId.substring(fullId.length() - length);
+}
+
+String getDeviceName(String prefix, String suffix, uint8_t length)
+{
+    return prefix + getShortChipId(length) + suffix;
 }
