@@ -103,7 +103,7 @@
    
 
 ```bash
-   git clone https://github.com/yourusername/croaster.git
+   git clone git@github.com:IiemB/Croaster.git
    cd croaster
    ```
 
