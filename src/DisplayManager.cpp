@@ -1,0 +1,130 @@
+#include "DisplayManager.h"
+#include "Constants.h"
+
+DisplayManager::DisplayManager(int width, int height, uint8_t i2cAddr)
+    : display(width, height, &Wire, OLED_RESET),
+      screenWidth(width),
+      screenHeight(height),
+      i2cAddress(i2cAddr)
+{
+}
+
+bool DisplayManager::begin()
+{
+    if (!display.begin(SSD1306_SWITCHCAPVCC, i2cAddress))
+    {
+        debugln(F("# SSD1306 allocation failed"));
+        return false;
+    }
+    display.clearDisplay();
+    display.setTextColor(SSD1306_WHITE);
+    debugln(F("# SSD1306 initialization succeed"));
+    splash();
+    display.setTextWrap(false);
+    return true;
+}
+
+void DisplayManager::drawHeader()
+{
+    String text = "CROASTER V" + String(version);
+
+    if (showIp && !ipAddr.isEmpty())
+    {
+        text = ipAddr;
+    }
+
+    display.setTextSize(1);
+    display.setCursor(0, 0);
+    display.print(text);
+
+    showIp = !showIp;
+}
+
+void DisplayManager::drawTemperature(String label, float temp, float ror, int yCursor, String tempUnit)
+{
+    String tempText = isnan(temp) ? "N/A" : String(temp, 1) + tempUnit;
+    int tempX = display.width() - (18 * tempText.length()) + 3;
+
+    display.setTextSize(1);
+    display.setCursor(0, yCursor);
+    display.print(label);
+
+    display.setTextSize(3);
+    display.setCursor(tempX, yCursor);
+    display.print(tempText);
+
+    if (!isnan(temp))
+    {
+        display.setTextSize(1);
+        display.setCursor(0, yCursor + 14);
+        display.print(String((int)round(ror)));
+    }
+}
+
+void DisplayManager::splash()
+{
+    display.clearDisplay();
+
+    for (int16_t i = 0; i < max(display.width(), display.height()) / 2; i += 2)
+    {
+        display.drawCircle(display.width() / 2, display.height() / 2, i, SSD1306_WHITE);
+        display.display();
+        delay(1);
+    }
+
+    delay(1000);
+
+    display.clearDisplay();
+
+    for (int16_t i = max(display.width(), display.height()) / 2; i > 0; i -= 3)
+    {
+        // The INVERSE color is used so circles alternate white/black
+        display.fillCircle(display.width() / 2, display.height() / 2, i, SSD1306_INVERSE);
+        display.display(); // Update screen with each newly-drawn circle
+        delay(1);
+    }
+
+    delay(1000);
+}
+
+void DisplayManager::loop(CroasterCore &croaster)
+{
+    unsigned long now = millis();
+
+    // === Invert screen ===
+    if (now - lastInversionToggle >= (isDisplayInverted ? inversionDuration : inversionInterval))
+    {
+        isDisplayInverted = !isDisplayInverted;
+        lastInversionToggle = now;
+        display.invertDisplay(isDisplayInverted);
+        debugln(isDisplayInverted ? "# Display Inverted to Prevent Burn-In" : "# Display Reverted to Normal");
+    }
+
+    if (now - lastUpdate < croaster.intervalSendData)
+        return;
+
+    et = croaster.tempET;
+    rorET = croaster.rorET;
+    bt = croaster.tempBT;
+    rorBT = croaster.rorBT;
+    unit = croaster.temperatureUnit;
+    ipAddr = getIpAddress();
+
+    lastUpdate = now;
+
+    display.clearDisplay();
+    drawHeader();
+    drawTemperature("ET", et, rorET, 16, unit);
+    drawTemperature("BT", bt, rorBT, 43, unit);
+    display.display();
+}
+
+void DisplayManager::rotateScreen()
+{
+    if (screenRotation < 3)
+        screenRotation = screenRotation + 1;
+    else
+        screenRotation = 0;
+
+    display.setRotation(screenRotation);
+}
