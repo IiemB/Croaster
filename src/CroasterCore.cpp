@@ -3,8 +3,7 @@
 #include "Constants.h"
 
 CroasterCore::CroasterCore(bool dummyMode)
-    : useDummyData(dummyMode),
-      ssidName(getDeviceName("[", "] Croaster V" + String(version)))
+    : useDummyData(dummyMode)
 {
 
     thermocoupleBT = new SmoothThermocouple(new MAX6675_Thermocouple(SCK_PIN, CS_PIN_BT, SO_PIN), SMOOTHING_FACTOR);
@@ -171,12 +170,16 @@ void CroasterCore::resetHistory()
     debugln("# Temperature histories reset due to unit change.");
 }
 
+String CroasterCore::ssidName()
+{
+    return getDeviceName("[", "] Croaster V" + String(version));
+}
+
 String CroasterCore::getJsonData(const String &message, const bool &skipCroaster)
 {
     StaticJsonDocument<384> doc;
 
     doc["id"] = idJsonData;
-    doc["roasterID"] = ssidName;
 
     if (!ipAddress.isEmpty())
         doc["ipAddress"] = ipAddress;
@@ -194,18 +197,19 @@ String CroasterCore::getJsonData(const String &message, const bool &skipCroaster
     {
         JsonObject croaster = doc.createNestedObject("croaster");
 
-        croaster["version"] = "V" + String(version);
         croaster["versionCode"] = version;
         croaster["interval"] = intervalSendData;
         croaster["timer"] = timer;
         if (!isnan(tempBT))
+        {
             croaster["tempBT"] = tempBT;
-        if (!isnan(tempET))
-            croaster["tempET"] = tempET;
-        if (!isnan(tempET))
-            croaster["rorET"] = rorET;
-        if (!isnan(tempBT))
             croaster["rorBT"] = rorBT;
+        }
+        if (!isnan(tempET))
+        {
+            croaster["tempET"] = tempET;
+            croaster["rorET"] = rorET;
+        }
         croaster["tempUnit"] = temperatureUnit;
     }
 

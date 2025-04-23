@@ -3,10 +3,12 @@
 #include <Adafruit_SSD1306.h>
 #include "Constants.h"
 #include "CroasterCore.h"
+#include "WiFiManagerUtil.h"
 
 /**
  * Handles rendering temperature and status data to the OLED display.
  */
+
 class DisplayManager
 {
 private:
@@ -20,7 +22,7 @@ private:
 
     unsigned long lastUpdate = 0;
 
-    String ip;
+    String ipAddr;
     float et = NAN;
     float bt = NAN;
     float rorET = NAN;
@@ -34,9 +36,9 @@ private:
     const unsigned long inversionInterval = 60000;
     const unsigned long inversionDuration = 5000;
 
-    void drawHeader(String ip = "");
+    void drawHeader();
     void drawTemperature(String label, float temp, float ror, int yCursor, String tempUnit);
-    void testDrawLine();
+    void splash();
 
 public:
     DisplayManager(int width, int height, uint8_t i2cAddress = 0x3C);
@@ -49,7 +51,7 @@ public:
     /**
      * Should be called inside loop() to handle timed updates.
      */
-    void loop(CroasterCore &croaster, String ip);
+    void loop(CroasterCore &croaster);
 
     /**
      * Rotates the screen display.

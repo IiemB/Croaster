@@ -1,10 +1,40 @@
 #include "CommandHandler.h"
-#include "Constants.h"
 #include "WiFiManagerUtil.h"
+#include "Constants.h"
 
-bool handleCommand(const String &json, CroasterCore &croaster, DisplayManager &displayManager, String &responseOut, bool &restart, bool &erase)
+CommandHandler::CommandHandler(CroasterCore &core, DisplayManager &display)
+    : croaster(core), displayManager(display) {}
+
+void CommandHandler::init()
 {
-    StaticJsonDocument<96> doc;
+    pinMode(LED_BUILTIN, OUTPUT);
+    digitalWrite(LED_BUILTIN, LED_OFF);
+}
+
+void CommandHandler::loop()
+{
+    if (blinking)
+    {
+        unsigned long now = millis();
+        if (now - lastBlinkTime >= blinkDelay)
+        {
+            ledState = !ledState;
+            digitalWrite(LED_BUILTIN, ledState ? LED_ON : LED_OFF);
+            lastBlinkTime = now;
+            blinkCount++;
+
+            if (blinkCount >= blinkTotal)
+            {
+                blinking = false;
+                digitalWrite(LED_BUILTIN, LED_OFF); // turn off when done
+            }
+        }
+    }
+}
+
+bool CommandHandler::handle(const String &json, String &responseOut, bool &restart, bool &erase)
+{
+    StaticJsonDocument<192> doc;
 
     if (deserializeJson(doc, json))
     {
@@ -14,69 +44,98 @@ bool handleCommand(const String &json, CroasterCore &croaster, DisplayManager &d
 
     restart = false;
     erase = false;
-
     responseOut = "";
-
-    String jsonOutput;
-
-    serializeJson(doc, jsonOutput);
-
-    debugln("# [CMD] " + jsonOutput);
 
     if (doc["command"].is<String>())
     {
-        String cmd = doc["command"];
+        JsonObject json = doc.as<JsonObject>();
 
-        if (cmd == "getData")
-        {
-            responseOut = croaster.getJsonData(cmd);
-        }
-        else if (cmd == "restartesp")
-        {
-            responseOut = croaster.getJsonData(cmd);
-            restart = true;
-        }
-        else if (cmd == "erase")
-        {
-            responseOut = croaster.getJsonData(cmd);
-            erase = true;
-        }
-        else if (cmd == "dummyOn")
-        {
-            croaster.useDummyData = true;
-            croaster.resetHistory();
-        }
-        else if (cmd == "dummyOff")
-        {
-            croaster.useDummyData = false;
-            croaster.resetHistory();
-        }
-        else if (cmd == "rotateScreen")
-        {
-            displayManager.rotateScreen();
-        }
-
+        handleBasicCommand(json, responseOut, restart, erase);
         return true;
     }
 
     if (doc["command"].is<JsonObject>())
     {
-        JsonObject cmd = doc["command"];
-
-        if (cmd.containsKey("tempUnit"))
-        {
-            String unit = cmd["tempUnit"];
-            croaster.changeTemperatureUnit(unit);
-            responseOut = croaster.getJsonData(unit);
-            return true;
-        }
-
-        if (cmd.containsKey("interval"))
-        {
-            croaster.intervalSendData = cmd["interval"].as<int>() * 1000;
-            return true;
-        }
+        JsonObject obj = doc["command"];
+        handleJsonCommand(obj, responseOut);
+        return true;
     }
 
     return false;
+}
+
+void CommandHandler::handleBasicCommand(const JsonObject &json, String &responseOut, bool &restart, bool &erase)
+{
+    if (!json["command"].is<String>())
+        return;
+
+    String command = json["command"].as<String>();
+
+    if (command == "getDataForArtisan")
+    {
+        croaster.idJsonData = json["id"];
+
+        responseOut = croaster.getJsonData(command, true);
+    }
+    else if (command == "getDataForICRM")
+    {
+        responseOut = croaster.getJsonData(command);
+    }
+    else if (command == "restartesp")
+    {
+        restart = true;
+
+        responseOut = croaster.getJsonData(command);
+    }
+    else if (command == "erase")
+    {
+        erase = true;
+
+        responseOut = croaster.getJsonData(command);
+    }
+    else if (command == "dummyOn")
+    {
+        croaster.useDummyData = true;
+        croaster.resetHistory();
+    }
+    else if (command == "dummyOff")
+    {
+        croaster.useDummyData = false;
+        croaster.resetHistory();
+    }
+    else if (command == "blink")
+    {
+        blinkBuiltinLED();
+    }
+    else if (command == "rotateScreen")
+    {
+        displayManager.rotateScreen();
+    }
+}
+
+void CommandHandler::handleJsonCommand(const JsonObject &json, String &responseOut)
+{
+    if (json.containsKey("tempUnit"))
+    {
+        String unit = json["tempUnit"];
+        croaster.changeTemperatureUnit(unit);
+    }
+
+    if (json.containsKey("interval"))
+    {
+        int interval = json["interval"].as<int>() * 1000;
+        croaster.intervalSendData = interval;
+    }
+}
+
+void CommandHandler::blinkBuiltinLED(uint8_t times, unsigned long blinkDelay)
+{
+
+    blinkTotal = times * 2; // on/off = 2 toggles per blink
+    blinkCount = 0;
+    lastBlinkTime = millis();
+    blinkDelay = blinkDelay;
+    ledState = false;
+
+    blinking = true;
 }

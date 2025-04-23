@@ -1,16 +1,60 @@
 #pragma once
+#include <Arduino.h>
 #include <ArduinoJson.h>
 #include "CroasterCore.h"
 #include "DisplayManager.h"
 
+#define LED_ON LOW
+#define LED_OFF HIGH
+
 /**
- * Parses and handles incoming BLE or WebSocket JSON commands.
- *
- * @param json         Raw JSON string from client
- * @param croaster     Reference to the sensor/logic manager
- * @param responseOut  Filled with response (if any)
- * @param restart      Set to true if restart is requested
- * @param erase        Set to true if erase is requested
- * @return true if command is valid and handled, false otherwise
+ * CommandHandler class handles parsed BLE/WebSocket JSON commands.
+ * Supports internal actions like restart, erase, LED blink, etc.
  */
-bool handleCommand(const String &json, CroasterCore &croaster, DisplayManager &displayManager, String &responseOut, bool &restart, bool &erase);
+class CommandHandler
+{
+private:
+    CroasterCore &croaster;
+    DisplayManager &displayManager;
+
+    // Blink LED non-blocking state
+    bool blinking = false;
+    uint8_t blinkCount = 0;
+    uint8_t blinkTotal = 0;
+    unsigned long lastBlinkTime = 0;
+    unsigned long blinkDelay = 400;
+    bool ledState = false;
+
+    void handleBasicCommand(const JsonObject &json, String &responseOut, bool &restart, bool &erase);
+
+    void handleJsonCommand(const JsonObject &json, String &responseOut);
+
+    /**
+     * This is an example custom function to handle the `blink` command.
+     */
+    void blinkBuiltinLED(uint8_t times = 3, unsigned long blinkDelay = 400);
+
+public:
+    CommandHandler(CroasterCore &core, DisplayManager &display);
+
+    /**
+     * Initializes the command handler.
+     */
+    void init();
+
+    /**
+     * Executes the main loop for handling commands.
+     */
+    void loop();
+
+    /**
+     * Handle a parsed JSON command string.
+     *
+     * @param json          Incoming JSON string
+     * @param responseOut   String to be filled with a JSON reply (if needed)
+     * @param restart       Will be set true if restart is requested
+     * @param erase         Will be set true if erase is requested
+     * @return true if valid command processed, false otherwise
+     */
+    bool handle(const String &json, String &responseOut, bool &restart, bool &erase);
+};

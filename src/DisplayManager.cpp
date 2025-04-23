@@ -19,14 +19,15 @@ bool DisplayManager::begin()
     display.clearDisplay();
     display.setTextColor(SSD1306_WHITE);
     debugln(F("# SSD1306 initialization succeed"));
-    testDrawLine();
+    splash();
     display.setTextWrap(false);
     return true;
 }
 
-void DisplayManager::drawHeader(String ipAddr)
+void DisplayManager::drawHeader()
 {
     String text = "CROASTER V" + String(version);
+
     if (showIp && !ipAddr.isEmpty())
     {
         text = ipAddr;
@@ -60,84 +61,34 @@ void DisplayManager::drawTemperature(String label, float temp, float ror, int yC
     }
 }
 
-void DisplayManager::testDrawLine()
+void DisplayManager::splash()
 {
-    int16_t i;
+    display.clearDisplay();
 
-    display.clearDisplay(); // Clear display buffer
-
-    for (i = 0; i < display.width(); i += 4)
+    for (int16_t i = 0; i < max(display.width(), display.height()) / 2; i += 2)
     {
-        display.drawLine(0, 0, i, display.height() - 1, SSD1306_WHITE);
-        display.display(); // Update screen with each newly-drawn line
-        delay(1);
-    }
-    for (i = 0; i < display.height(); i += 4)
-    {
-        display.drawLine(0, 0, display.width() - 1, i, SSD1306_WHITE);
+        display.drawCircle(display.width() / 2, display.height() / 2, i, SSD1306_WHITE);
         display.display();
         delay(1);
     }
-    delay(250);
+
+    delay(1000);
 
     display.clearDisplay();
 
-    for (i = 0; i < display.width(); i += 4)
+    for (int16_t i = max(display.width(), display.height()) / 2; i > 0; i -= 3)
     {
-        display.drawLine(0, display.height() - 1, i, 0, SSD1306_WHITE);
-        display.display();
+        // The INVERSE color is used so circles alternate white/black
+        display.fillCircle(display.width() / 2, display.height() / 2, i, SSD1306_INVERSE);
+        display.display(); // Update screen with each newly-drawn circle
         delay(1);
     }
-    for (i = display.height() - 1; i >= 0; i -= 4)
-    {
-        display.drawLine(0, display.height() - 1, display.width() - 1, i, SSD1306_WHITE);
-        display.display();
-        delay(1);
-    }
-    delay(250);
 
-    display.clearDisplay();
-
-    for (i = display.width() - 1; i >= 0; i -= 4)
-    {
-        display.drawLine(display.width() - 1, display.height() - 1, i, 0, SSD1306_WHITE);
-        display.display();
-        delay(1);
-    }
-    for (i = display.height() - 1; i >= 0; i -= 4)
-    {
-        display.drawLine(display.width() - 1, display.height() - 1, 0, i, SSD1306_WHITE);
-        display.display();
-        delay(1);
-    }
-    delay(250);
-
-    display.clearDisplay();
-
-    for (i = 0; i < display.height(); i += 4)
-    {
-        display.drawLine(display.width() - 1, 0, 0, i, SSD1306_WHITE);
-        display.display();
-        delay(1);
-    }
-    for (i = 0; i < display.width(); i += 4)
-    {
-        display.drawLine(display.width() - 1, 0, i, display.height() - 1, SSD1306_WHITE);
-        display.display();
-        delay(1);
-    }
+    delay(1000);
 }
 
-void DisplayManager::loop(CroasterCore &croaster, String ipAddr)
+void DisplayManager::loop(CroasterCore &croaster)
 {
-
-    et = croaster.tempET;
-    rorET = croaster.rorET;
-    bt = croaster.tempBT;
-    rorBT = croaster.rorBT;
-    unit = croaster.temperatureUnit;
-    ip = ipAddr;
-
     unsigned long now = millis();
 
     // === Invert screen ===
@@ -152,10 +103,17 @@ void DisplayManager::loop(CroasterCore &croaster, String ipAddr)
     if (now - lastUpdate < croaster.intervalSendData)
         return;
 
+    et = croaster.tempET;
+    rorET = croaster.rorET;
+    bt = croaster.tempBT;
+    rorBT = croaster.rorBT;
+    unit = croaster.temperatureUnit;
+    ipAddr = getIpAddress();
+
     lastUpdate = now;
 
     display.clearDisplay();
-    drawHeader(ip);
+    drawHeader();
     drawTemperature("ET", et, rorET, 16, unit);
     drawTemperature("BT", bt, rorBT, 43, unit);
     display.display();

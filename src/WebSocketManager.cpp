@@ -7,24 +7,28 @@
 #include <ESP8266WiFi.h>
 #endif
 #include "WiFiManagerUtil.h"
+#include "Constants.h"
 
 WebSocketsServer webSocket(81);
 String socketEventMessage = "";
 unsigned long lastWebSocketSend = 0;
 
-void handleWebSocketEvent(const String &cmd, uint8_t num, CroasterCore &croaster, DisplayManager &displayManager)
+void handleWebSocketEvent(const String &cmd, uint8_t num, CommandHandler &commandHandler)
 {
     bool restart = false, erase = false;
     String response;
 
-    if (handleCommand(cmd, croaster, displayManager, response, restart, erase))
+    if (commandHandler.handle(cmd, response, restart, erase))
     {
+        debugln("# [SOCKET] " + cmd);
+
         if (!response.isEmpty())
         {
             webSocket.sendTXT(num, response);
         }
         if (erase)
             eraseESP();
+
         if (restart)
             ESP.restart();
     }
@@ -41,18 +45,18 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
         debugln("# WebSocket connected");
         break;
     case WStype_TEXT:
-        handleWebSocketEvent(String((char *)payload), num, *(CroasterCore *)nullptr, *(DisplayManager *)nullptr); // Patched later
+        handleWebSocketEvent(String((char *)payload), num, *(CommandHandler *)nullptr); // Patched later
         break;
     default:
         break;
     }
 }
 
-void setupWebSocket(CroasterCore &croaster, DisplayManager &displayManager)
+void setupWebSocket(CommandHandler &commandHandler)
 {
     webSocket.begin();
-    webSocket.onEvent([&croaster, &displayManager](uint8_t num, WStype_t type, uint8_t *payload, size_t length)
-                      { handleWebSocketEvent(String((char *)payload), num, croaster, displayManager); });
+    webSocket.onEvent([&commandHandler](uint8_t num, WStype_t type, uint8_t *payload, size_t length)
+                      { handleWebSocketEvent(String((char *)payload), num, commandHandler); });
     debugln("# WebSocket started");
 }
 

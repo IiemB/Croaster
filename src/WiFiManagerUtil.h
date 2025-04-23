@@ -21,4 +21,11 @@ void eraseESP();
  */
 void configModeCallback(WiFiManager *myWiFiManager);
 
+/**
+ * Retrieves the IP address of the device as a string.
+ *
+ * @return String The IP address of the device in standard dot-decimal notation.
+ */
+String getIpAddress();
+
 extern WiFiManager wifiManager;

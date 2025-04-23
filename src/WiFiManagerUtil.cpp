@@ -1,5 +1,10 @@
 #include "WiFiManagerUtil.h"
 #include "Constants.h"
+#if defined(ESP32)
+#include <WiFi.h>
+#elif defined(ESP8266)
+#include <ESP8266WiFi.h>
+#endif
 
 WiFiManager wifiManager;
 
@@ -37,4 +42,9 @@ void eraseESP()
 {
     wifiManager.erase();
     restartESP();
+}
+
+String getIpAddress()
+{
+    return WiFi.isConnected() ? WiFi.localIP().toString() : "";
 }

@@ -11,19 +11,13 @@ uint32_t passkey = 123456;
 class MyServerCallbacks : public BLEServerCallbacks
 {
 public:
-    bool *connectedFlag;
-
-    MyServerCallbacks(bool *flag) : connectedFlag(flag) {}
-
     void onConnect(BLEServer *) override
     {
-        *connectedFlag = true;
         debugln("# BLE Client Connected");
     }
 
     void onDisconnect(BLEServer *) override
     {
-        *connectedFlag = false;
         debugln("# BLE Client Disconnected");
         BLEDevice::startAdvertising();
     }
@@ -32,12 +26,10 @@ public:
 class MyCharacteristicCallbacks : public BLECharacteristicCallbacks
 {
 private:
-    CroasterCore *croaster;
-    DisplayManager *displayManager;
+    CommandHandler *commandHandler;
 
 public:
-    MyCharacteristicCallbacks(CroasterCore *croaster, DisplayManager *displayManager) : croaster(croaster),
-                                                                                        displayManager(displayManager)
+    MyCharacteristicCallbacks(CommandHandler *commandHandler) : commandHandler(CommandHandler)
     {
     }
 
@@ -48,8 +40,11 @@ public:
         bool restart = false, erase = false;
         String response;
 
-        if (handleCommand(raw, *croaster, *displayManager, response, restart, erase))
+        if (commandHandler->handle(raw, response, restart, erase))
         {
+
+            debugln("# [BLE] " + cmd);
+
             if (!response.isEmpty())
             {
                 pCharacteristic->setValue(response.c_str());
@@ -63,11 +58,11 @@ public:
     }
 };
 
-void setupBLE(CroasterCore &croaster, DisplayManager &displayManager, bool &bleDeviceConnected)
+void setupBLE(CommandHandler &commandHandler)
 {
     BLEDevice::init(croaster.ssidName.c_str());
     pServer = BLEDevice::createServer();
-    pServer->setCallbacks(new MyServerCallbacks(&bleDeviceConnected));
+    pServer->setCallbacks(new MyServerCallbacks());
 
     BLEService *pService = pServer->createService(SERVICE_UUID);
     pDataCharacteristic = pService->createCharacteristic(
@@ -78,7 +73,7 @@ void setupBLE(CroasterCore &croaster, DisplayManager &displayManager, bool &bleD
             BLECharacteristic::PROPERTY_WRITE_NR);
 
     pDataCharacteristic->addDescriptor(new BLE2902());
-    pDataCharacteristic->setCallbacks(new MyCharacteristicCallbacks(&croaster, &displayManager));
+    pDataCharacteristic->setCallbacks(new MyCharacteristicCallbacks(&commandHandler));
 
     BLESecurity *pSecurity = new BLESecurity();
     pSecurity->setStaticPIN(passkey);
