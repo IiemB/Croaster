@@ -13,8 +13,6 @@ class DisplayManager
 {
 private:
     Adafruit_SSD1306 display;
-    const int screenWidth;
-    const int screenHeight;
 
     uint8_t i2cAddress;
 
@@ -23,6 +21,7 @@ private:
     unsigned long lastUpdate = 0;
 
     String ipAddr;
+
     float et = NAN;
     float bt = NAN;
     float rorET = NAN;

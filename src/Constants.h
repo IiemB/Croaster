@@ -15,7 +15,7 @@
 #define debugln(x) Serial.println(x)
 
 // Firmware version
-const double version = 3.04;
+const double version = 3.05;
 
 // Dummy mode
 const bool dummyMode = false;
