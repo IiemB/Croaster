@@ -8,25 +8,25 @@
 
 ## 🚀 Fitur
 
-- Mendukung **NodeMCU ESP8266** (hanya WiFi)
-- Mendukung **ESP32C3 Super Mini** (WiFi & BLE)
-- Monitoring suhu real-time dari **dua sensor MAX6675** (ET dan BT)
-- Tampilan visual menggunakan **OLED 128x64** (SSD1306, I2C)
-- Komunikasi WiFi via **WebSocket**, kompatibel dengan:
-  - **Artisan Roaster Scope**
-  - **Aplikasi ICRM** *(hanya Android)*
-- Komunikasi BLE (hanya ESP32) untuk **aplikasi ICRM** *(hanya Android)*
-- Sistem perintah kustom melalui kelas `CommandHandler`
-- Mudah dikembangkan dengan perintah-perintah khusus tambahan
+* Mendukung **NodeMCU ESP8266** (hanya WiFi)
+* Mendukung **ESP32C3 Super Mini** (WiFi & BLE)
+* Monitoring suhu real-time dari **dua sensor MAX6675** (ET dan BT)
+* Tampilan visual menggunakan **OLED 128x64** (SSD1306, I2C)
+* Komunikasi WiFi via **WebSocket**, kompatibel dengan:
+  + **Artisan Roaster Scope**
+  + **Aplikasi ICRM** *(hanya Android)*
+* Komunikasi BLE (hanya ESP32) untuk **aplikasi ICRM** *(hanya Android)*
+* Sistem perintah kustom melalui kelas `CommandHandler`
+* Mudah dikembangkan dengan perintah-perintah khusus tambahan
 
 ---
 
 ## 🧩 Komponen Hardware
 
-- 1× NodeMCU ESP8266 atau ESP32C3 Super Mini
-- 1× OLED display 128x64 (SSD1306, I2C)
-- 2× Sensor thermocouple MAX6675
-- 2× Probe thermocouple K-type
+* 1× NodeMCU ESP8266 atau ESP32C3 Super Mini
+* 1× OLED display 128x64 (SSD1306, I2C)
+* 2× Sensor thermocouple MAX6675
+* 2× Probe thermocouple K-type
 
 ---
 
@@ -36,53 +36,61 @@
 
 #### OLED Display
 
-- GND → GND
-- VCC → 3.3V
-- SCL → **D1**
-- SDA → **D2**
+* GND → GND
+* VCC → 3.3V
+* SCL → **D1**
+* SDA → **D2**
 
 #### Sensor ET
 
-- SCK → **D5**
-- SO  → **D7**
-- CS  → **D6**
+* GND → GND
+* VCC → 3.3V
+* SCK → **D5**
+* SO  → **D7**
+* CS  → **D6**
 
 #### Sensor BT
 
-- SCK → **D5** *(berbagi)*
-- SO  → **D7** *(berbagi)*
-- CS  → **D8**
+* GND → GND
+* VCC → 3.3V
+* SCK → **D5** *(berbagi)*
+* SO  → **D7** *(berbagi)*
+* CS  → **D8**
 
 ### ESP32C3 Super Mini
 
 #### OLED Display
 
-- GND → GND
-- VCC → 3.3V
-- SCL → **GPIO4**
-- SDA → **GPIO5**
+* GND → GND
+* VCC → 3.3V
+* SCL → **GPIO4**
+* SDA → **GPIO5**
 
 #### Sensor ET
 
-- SCK → **GPIO4**
-- SO  → **GPIO5**
-- CS  → **GPIO6**
+* GND → GND
+* VCC → 3.3V
+* SCK → **GPIO4**
+* SO  → **GPIO5**
+* CS  → **GPIO6**
 
 #### Sensor BT
 
-- SCK → **GPIO4** *(berbagi)*
-- SO  → **GPIO5** *(berbagi)*
-- CS  → **GPIO7**
+* GND → GND
+* VCC → 3.3V
+* SCK → **GPIO4** *(berbagi)*
+* SO  → **GPIO5** *(berbagi)*
+* CS  → **GPIO7**
 
 ---
 
 ## 🛠 Sorotan Perangkat Lunak
 
-- Ditulis dalam **C++** menggunakan sistem build **PlatformIO**
-- Arsitektur modular: BLE, WebSocket, tampilan, dan logika sensor dipisahkan
-- Kelas **CommandHandler**:
-  - Menangani semua perintah JSON dari BLE/WebSocket
-  - Mudah dikustomisasi untuk aksi tambahan seperti `restart`, `erase`, dll
+* Ditulis dalam **C++** menggunakan sistem build **PlatformIO**
+* Arsitektur modular: BLE, WebSocket, tampilan, dan logika sensor dipisahkan
+* Kelas **CommandHandler**:
+  + Menangani semua perintah JSON dari BLE/WebSocket
+  + Mudah dikustomisasi untuk aksi tambahan seperti `restart`,   `erase`, dll
 
 ---
 
@@ -92,22 +100,30 @@
 
 1. Install [PlatformIO](https://platformio.org/)
 2. Clone repository:
-   ```bash
+   
+
+```bash
    git clone https://github.com/yourusername/croaster.git
    cd croaster
    ```
+
 3. Pilih board Anda di `platformio.ini` (hanya untuk ESP8266)
 4. Upload firmware:
-   ```bash
+   
+
+```bash
    pio run -t upload
    ```
 
 ### ✅ Arduino IDE (untuk ESP32C3)
 
 1. Jalankan skrip konversi:
-   ```bash
+   
+
+```bash
    ./copy_to_ino.sh
    ```
+
 2. Buka folder `croaster-arduino` di **Arduino IDE**
 3. Pilih board Anda:
    - ESP8266 → **NodeMCU 1.0 (ESP-12E)**
@@ -115,20 +131,19 @@
 
 ---
 
-
-
 ## 📡 Komunikasi
 
-- **WebSocket (WiFi):**
+* **WebSocket (WiFi):**
 
-  - Terhubung ke **Artisan Roaster Scope**
-  - Mendukung **aplikasi ICRM** *(Android saja)*
+  + Terhubung ke **Artisan Roaster Scope**
+  + Mendukung **aplikasi ICRM** *(Android saja)*
 
-- **BLE (ESP32 saja):**
+* **BLE (ESP32 saja):**
 
-  - Khusus untuk **aplikasi ICRM** *(Android saja)*
+  + Khusus untuk **aplikasi ICRM** *(Android saja)*
 
 ---
+
 ## 🔗 Panduan Koneksi WiFi
 
 Untuk menghubungkan Croaster ke jaringan WiFi Anda, Anda bisa mengikuti panduan video berikut: ➡️ [Cara Koneksi WiFi - YouTube](https://www.youtube.com/watch?v=esNiudoCEcU\&t=434s)
@@ -144,5 +159,3 @@ Lisensi MIT — gratis untuk penggunaan pribadi dan komersial. Kontribusi sangat
 ## ❤️ Kontribusi
 
 Pull request dan saran sangat diterima.
-
-

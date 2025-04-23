@@ -8,25 +8,25 @@
 
 ## 🚀 Features
 
-- Supports **NodeMCU ESP8266** (WiFi only)
-- Supports **ESP32C3 Super Mini** (WiFi & BLE)
-- Real-time monitoring of **two MAX6675 sensors** (ET and BT)
-- Visual output on a **128x64 OLED display** (SSD1306, I2C)
-- WiFi communication via **WebSocket**, compatible with:
-  - **Artisan Roaster Scope**
-  - **ICRM app** *(Android only)*
-- BLE communication (ESP32 only) for the **ICRM app** *(Android only)*
-- Custom command system via a centralized `CommandHandler` class
-- Easily extendable with user-defined commands
+* Supports **NodeMCU ESP8266** (WiFi only)
+* Supports **ESP32C3 Super Mini** (WiFi & BLE)
+* Real-time monitoring of **two MAX6675 sensors** (ET and BT)
+* Visual output on a **128x64 OLED display** (SSD1306, I2C)
+* WiFi communication via **WebSocket**, compatible with:
+  + **Artisan Roaster Scope**
+  + **ICRM app** *(Android only)*
+* BLE communication (ESP32 only) for the **ICRM app** *(Android only)*
+* Custom command system via a centralized `CommandHandler` class
+* Easily extendable with user-defined commands
 
 ---
 
 ## 🧩 Hardware Components
 
-- 1× NodeMCU ESP8266 or ESP32C3 Super Mini
-- 1× 128x64 OLED display (SSD1306, I2C)
-- 2× MAX6675 thermocouple sensor modules
-- 2× K-type thermocouple probes
+* 1× NodeMCU ESP8266 or ESP32C3 Super Mini
+* 1× 128x64 OLED display (SSD1306, I2C)
+* 2× MAX6675 thermocouple sensor modules
+* 2× K-type thermocouple probes
 
 ---
 
@@ -35,48 +35,62 @@
 ### NodeMCU ESP8266
 
 #### OLED Display
-- GND → GND
-- VCC → 3.3V
-- SCL → **D1**
-- SDA → **D2**
+
+* GND → GND
+* VCC → 3.3V
+* SCL → **D1**
+* SDA → **D2**
 
 #### ET Sensor
-- SCK → **D5**
-- SO  → **D7**
-- CS  → **D6**
+
+* GND → GND
+* VCC → 3.3V
+* SCK → **D5**
+* SO  → **D7**
+* CS  → **D6**
 
 #### BT Sensor
-- SCK → **D5** *(shared)*
-- SO  → **D7** *(shared)*
-- CS  → **D8**
+
+* GND → GND
+* VCC → 3.3V
+* SCK → **D5** *(shared)*
+* SO  → **D7** *(shared)*
+* CS  → **D8**
 
 ### ESP32C3 Super Mini
 
 #### OLED Display
-- GND → GND
-- VCC → 3.3V
-- SCL → **GPIO4**
-- SDA → **GPIO5**
+
+* GND → GND
+* VCC → 3.3V
+* SCL → **GPIO4**
+* SDA → **GPIO5**
 
 #### ET Sensor
-- SCK → **GPIO4**
-- SO  → **GPIO5**
-- CS  → **GPIO6**
+
+* GND → GND
+* VCC → 3.3V
+* SCK → **GPIO4**
+* SO  → **GPIO5**
+* CS  → **GPIO6**
 
 #### BT Sensor
-- SCK → **GPIO4** *(shared)*
-- SO  → **GPIO5** *(shared)*
-- CS  → **GPIO7**
+
+* GND → GND
+* VCC → 3.3V
+* SCK → **GPIO4** *(shared)*
+* SO  → **GPIO5** *(shared)*
+* CS  → **GPIO7**
 
 ---
 
 ## 🛠 Software Highlights
 
-- Written in **C++** with the **PlatformIO** build system
-- Modular architecture separating BLE, WebSocket, display, and sensor logic
-- **CommandHandler** class:
-  - Manages all incoming BLE/WebSocket JSON commands
-  - Easily customizable for user-defined actions (e.g. `restart`, `erase`, etc.)
+* Written in **C++** with the **PlatformIO** build system
+* Modular architecture separating BLE, WebSocket, display, and sensor logic
+* **CommandHandler** class:
+  + Manages all incoming BLE/WebSocket JSON commands
+  + Easily customizable for user-defined actions (e.g. `restart`,  `erase`, etc.)
 
 ---
 
@@ -86,22 +100,30 @@
 
 1. Install [PlatformIO](https://platformio.org/)
 2. Clone the repository:
-   ```bash
+   
+
+```bash
    git clone https://github.com/yourusername/croaster.git
    cd croaster
    ```
+
 3. Select your board in `platformio.ini` (ESP8266 only)
 4. Upload the firmware:
-   ```bash
+   
+
+```bash
    pio run -t upload
    ```
 
 ### ✅ Arduino IDE (required for ESP32C3)
 
 1. Run the conversion script:
-   ```bash
+   
+
+```bash
    ./copy_to_ino.sh
    ```
+
 2. Open `croaster-arduino` folder in **Arduino IDE**
 3. Select your board:
    - ESP8266 → **NodeMCU 1.0 (ESP-12E)**
@@ -117,12 +139,12 @@ To connect Croaster to your WiFi network, you can follow this quick video guide:
 
 ## 📡 Communication Overview
 
-- **WebSocket (WiFi):**
-  - Connects with **Artisan Roaster Scope**
-  - Also supports the **ICRM app** *(Android only)*
+* **WebSocket (WiFi):**
+  + Connects with **Artisan Roaster Scope**
+  + Also supports the **ICRM app** *(Android only)*
 
-- **BLE (ESP32 only):**
-  - Connects exclusively with the **ICRM app** *(Android only)*
+* **BLE (ESP32 only):**
+  + Connects exclusively with the **ICRM app** *(Android only)*
 
 ---
 
