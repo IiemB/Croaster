@@ -33,7 +33,7 @@ void setup()
   commandHandler.init();
   setupWiFiManager(croaster.ssidName());
 #if defined(ESP32)
-  setupBLE(croaster, displayManager);
+  setupBLE(croaster.ssidName(), commandHandler);
 #endif
   setupWebSocket(commandHandler);
   displayManager.begin();

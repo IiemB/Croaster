@@ -9,12 +9,13 @@
 #include "CroasterCore.h"
 #include "DisplayManager.h"
 #include "Constants.h"
+#include "CommandHandler.h"
 
 /**
  * Initializes BLE server, characteristics, and advertising.
  * @param croaster Reference to the CroasterCore instance for handling commands.
  * @param bleDeviceConnected Flag to be updated on client connection/disconnection.
  */
-void setupBLE(CroasterCore &croaster, DisplayManager &displayManager);
+void setupBLE(String name, CommandHandler &commandHandler);
 
 #endif

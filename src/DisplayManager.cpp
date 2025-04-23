@@ -3,8 +3,6 @@
 
 DisplayManager::DisplayManager(int width, int height, uint8_t i2cAddr)
     : display(width, height, &Wire, OLED_RESET),
-      screenWidth(width),
-      screenHeight(height),
       i2cAddress(i2cAddr)
 {
 }
@@ -55,9 +53,14 @@ void DisplayManager::drawTemperature(String label, float temp, float ror, int yC
 
     if (!isnan(temp))
     {
+        String rorText = String((int)round(ror));
+
+        if (ror >= 0 && ror < 10)
+            rorText = String((float)ror, 1);
+
         display.setTextSize(1);
         display.setCursor(0, yCursor + 14);
-        display.print(String((int)round(ror)));
+        display.print(rorText);
     }
 }
 

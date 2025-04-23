@@ -29,7 +29,7 @@ private:
     CommandHandler *commandHandler;
 
 public:
-    MyCharacteristicCallbacks(CommandHandler *commandHandler) : commandHandler(CommandHandler)
+    MyCharacteristicCallbacks(CommandHandler *commandHandler) : commandHandler(commandHandler)
     {
     }
 
@@ -43,7 +43,7 @@ public:
         if (commandHandler->handle(raw, response, restart, erase))
         {
 
-            debugln("# [BLE] " + cmd);
+            debugln("# [BLE] " + raw);
 
             if (!response.isEmpty())
             {
@@ -58,9 +58,9 @@ public:
     }
 };
 
-void setupBLE(CommandHandler &commandHandler)
+void setupBLE(String name, CommandHandler &commandHandler)
 {
-    BLEDevice::init(croaster.ssidName.c_str());
+    BLEDevice::init(name.c_str());
     pServer = BLEDevice::createServer();
     pServer->setCallbacks(new MyServerCallbacks());
 
