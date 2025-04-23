@@ -1,86 +1,148 @@
-# Croaster
+# ☕ Croaster - Monitor Roaster Kopi Open Source
 
-#### Croaster adalah alat untuk memantau memantau proses penyangraian kopi dengan menggunakan [Croaster App](https://play.google.com/store/apps/details?id=com.iiemb.croaster) dan dapat dihubungkan dengan [Artisan Roaster Scope](https://artisan-scope.org/)
+**Croaster** adalah sistem monitoring suhu berbasis mikrokontroler ESP yang bersifat open-source dan ringan. Dirancang untuk proses roasting kopi, Croaster membaca dua sensor thermocouple dan menampilkan data suhu secara real-time di layar OLED. Croaster juga menyediakan konektivitas melalui WiFi (ESP8266/ESP32) dan BLE (khusus ESP32) untuk monitoring dan kontrol jarak jauh.
 
-[![Croaster](https://i.ibb.co/BtSCgP0/icon.png)](https://play.google.com/store/apps/details?id=com.iiemb.croaster)
-[![Artisan](https://i.ibb.co/JxS5ZsD/artisan.png)](https://artisan-scope.org/) 
-
-Buat Croaster Anda sekarang!
+📄 [View this in English](README.md)
 
 ---
 
-## Komponen
+## 🚀 Fitur
 
-* [NodeMCU ESP8266](https://www.google.com/search?q=nodemcu+esp8266)
-* [MAX6675](https://www.google.com/search?q=max6675) x2
-* [Thermocoule](https://www.google.com/search?q=thermocouple+tipe+k) 
-* [2x16 LCD Display with I2C Interface](https://www.google.com/search?q=2x16+LCD+Display+with+I2C+Interface)
-* [DHT11](https://www.google.com/search?q=dht11)
-* [Kabel Jumper](https://www.google.com/search?q=jumper+cable) - F to F
+- Mendukung **NodeMCU ESP8266** (hanya WiFi)
+- Mendukung **ESP32C3 Super Mini** (WiFi & BLE)
+- Monitoring suhu real-time dari **dua sensor MAX6675** (ET dan BT)
+- Tampilan visual menggunakan **OLED 128x64** (SSD1306, I2C)
+- Komunikasi WiFi via **WebSocket**, kompatibel dengan:
+  - **Artisan Roaster Scope**
+  - **Aplikasi ICRM** *(hanya Android)*
+- Komunikasi BLE (hanya ESP32) untuk **aplikasi ICRM** *(hanya Android)*
+- Sistem perintah kustom melalui kelas `CommandHandler`
+- Mudah dikembangkan dengan perintah-perintah khusus tambahan
 
-## Aplikasi
+---
 
-* [Arduino IDE](https://www.arduino.cc/en/software/) atau
-* [Platform IO](https://platformio.org/)
-* [NodeMCU PyFlasher](https://github.com/marcelstoer/nodemcu-pyflasher) Jika Anda ingin menginstall .bin file (untuk windows atau macOS), bisa menggunakan [esptool](https://github.com/espressif/esptool) 
-#
+## 🧩 Komponen Hardware
 
-### [. BIN Files](https://github.com/IiemB/Croaster/releases/tag/Release)
+- 1× NodeMCU ESP8266 atau ESP32C3 Super Mini
+- 1× OLED display 128x64 (SSD1306, I2C)
+- 2× Sensor thermocouple MAX6675
+- 2× Probe thermocouple K-type
 
-#
+---
 
-## Library yang dibutuhkan
+## 🔌 Diagram Koneksi
 
-* [ESP 8266](https://github.com/esp8266/Arduino)
-* [LiquidCrystal_I2C](https://github.com/marcoschwartz/LiquidCrystal_I2C.git)
-* [MAX6675_Thermocouple](https://github.com/YuriiSalimov/MAX6675_Thermocouple)
-* [WiFiManager](https://github.com/tzapu/WiFiManager.git)
-* [Adafruit_BusIO](https://github.com/adafruit/Adafruit_BusIO)
-* [Adafruit-GFX-Library](https://github.com/adafruit/Adafruit-GFX-Library)
-* [Adafruit Unified Sensor](https://github.com/adafruit/Adafruit_Sensor)
-* [WebSockets](https://github.com/Links2004/arduinoWebSockets)
-* [DHT sensor library](https://github.com/adafruit/DHT-sensor-library)
-#
+### NodeMCU ESP8266
 
-## Pengkabelan
+#### OLED Display
 
-####  2x16 LCD Display with I2C
+- GND → GND
+- VCC → 3.3V
+- SCL → **D1**
+- SDA → **D2**
 
-| LCD Dispaly || NodeMCU |
-| ------ |------| ------ |
-| GND |<=>| GND |
-| VCC |<=>| 3V |
-| SCL |<=>| D1 |
-| SDA |<=>| D2 |
-#
+#### Sensor ET
 
-####  DHT 11
+- SCK → **D5**
+- SO  → **D7**
+- CS  → **D6**
 
-| DHT 11 || NodeMCU |
-| ------ |------| ------ |
-| GND |<=>| GND |
-| VCC |<=>| 3V |
-| DATA |<=>| D4 |
-#
+#### Sensor BT
 
-####  MAX6675 #1 (for ET)
+- SCK → **D5** *(berbagi)*
+- SO  → **D7** *(berbagi)*
+- CS  → **D8**
 
-| MAX6675 || NodeMCU |
-| ------ | ------ | ------ |
-| GND |<=>| GND |
-| VCC |<=>| 3V |
-| SCK |<=>| D8 |
-| SO |<=>| D7 |
-| CS |<=>| D6 |
-#
+### ESP32C3 Super Mini
 
-####  MAX6675 #2 (for BT)
+#### OLED Display
 
-| MAX6675 || NodeMCU |
-| ------ | ------ | ------ |
-| GND |<=>| GND |
-| VCC |<=>| 3V |
-| SCK |<=>| D8 |
-| SO |<=>| D7 |
-| CS |<=>| D5 |
-#
+- GND → GND
+- VCC → 3.3V
+- SCL → **GPIO4**
+- SDA → **GPIO5**
+
+#### Sensor ET
+
+- SCK → **GPIO4**
+- SO  → **GPIO5**
+- CS  → **GPIO6**
+
+#### Sensor BT
+
+- SCK → **GPIO4** *(berbagi)*
+- SO  → **GPIO5** *(berbagi)*
+- CS  → **GPIO7**
+
+---
+
+## 🛠 Sorotan Perangkat Lunak
+
+- Ditulis dalam **C++** menggunakan sistem build **PlatformIO**
+- Arsitektur modular: BLE, WebSocket, tampilan, dan logika sensor dipisahkan
+- Kelas **CommandHandler**:
+  - Menangani semua perintah JSON dari BLE/WebSocket
+  - Mudah dikustomisasi untuk aksi tambahan seperti `restart`, `erase`, dll
+
+---
+
+## 🔧 Cara Build dan Upload
+
+### ✅ PlatformIO (disarankan untuk ESP8266)
+
+1. Install [PlatformIO](https://platformio.org/)
+2. Clone repository:
+   ```bash
+   git clone https://github.com/yourusername/croaster.git
+   cd croaster
+   ```
+3. Pilih board Anda di `platformio.ini` (hanya untuk ESP8266)
+4. Upload firmware:
+   ```bash
+   pio run -t upload
+   ```
+
+### ✅ Arduino IDE (untuk ESP32C3)
+
+1. Jalankan skrip konversi:
+   ```bash
+   ./copy_to_ino.sh
+   ```
+2. Buka folder `croaster-arduino` di **Arduino IDE**
+3. Pilih board Anda:
+   - ESP8266 → **NodeMCU 1.0 (ESP-12E)**
+   - ESP32C3 → **Makergo ESP32C3** *(belum didukung oleh PlatformIO)*
+
+---
+
+
+
+## 📡 Komunikasi
+
+- **WebSocket (WiFi):**
+
+  - Terhubung ke **Artisan Roaster Scope**
+  - Mendukung **aplikasi ICRM** *(Android saja)*
+
+- **BLE (ESP32 saja):**
+
+  - Khusus untuk **aplikasi ICRM** *(Android saja)*
+
+---
+## 🔗 Panduan Koneksi WiFi
+
+Untuk menghubungkan Croaster ke jaringan WiFi Anda, Anda bisa mengikuti panduan video berikut: ➡️ [Cara Koneksi WiFi - YouTube](https://www.youtube.com/watch?v=esNiudoCEcU\&t=434s)
+
+---
+
+## 📘 Lisensi
+
+Lisensi MIT — gratis untuk penggunaan pribadi dan komersial. Kontribusi sangat dipersilakan!
+
+---
+
+## ❤️ Kontribusi
+
+Pull request dan saran sangat diterima.
+
+
