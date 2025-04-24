@@ -1,6 +1,11 @@
 #include "CommandHandler.h"
 #include "WiFiManagerUtil.h"
 #include "Constants.h"
+#if defined(ESP32)
+#include <WiFi.h>
+#elif defined(ESP8266)
+#include <ESP8266WiFi.h>
+#endif
 
 CommandHandler::CommandHandler(CroasterCore &core, DisplayManager &display)
     : croaster(core), displayManager(display) {}
@@ -103,13 +108,13 @@ void CommandHandler::handleBasicCommand(const JsonObject &json, String &response
         croaster.useDummyData = false;
         croaster.resetHistory();
     }
-    else if (command == "blink")
-    {
-        blinkBuiltinLED();
-    }
     else if (command == "rotateScreen")
     {
         displayManager.rotateScreen();
+    }
+    else if (command == "blink")
+    {
+        blinkBuiltinLED();
     }
 }
 
@@ -123,8 +128,19 @@ void CommandHandler::handleJsonCommand(const JsonObject &json, String &responseO
 
     if (json.containsKey("interval"))
     {
-        int interval = json["interval"].as<int>() * 1000;
+        int interval = json["interval"].as<int>();
         croaster.intervalSendData = interval;
+    }
+
+    if (json.containsKey("wifiConnect"))
+    {
+        if (json["ssid"].is<String>() && json["pass"].is<String>())
+        {
+            String ssid = json["ssid"].as<String>();
+            String pass = json["pass"].as<String>();
+
+            WiFi.begin(ssid.c_str(), pass.c_str());
+        }
     }
 }
 

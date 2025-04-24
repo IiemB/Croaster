@@ -67,7 +67,9 @@ void loopWebSocket()
 
 void broadcastData(CroasterCore &croaster)
 {
-    if (millis() - lastWebSocketSend < croaster.intervalSendData)
+    int croasterInterval = croaster.intervalSendData * 1000;
+
+    if (millis() - lastWebSocketSend < croasterInterval)
         return;
 
     lastWebSocketSend = millis();

@@ -103,7 +103,9 @@ void DisplayManager::loop(CroasterCore &croaster)
         debugln(isDisplayInverted ? "# Display Inverted to Prevent Burn-In" : "# Display Reverted to Normal");
     }
 
-    if (now - lastUpdate < croaster.intervalSendData)
+    int croasterInterval = croaster.intervalSendData * 1000;
+
+    if (now - lastUpdate < croasterInterval)
         return;
 
     et = croaster.tempET;
