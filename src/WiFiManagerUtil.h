@@ -7,6 +7,20 @@
 void setupWiFiManager(const String &apName);
 
 /**
+ * @brief Handles the WiFi manager process, including initialization,
+ *        configuration, and connection management.
+ *
+ * This function is responsible for managing the WiFi connection
+ * process. It may include tasks such as starting the WiFi manager,
+ * handling user input for network selection, and ensuring a stable
+ * connection to the desired network.
+ *
+ * @note Ensure that this function is called during the appropriate
+ *       phase of your application lifecycle to manage WiFi connectivity.
+ */
+void processWiFiManager();
+
+/**
  * Reboots the ESP device via WiFiManager.
  */
 void restartESP();
@@ -27,5 +41,3 @@ void configModeCallback(WiFiManager *myWiFiManager);
  * @return String The IP address of the device in standard dot-decimal notation.
  */
 String getIpAddress();
-
-extern WiFiManager wifiManager;

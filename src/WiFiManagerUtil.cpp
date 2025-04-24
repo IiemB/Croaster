@@ -33,6 +33,11 @@ void setupWiFiManager(const String &apName)
     }
 }
 
+void processWiFiManager()
+{
+    wifiManager.process();
+}
+
 void restartESP()
 {
     wifiManager.reboot();

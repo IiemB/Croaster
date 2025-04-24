@@ -60,6 +60,11 @@ void setupWebSocket(CommandHandler &commandHandler)
     debugln("# WebSocket started");
 }
 
+void loopWebSocket()
+{
+    webSocket.loop();
+}
+
 void broadcastData(CroasterCore &croaster)
 {
     if (millis() - lastWebSocketSend < croaster.intervalSendData)
@@ -74,6 +79,7 @@ void broadcastData(CroasterCore &croaster)
     debugln("# IP: " + ip);
 
     debugln("# JSON: " + jsonData);
+    debugln("");
 
     socketEventMessage = "";
 }
