@@ -14,10 +14,12 @@ bool DisplayManager::begin()
         debugln(F("# SSD1306 allocation failed"));
         return false;
     }
+
     display.clearDisplay();
     display.setTextColor(SSD1306_WHITE);
     debugln(F("# SSD1306 initialization succeed"));
     splash();
+
     display.setTextWrap(false);
     return true;
 }
@@ -127,9 +129,15 @@ void DisplayManager::loop(CroasterCore &croaster)
 void DisplayManager::rotateScreen()
 {
     if (screenRotation < 3)
-        screenRotation = screenRotation + 1;
+        screenRotation++;
     else
         screenRotation = 0;
 
     display.setRotation(screenRotation);
+}
+
+void DisplayManager::blinkIndicator(bool state)
+{
+    display.fillCircle(124, 3, 3, state ? 1 : 0);
+    display.display();
 }

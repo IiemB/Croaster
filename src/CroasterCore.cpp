@@ -146,8 +146,10 @@ void CroasterCore::changeTemperatureUnit(String unit)
 {
     if (unit == "C" || unit == "F" || unit == "K")
     {
+        if (temperatureUnit == unit)
+            resetHistory();
+
         temperatureUnit = unit;
-        resetHistory();
         debugln("# Temperature unit set to " + unit);
     }
     else

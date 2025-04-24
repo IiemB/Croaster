@@ -18,21 +18,21 @@ void CommandHandler::init()
 
 void CommandHandler::loop()
 {
-    if (blinking)
-    {
-        unsigned long now = millis();
-        if (now - lastBlinkTime >= blinkDelay)
-        {
-            ledState = !ledState;
-            digitalWrite(LED_BUILTIN, ledState ? LED_ON : LED_OFF);
-            lastBlinkTime = now;
-            blinkCount++;
+    unsigned long now = millis();
 
-            if (blinkCount >= blinkTotal)
-            {
-                blinking = false;
-                digitalWrite(LED_BUILTIN, LED_OFF); // turn off when done
-            }
+    if (blinking && now - lastBlinkTime >= blinkDelay)
+    {
+        ledState = !ledState;
+        digitalWrite(LED_BUILTIN, ledState ? LED_ON : LED_OFF);
+        displayManager.blinkIndicator(ledState);
+        lastBlinkTime = now;
+        blinkCount++;
+
+        if (blinkCount >= blinkTotal)
+        {
+            blinking = false;
+            digitalWrite(LED_BUILTIN, LED_OFF);   // turn off when done
+            displayManager.blinkIndicator(false); // turn off when done
         }
     }
 }
@@ -129,7 +129,9 @@ void CommandHandler::handleJsonCommand(const JsonObject &json, String &responseO
     if (json.containsKey("interval"))
     {
         int interval = json["interval"].as<int>();
-        croaster.intervalSendData = interval;
+
+        if (interval >= 1)
+            croaster.intervalSendData = interval;
     }
 
     if (json.containsKey("wifiConnect"))

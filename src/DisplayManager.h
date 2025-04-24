@@ -56,4 +56,6 @@ public:
      * Rotates the screen display.
      */
     void rotateScreen();
+
+    void blinkIndicator(bool state);
 };
