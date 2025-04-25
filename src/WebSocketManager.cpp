@@ -70,7 +70,7 @@ void broadcastData(CroasterCore &croaster)
 
     unsigned long now = millis();
 
-    int croasterInterval = croaster.intervalSendData * 1000;
+    unsigned long croasterInterval = croaster.intervalSendData * 1000;
 
     if (now - lastWebSocketSend >= croasterInterval)
     {
