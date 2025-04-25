@@ -63,8 +63,8 @@
 
 * GND → GND
 * VCC → 3.3V
-* SCL → **GPIO4**
-* SDA → **GPIO5**
+* SCL → **GPIO9**
+* SDA → **GPIO8**
 
 #### Sensor ET
 

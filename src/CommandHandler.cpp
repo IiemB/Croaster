@@ -43,7 +43,7 @@ bool CommandHandler::handle(const String &json, String &responseOut, bool &resta
 
     if (deserializeJson(doc, json))
     {
-        debugln("# Invalid JSON command");
+        debugln("# Invalid JSON command : " + json);
         return false;
     }
 
@@ -134,14 +134,18 @@ void CommandHandler::handleJsonCommand(const JsonObject &json, String &responseO
             croaster.intervalSendData = interval;
     }
 
-    if (json.containsKey("wifiConnect"))
+    if (json["wifiConnect"].is<JsonObject>())
     {
-        if (json["ssid"].is<String>() && json["pass"].is<String>())
+        JsonObject obj = json["wifiConnect"];
+
+        if (obj["ssid"].is<String>() && obj["pass"].is<String>())
         {
-            String ssid = json["ssid"].as<String>();
-            String pass = json["pass"].as<String>();
+            String ssid = obj["ssid"].as<String>();
+            String pass = obj["pass"].as<String>();
 
             WiFi.begin(ssid.c_str(), pass.c_str());
+
+            debugln("# Connecting to " + ssid);
         }
     }
 }

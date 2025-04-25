@@ -16,8 +16,6 @@ private:
 
     uint8_t i2cAddress;
 
-    bool showIp = false;
-
     unsigned long lastUpdate = 0;
 
     String ipAddr;
@@ -35,8 +33,11 @@ private:
     const unsigned long inversionInterval = 60000;
     const unsigned long inversionDuration = 5000;
 
+    unsigned long lastShowIpToggle = 0;
+    bool isIpShowed = false;
+
     void drawHeader();
-    void drawTemperature(String label, float temp, float ror, int yCursor, String tempUnit);
+    void drawTemperature(String label, float temp, float ror, int yCursor);
     void splash();
 
 public:

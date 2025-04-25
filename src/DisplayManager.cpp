@@ -28,7 +28,7 @@ void DisplayManager::drawHeader()
 {
     String text = "CROASTER V" + String(version);
 
-    if (showIp && !ipAddr.isEmpty())
+    if (isIpShowed && !ipAddr.isEmpty())
     {
         text = ipAddr;
     }
@@ -36,13 +36,11 @@ void DisplayManager::drawHeader()
     display.setTextSize(1);
     display.setCursor(0, 0);
     display.print(text);
-
-    showIp = !showIp;
 }
 
-void DisplayManager::drawTemperature(String label, float temp, float ror, int yCursor, String tempUnit)
+void DisplayManager::drawTemperature(String label, float temp, float ror, int yCursor)
 {
-    String tempText = isnan(temp) ? "N/A" : String(temp, 1) + tempUnit;
+    String tempText = isnan(temp) ? "N/A" : String(temp, 1) + unit;
     int tempX = display.width() - (18 * tempText.length()) + 3;
 
     display.setTextSize(1);
@@ -96,6 +94,8 @@ void DisplayManager::loop(CroasterCore &croaster)
 {
     unsigned long now = millis();
 
+    int croasterInterval = croaster.intervalSendData * 1000;
+
     // === Invert screen ===
     if (now - lastInversionToggle >= (isDisplayInverted ? inversionDuration : inversionInterval))
     {
@@ -105,25 +105,31 @@ void DisplayManager::loop(CroasterCore &croaster)
         debugln(isDisplayInverted ? "# Display Inverted to Prevent Burn-In" : "# Display Reverted to Normal");
     }
 
-    int croasterInterval = croaster.intervalSendData * 1000;
+    // === Update screen ===
+    if (now - lastUpdate >= croasterInterval)
+    {
+        et = croaster.tempET;
+        rorET = croaster.rorET;
+        bt = croaster.tempBT;
+        rorBT = croaster.rorBT;
+        unit = croaster.temperatureUnit;
+        ipAddr = getIpAddress();
 
-    if (now - lastUpdate < croasterInterval)
-        return;
+        lastUpdate = now;
 
-    et = croaster.tempET;
-    rorET = croaster.rorET;
-    bt = croaster.tempBT;
-    rorBT = croaster.rorBT;
-    unit = croaster.temperatureUnit;
-    ipAddr = getIpAddress();
+        display.clearDisplay();
+        drawHeader();
+        drawTemperature("ET", et, rorET, 16);
+        drawTemperature("BT", bt, rorBT, 43);
+        display.display();
+    }
 
-    lastUpdate = now;
-
-    display.clearDisplay();
-    drawHeader();
-    drawTemperature("ET", et, rorET, 16, unit);
-    drawTemperature("BT", bt, rorBT, 43, unit);
-    display.display();
+    // === Show ip address ===
+    if (now - lastShowIpToggle >= (isIpShowed ? 5000 : 10000))
+    {
+        isIpShowed = !isIpShowed;
+        lastShowIpToggle = now;
+    }
 }
 
 void DisplayManager::rotateScreen()
