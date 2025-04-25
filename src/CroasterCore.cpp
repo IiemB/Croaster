@@ -35,9 +35,12 @@ float CroasterCore::readCelcius(Thermocouple *thermocouple)
 
 void CroasterCore::readSensors()
 {
-    if (millis() - lastSensorRead < 250)
+    unsigned long now = millis();
+
+    if (now - lastSensorRead < 250)
         return;
-    lastSensorRead = millis();
+
+    lastSensorRead = now;
     timer = lastSensorRead / 1000.0;
 
     if (useDummyData)
@@ -72,10 +75,12 @@ void CroasterCore::readSensors()
 
 void CroasterCore::updateROR()
 {
-    if (millis() - lastRORUpdate < 1000)
+    unsigned long now = millis();
+
+    if (now - lastRORUpdate < 1000)
         return;
 
-    lastRORUpdate = millis();
+    lastRORUpdate = now;
 
     if (!historyInitialized)
     {
@@ -146,8 +151,10 @@ void CroasterCore::changeTemperatureUnit(String unit)
 {
     if (unit == "C" || unit == "F" || unit == "K")
     {
+        if (temperatureUnit == unit)
+            resetHistory();
+
         temperatureUnit = unit;
-        resetHistory();
         debugln("# Temperature unit set to " + unit);
     }
     else

@@ -64,7 +64,7 @@ public:
     bool useDummyData;
     String temperatureUnit = "C";
     float timer = 0, rorET = 0, rorBT = 0, tempET = 0, tempBT = 0;
-    unsigned long intervalSendData = 3000;
+    unsigned long intervalSendData = 3;
     int idJsonData = 0;
     String ipAddress = "";
 

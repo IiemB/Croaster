@@ -60,20 +60,31 @@ void setupWebSocket(CommandHandler &commandHandler)
     debugln("# WebSocket started");
 }
 
+void loopWebSocket()
+{
+    webSocket.loop();
+}
+
 void broadcastData(CroasterCore &croaster)
 {
-    if (millis() - lastWebSocketSend < croaster.intervalSendData)
-        return;
 
-    lastWebSocketSend = millis();
+    unsigned long now = millis();
 
-    String jsonData = croaster.getJsonData(socketEventMessage);
-    webSocket.broadcastTXT(jsonData);
+    int croasterInterval = croaster.intervalSendData * 1000;
 
-    String ip = WiFi.localIP().toString();
-    debugln("# IP: " + ip);
+    if (now - lastWebSocketSend >= croasterInterval)
+    {
+        lastWebSocketSend = now;
 
-    debugln("# JSON: " + jsonData);
+        String jsonData = croaster.getJsonData(socketEventMessage);
+        webSocket.broadcastTXT(jsonData);
 
-    socketEventMessage = "";
+        String ip = WiFi.localIP().toString();
+        debugln("# IP: " + ip);
+
+        debugln("# JSON: " + jsonData);
+        debugln("");
+
+        socketEventMessage = "";
+    }
 }

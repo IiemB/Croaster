@@ -20,10 +20,6 @@ DisplayManager displayManager(SCREEN_WIDTH, SCREEN_HEIGHT);
 CroasterCore croaster(dummyMode);
 CommandHandler commandHandler(croaster, displayManager);
 
-// External globals (defined elsewhere)
-extern WebSocketsServer webSocket;
-extern WiFiManager wifiManager;
-
 // === Arduino Setup ===
 void setup()
 {
@@ -42,8 +38,8 @@ void setup()
 // === Arduino Loop ===
 void loop()
 {
-  wifiManager.process();         // Non-blocking WiFi config portal
-  webSocket.loop();              // Handle WebSocket messages
+  processWiFiManager();          // Non-blocking WiFi config portal
+  loopWebSocket();               // Handle WebSocket messages
   croaster.loop();               // Read sensors, compute ROR
   broadcastData(croaster);       // Send data
   displayManager.loop(croaster); // Update display values to show

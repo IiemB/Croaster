@@ -22,7 +22,7 @@ private:
     uint8_t blinkCount = 0;
     uint8_t blinkTotal = 0;
     unsigned long lastBlinkTime = 0;
-    unsigned long blinkDelay = 400;
+    unsigned long blinkDelay = 250;
     bool ledState = false;
 
     void handleBasicCommand(const JsonObject &json, String &responseOut, bool &restart, bool &erase);
@@ -32,7 +32,7 @@ private:
     /**
      * This is an example custom function to handle the `blink` command.
      */
-    void blinkBuiltinLED(uint8_t times = 3, unsigned long blinkDelay = 400);
+    void blinkBuiltinLED(uint8_t times = 2, unsigned long blinkDelay = 250);
 
 public:
     CommandHandler(CroasterCore &core, DisplayManager &display);

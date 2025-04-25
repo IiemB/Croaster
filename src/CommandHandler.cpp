@@ -1,6 +1,11 @@
 #include "CommandHandler.h"
 #include "WiFiManagerUtil.h"
 #include "Constants.h"
+#if defined(ESP32)
+#include <WiFi.h>
+#elif defined(ESP8266)
+#include <ESP8266WiFi.h>
+#endif
 
 CommandHandler::CommandHandler(CroasterCore &core, DisplayManager &display)
     : croaster(core), displayManager(display) {}
@@ -13,21 +18,21 @@ void CommandHandler::init()
 
 void CommandHandler::loop()
 {
-    if (blinking)
-    {
-        unsigned long now = millis();
-        if (now - lastBlinkTime >= blinkDelay)
-        {
-            ledState = !ledState;
-            digitalWrite(LED_BUILTIN, ledState ? LED_ON : LED_OFF);
-            lastBlinkTime = now;
-            blinkCount++;
+    unsigned long now = millis();
 
-            if (blinkCount >= blinkTotal)
-            {
-                blinking = false;
-                digitalWrite(LED_BUILTIN, LED_OFF); // turn off when done
-            }
+    if (blinking && now - lastBlinkTime >= blinkDelay)
+    {
+        ledState = !ledState;
+        digitalWrite(LED_BUILTIN, ledState ? LED_ON : LED_OFF);
+        displayManager.blinkIndicator(ledState);
+        lastBlinkTime = now;
+        blinkCount++;
+
+        if (blinkCount >= blinkTotal)
+        {
+            blinking = false;
+            digitalWrite(LED_BUILTIN, LED_OFF);   // turn off when done
+            displayManager.blinkIndicator(false); // turn off when done
         }
     }
 }
@@ -38,7 +43,7 @@ bool CommandHandler::handle(const String &json, String &responseOut, bool &resta
 
     if (deserializeJson(doc, json))
     {
-        debugln("# Invalid JSON command");
+        debugln("# Invalid JSON command : " + json);
         return false;
     }
 
@@ -103,13 +108,13 @@ void CommandHandler::handleBasicCommand(const JsonObject &json, String &response
         croaster.useDummyData = false;
         croaster.resetHistory();
     }
-    else if (command == "blink")
-    {
-        blinkBuiltinLED();
-    }
     else if (command == "rotateScreen")
     {
         displayManager.rotateScreen();
+    }
+    else if (command == "blink")
+    {
+        blinkBuiltinLED();
     }
 }
 
@@ -123,8 +128,25 @@ void CommandHandler::handleJsonCommand(const JsonObject &json, String &responseO
 
     if (json.containsKey("interval"))
     {
-        int interval = json["interval"].as<int>() * 1000;
-        croaster.intervalSendData = interval;
+        int interval = json["interval"].as<int>();
+
+        if (interval >= 1)
+            croaster.intervalSendData = interval;
+    }
+
+    if (json["wifiConnect"].is<JsonObject>())
+    {
+        JsonObject obj = json["wifiConnect"];
+
+        if (obj["ssid"].is<String>() && obj["pass"].is<String>())
+        {
+            String ssid = obj["ssid"].as<String>();
+            String pass = obj["pass"].as<String>();
+
+            WiFi.begin(ssid.c_str(), pass.c_str());
+
+            debugln("# Connecting to " + ssid);
+        }
     }
 }
 
