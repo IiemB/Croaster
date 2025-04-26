@@ -2,42 +2,34 @@
 #include <WiFiManager.h>
 
 /**
- * Initializes and configures WiFiManager in non-blocking mode.
+ * @brief Sets up the WiFiManager with the specified access point name.
+ * @param apName The name of the access point.
  */
 void setupWiFiManager(const String &apName);
 
 /**
- * @brief Handles the WiFi manager process, including initialization,
- *        configuration, and connection management.
- *
- * This function is responsible for managing the WiFi connection
- * process. It may include tasks such as starting the WiFi manager,
- * handling user input for network selection, and ensuring a stable
- * connection to the desired network.
- *
- * @note Ensure that this function is called during the appropriate
- *       phase of your application lifecycle to manage WiFi connectivity.
+ * @brief Processes WiFiManager tasks, including connection management.
  */
 void processWiFiManager();
 
 /**
- * Reboots the ESP device via WiFiManager.
+ * @brief Restarts the ESP device.
  */
 void restartESP();
 
 /**
- * Erases saved credentials and restarts ESP.
+ * @brief Erases saved WiFi credentials and restarts the ESP device.
  */
 void eraseESP();
 
 /**
- * Called when config portal is triggered.
+ * @brief Callback triggered when the WiFiManager enters configuration mode.
+ * @param myWiFiManager Pointer to the WiFiManager instance.
  */
 void configModeCallback(WiFiManager *myWiFiManager);
 
 /**
- * Retrieves the IP address of the device as a string.
- *
- * @return String The IP address of the device in standard dot-decimal notation.
+ * @brief Retrieves the device's IP address as a string.
+ * @return The IP address in dot-decimal notation.
  */
 String getIpAddress();

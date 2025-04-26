@@ -6,9 +6,9 @@
 #include "WiFiManagerUtil.h"
 
 /**
- * Handles rendering temperature and status data to the OLED display.
+ * @class DisplayManager
+ * @brief Manages the OLED display for the Croaster device.
  */
-
 class DisplayManager
 {
 private:
@@ -38,27 +38,52 @@ private:
     unsigned long lastShowIpToggle = 0;
     bool isIpShowed = false;
 
+    /**
+     * @brief Draws the header section of the display.
+     */
     void drawHeader();
+
+    /**
+     * @brief Draws temperature data on the display.
+     * @param label The label for the temperature (e.g., "ET" or "BT").
+     * @param temp The temperature value.
+     * @param ror The rate of rise (RoR) value.
+     * @param yCursor The vertical position on the display.
+     */
     void drawTemperature(String label, float temp, float ror, int yCursor);
+
+    /**
+     * @brief Displays the splash screen.
+     */
     void splash();
 
 public:
+    /**
+     * @brief Constructs a DisplayManager instance.
+     * @param croaster Reference to the CroasterCore instance.
+     * @param i2cAddress The I2C address of the display (default is 0x3C).
+     */
     DisplayManager(CroasterCore &croaster, uint8_t i2cAddress = 0x3C);
 
     /**
-     * Initializes the OLED display. Returns false if failed.
+     * @brief Initializes the display.
+     * @return True if initialization is successful, false otherwise.
      */
     bool begin();
 
     /**
-     * Should be called inside loop() to handle timed updates.
+     * @brief Handles display updates in the main loop.
      */
     void loop();
 
     /**
-     * Rotates the screen display.
+     * @brief Rotates the display orientation.
      */
     void rotateScreen();
 
+    /**
+     * @brief Toggles the display indicator (e.g., blinking).
+     * @param state The state of the indicator (true for on, false for off).
+     */
     void blinkIndicator(bool state);
 };

@@ -8,8 +8,8 @@
 #define LED_OFF HIGH
 
 /**
- * CommandHandler class handles parsed BLE/WebSocket JSON commands.
- * Supports internal actions like restart, erase, LED blink, etc.
+ * @class CommandHandler
+ * @brief Handles incoming commands and manages device behavior accordingly.
  */
 class CommandHandler
 {
@@ -17,7 +17,6 @@ private:
     CroasterCore &croaster;
     DisplayManager &displayManager;
 
-    // Blink LED non-blocking state
     bool blinking = false;
     uint8_t blinkCount = 0;
     uint8_t blinkTotal = 0;
@@ -25,36 +24,54 @@ private:
     unsigned long blinkDelay = 250;
     bool ledState = false;
 
+    /**
+     * @brief Handles basic commands such as restart or erase.
+     * @param json The JSON object containing the command.
+     * @param responseOut The response to send back.
+     * @param restart Set to true if a restart is requested.
+     * @param erase Set to true if an erase is requested.
+     */
     void handleBasicCommand(const JsonObject &json, String &responseOut, bool &restart, bool &erase);
 
+    /**
+     * @brief Handles JSON-formatted commands.
+     * @param json The JSON object containing the command.
+     * @param responseOut The response to send back.
+     */
     void handleJsonCommand(const JsonObject &json, String &responseOut);
 
     /**
-     * This is an example custom function to handle the `blink` command.
+     * @brief Blinks the built-in LED a specified number of times.
+     * @param times The number of times to blink.
+     * @param blinkDelay The delay between blinks in milliseconds.
      */
     void blinkBuiltinLED(uint8_t times = 2, unsigned long blinkDelay = 250);
 
 public:
+    /**
+     * @brief Constructs a CommandHandler instance.
+     * @param core Reference to the CroasterCore instance.
+     * @param display Reference to the DisplayManager instance.
+     */
     CommandHandler(CroasterCore &core, DisplayManager &display);
 
     /**
-     * Initializes the command handler.
+     * @brief Initializes the CommandHandler.
      */
     void begin();
 
     /**
-     * Executes the main loop for handling commands.
+     * @brief Handles tasks related to command processing in the main loop.
      */
     void loop();
 
     /**
-     * Handle a parsed JSON command string.
-     *
-     * @param json          Incoming JSON string
-     * @param responseOut   String to be filled with a JSON reply (if needed)
-     * @param restart       Will be set true if restart is requested
-     * @param erase         Will be set true if erase is requested
-     * @return true if valid command processed, false otherwise
+     * @brief Processes an incoming command.
+     * @param json The command in JSON format.
+     * @param responseOut The response to send back.
+     * @param restart Set to true if a restart is requested.
+     * @param erase Set to true if an erase is requested.
+     * @return True if the command was handled successfully, false otherwise.
      */
     bool handle(const String &json, String &responseOut, bool &restart, bool &erase);
 };

@@ -8,15 +8,7 @@
 
 /**
  * @class CroasterCore
- * @brief Core class for managing the Croaster functionality, including sensor readings,
- *        temperature conversions, rate of rise (ROR) calculations, and data handling.
- *
- * This class provides methods to interact with thermocouples, manage temperature data,
- * and generate JSON data for external use. It supports both real sensor data and dummy data
- * for testing purposes.
- *
- * @brief Constructor for the CroasterCore class.
- * @param dummyMode If true, the class operates in dummy data mode for testing.
+ * @brief Core functionality for managing sensors and data in the Croaster device.
  */
 class CroasterCore
 {
@@ -30,34 +22,34 @@ private:
     unsigned long lastRORUpdate = 0;
 
     /**
-     * @private
-     * @brief Converts a temperature from Celsius to the currently selected unit.
+     * @brief Converts a temperature value from Celsius to the configured unit.
      * @param tempCelsius The temperature in Celsius.
-     * @return The converted temperature in the selected unit.
+     * @return The converted temperature.
      */
     float convertTemperature(float tempCelsius);
 
     /**
-     * @private
-     * @brief Reads the temperature from a given thermocouple.
-     * @param thermocouple Pointer to the thermocouple to read from.
+     * @brief Reads the temperature in Celsius from a thermocouple.
+     * @param thermocouple Pointer to the thermocouple instance.
      * @return The temperature in Celsius.
      */
     float readCelcius(Thermocouple *thermocouple);
 
     /**
-     * @private
-     * @brief Reads sensor data and updates the current temperature values.
+     * @brief Reads sensor data and updates internal state.
      */
     void readSensors();
 
     /**
-     * @private
-     * @brief Updates the rate of rise (ROR) values for ET and BT.
+     * @brief Updates the rate of rise (RoR) values.
      */
     void updateROR();
 
 public:
+    /**
+     * @brief Constructs a CroasterCore instance.
+     * @param dummyMode If true, uses dummy data instead of real sensor data.
+     */
     CroasterCore(bool dummyMode = false);
 
     bool useDummyData;
@@ -68,33 +60,32 @@ public:
     String ipAddress = "";
 
     /**
-     * @brief Main loop function to handle periodic tasks such as sensor readings and ROR updates.
+     * @brief Main loop for handling sensor updates and data processing.
      */
     void loop();
 
     /**
-     * @brief Changes the temperature unit used by the system.
-     * @param unit The desired temperature unit ("C" for Celsius, "F" for Fahrenheit, etc.).
+     * @brief Changes the temperature unit (e.g., Celsius to Fahrenheit).
+     * @param unit The new temperature unit ("C" or "F").
      */
     void changeTemperatureUnit(String unit);
 
     /**
-     * @brief Generates a JSON string containing the current system data.
-     * @param message Optional message to include in the JSON data.
-     * @param skipCroaster If true, skips including Croaster-specific data in the JSON.
-     * @return A JSON-formatted string representing the current system state.
+     * @brief Retrieves JSON-formatted data from the device.
+     * @param message Optional message to include in the JSON.
+     * @param skipCroaster If true, skips including Croaster-specific data.
+     * @return A JSON string representing the device data.
      */
     String getJsonData(const String &message = "", const bool &skipCroaster = false);
 
     /**
-     * @brief Resets the historical data for temperature and time.
+     * @brief Resets the historical data for sensors.
      */
     void resetHistory();
 
     /**
-     * @brief Retrieves the SSID (Service Set Identifier) name.
-     *
-     * @return String The SSID name as a string.
+     * @brief Retrieves the SSID name for the device.
+     * @return The SSID name as a string.
      */
     String ssidName();
 };
