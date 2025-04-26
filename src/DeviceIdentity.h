@@ -2,21 +2,23 @@
 #include <Arduino.h>
 
 /**
- * Returns a unique identifier string for the current ESP chip.
- * - ESP32: 12-char HEX string (from efuse MAC)
- * - ESP8266: 6-char HEX string (from chip ID)
+ * @brief Retrieves the unique chip ID of the device.
+ * @return A string representing the unique chip ID.
  */
 String getUniqueChipId();
 
 /**
- * Retrieves a shortened version of the chip ID.
- *
- * length The number of bytes to include in the shortened chip ID. Default is 4.
- * A String containing the shortened chip ID.
+ * @brief Retrieves a shortened version of the chip ID.
+ * @param length The desired length of the shortened ID (default is 4).
+ * @return A string representing the shortened chip ID.
  */
 String getShortChipId(uint8_t length = 4);
 
 /**
- * Returns a device name based on prefix + chip ID, e.g., "Croaster_1234ABCD"
+ * @brief Generates a device name using a prefix, suffix, and chip ID.
+ * @param prefix The prefix for the device name.
+ * @param suffix The suffix for the device name.
+ * @param length The length of the chip ID to include (default is 4).
+ * @return A string representing the device name.
  */
 String getDeviceName(String prefix = "", String suffix = "", uint8_t length = 4);

@@ -1,5 +1,6 @@
 #include "CommandHandler.h"
 #include "WiFiManagerUtil.h"
+#include <ArduinoJson.h>
 #include "Constants.h"
 #if defined(ESP32)
 #include <WiFi.h>
@@ -10,7 +11,7 @@
 CommandHandler::CommandHandler(CroasterCore &core, DisplayManager &display)
     : croaster(core), displayManager(display) {}
 
-void CommandHandler::init()
+void CommandHandler::begin()
 {
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, LED_OFF);
@@ -39,7 +40,7 @@ void CommandHandler::loop()
 
 bool CommandHandler::handle(const String &json, String &responseOut, bool &restart, bool &erase)
 {
-    StaticJsonDocument<192> doc;
+    JsonDocument doc;
 
     if (deserializeJson(doc, json))
     {
@@ -82,10 +83,6 @@ void CommandHandler::handleBasicCommand(const JsonObject &json, String &response
 
         responseOut = croaster.getJsonData(command, true);
     }
-    else if (command == "getDataForICRM")
-    {
-        responseOut = croaster.getJsonData(command);
-    }
     else if (command == "restartesp")
     {
         restart = true;
@@ -120,13 +117,12 @@ void CommandHandler::handleBasicCommand(const JsonObject &json, String &response
 
 void CommandHandler::handleJsonCommand(const JsonObject &json, String &responseOut)
 {
-    if (json.containsKey("tempUnit"))
+    if (json["tempUnit"].is<String>())
     {
-        String unit = json["tempUnit"];
-        croaster.changeTemperatureUnit(unit);
+        croaster.changeTemperatureUnit(json["tempUnit"].as<String>());
     }
 
-    if (json.containsKey("interval"))
+    if (json["interval"].is<int>())
     {
         int interval = json["interval"].as<int>();
 

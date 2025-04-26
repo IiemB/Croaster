@@ -1,90 +1,91 @@
-#include "CommandHandler.h"
 #include "WebSocketManager.h"
 #include <ArduinoJson.h>
-#if defined(ESP32)
-#include <WiFi.h>
-#elif defined(ESP8266)
-#include <ESP8266WiFi.h>
-#endif
 #include "WiFiManagerUtil.h"
 #include "Constants.h"
 
-WebSocketsServer webSocket(81);
-String socketEventMessage = "";
-unsigned long lastWebSocketSend = 0;
+WebSocketManager::WebSocketManager(CroasterCore &croaster, CommandHandler &commandHandler, uint16_t port) : server(port), croaster(&croaster), commandHandler(&commandHandler)
+{
+}
 
-void handleWebSocketEvent(const String &cmd, uint8_t num, CommandHandler &commandHandler)
+void WebSocketManager::handleEvent(const String &cmd, uint8_t num)
 {
     bool restart = false, erase = false;
+
     String response;
 
-    if (commandHandler.handle(cmd, response, restart, erase))
+    if (commandHandler->handle(cmd, response, restart, erase))
     {
         debugln("# [SOCKET] " + cmd);
 
         if (!response.isEmpty())
         {
-            webSocket.sendTXT(num, response);
+            server.sendTXT(num, response);
         }
+
         if (erase)
             eraseESP();
-
         if (restart)
             ESP.restart();
     }
 }
 
-void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
+void WebSocketManager::begin()
 {
-    switch (type)
-    {
-    case WStype_DISCONNECTED:
-        debugln("# WebSocket disconnected");
-        break;
-    case WStype_CONNECTED:
-        debugln("# WebSocket connected");
-        break;
-    case WStype_TEXT:
-        handleWebSocketEvent(String((char *)payload), num, *(CommandHandler *)nullptr); // Patched later
-        break;
-    default:
-        break;
-    }
-}
+    server.begin();
+    server.onEvent([this](uint8_t num, WStype_t type, uint8_t *payload, size_t length)
+                   {
+        switch (type) {
+            case WStype_DISCONNECTED:
+                clientConnected--;
 
-void setupWebSocket(CommandHandler &commandHandler)
-{
-    webSocket.begin();
-    webSocket.onEvent([&commandHandler](uint8_t num, WStype_t type, uint8_t *payload, size_t length)
-                      { handleWebSocketEvent(String((char *)payload), num, commandHandler); });
+                debugln("# WebSocket Client Disconnected " + String(clientConnected));
+
+                break;
+            case WStype_CONNECTED:
+                clientConnected++;
+
+                debugln("# WebSocket Client Connected " + String(clientConnected));
+                break;
+            case WStype_TEXT:
+                this->handleEvent(String((char *)payload), num);
+                break;
+            default:
+                break;
+        } });
+
     debugln("# WebSocket started");
 }
 
-void loopWebSocket()
+void WebSocketManager::loop()
 {
-    webSocket.loop();
+    server.loop();
+
+    broadcastData();
 }
 
-void broadcastData(CroasterCore &croaster)
+bool WebSocketManager::isClientConnected() const
 {
+    return clientConnected > 0;
+}
+
+void WebSocketManager::broadcastData()
+{
+
+    if (!isClientConnected())
+        return;
 
     unsigned long now = millis();
 
-    unsigned long croasterInterval = croaster.intervalSendData * 1000;
+    unsigned long interval = croaster->intervalSendData * 1000;
 
-    if (now - lastWebSocketSend >= croasterInterval)
+    if (now - lastSend >= interval)
     {
-        lastWebSocketSend = now;
+        lastSend = now;
 
-        String jsonData = croaster.getJsonData(socketEventMessage);
-        webSocket.broadcastTXT(jsonData);
+        String jsonData = croaster->getJsonData();
+        server.broadcastTXT(jsonData);
 
-        String ip = WiFi.localIP().toString();
-        debugln("# IP: " + ip);
-
-        debugln("# JSON: " + jsonData);
+        debugln("# [SOCKET-JSON] " + jsonData);
         debugln("");
-
-        socketEventMessage = "";
     }
 }
