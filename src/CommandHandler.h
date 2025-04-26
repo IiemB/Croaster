@@ -40,7 +40,7 @@ public:
     /**
      * Initializes the command handler.
      */
-    void init();
+    void begin();
 
     /**
      * Executes the main loop for handling commands.

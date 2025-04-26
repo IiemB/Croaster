@@ -9,6 +9,7 @@
         "new": "cpp"
     },
     "files.exclude": {
-        "**/croaster-arduino": true
+        "**/croaster-arduino": true,
+        "**/.pio": true
     }
 }

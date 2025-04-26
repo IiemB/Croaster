@@ -14,6 +14,8 @@ class DisplayManager
 private:
     Adafruit_SSD1306 display;
 
+    CroasterCore *croaster = nullptr;
+
     uint8_t i2cAddress;
 
     unsigned long lastUpdate = 0;
@@ -41,7 +43,7 @@ private:
     void splash();
 
 public:
-    DisplayManager(int width, int height, uint8_t i2cAddress = 0x3C);
+    DisplayManager(CroasterCore &croaster, uint8_t i2cAddress = 0x3C);
 
     /**
      * Initializes the OLED display. Returns false if failed.
@@ -51,7 +53,7 @@ public:
     /**
      * Should be called inside loop() to handle timed updates.
      */
-    void loop(CroasterCore &croaster);
+    void loop();
 
     /**
      * Rotates the screen display.

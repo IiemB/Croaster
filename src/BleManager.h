@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined(ESP32) // Only include for ESP32 boards
+#if defined(ESP32)
 
 #include <BLEDevice.h>
 #include <BLEUtils.h>
@@ -11,11 +11,34 @@
 #include "Constants.h"
 #include "CommandHandler.h"
 
-/**
- * Initializes BLE server, characteristics, and advertising.
- * @param croaster Reference to the CroasterCore instance for handling commands.
- * @param bleDeviceConnected Flag to be updated on client connection/disconnection.
- */
-void setupBLE(String name, CommandHandler &commandHandler);
+class BleManager
+{
+public:
+    BleManager(CroasterCore &croaster, CommandHandler &commandHandler);
+
+    void begin();
+
+    void loop();
+
+    bool isClientConnected() const;
+
+private:
+    BLEServer *pServer = nullptr;
+    BLECharacteristic *pDataCharacteristic = nullptr;
+
+    CommandHandler *commandHandler = nullptr;
+    CroasterCore *croaster = nullptr;
+
+    unsigned long lastSend = 0;
+
+    bool clientConnected = false;
+
+    void broadcastData();
+
+    void sendData(const String &data);
+
+    class ServerCallbacks;
+    class CharacteristicCallbacks;
+};
 
 #endif

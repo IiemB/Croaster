@@ -19,4 +19,4 @@ String getShortChipId(uint8_t length = 4);
 /**
  * Returns a device name based on prefix + chip ID, e.g., "Croaster_1234ABCD"
  */
-String getDeviceName(String prefix = "", String suffix = "", uint8_t length = 4);
+String getDeviceName(String prefix = "", String suffix = "", uint8_t length = 13);

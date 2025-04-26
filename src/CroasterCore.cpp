@@ -1,6 +1,7 @@
 #include "CroasterCore.h"
 #include "DeviceIdentity.h"
 #include "Constants.h"
+#include <ArduinoJson.h>
 
 CroasterCore::CroasterCore(bool dummyMode)
     : useDummyData(dummyMode)
@@ -179,12 +180,12 @@ void CroasterCore::resetHistory()
 
 String CroasterCore::ssidName()
 {
-    return getDeviceName("[", "] Croaster V" + String(version));
+    return getDeviceName("Croaster V" + String(version) + " [", "]");
 }
 
 String CroasterCore::getJsonData(const String &message, const bool &skipCroaster)
 {
-    StaticJsonDocument<384> doc;
+    JsonDocument doc;
 
     doc["id"] = idJsonData;
 
@@ -194,7 +195,8 @@ String CroasterCore::getJsonData(const String &message, const bool &skipCroaster
     if (!message.isEmpty())
         doc["message"] = message;
 
-    JsonObject data = doc.createNestedObject("data");
+    JsonObject data = doc["data"].to<JsonObject>();
+
     if (!isnan(tempBT))
         data["BT"] = tempBT;
     if (!isnan(tempET))
@@ -202,7 +204,7 @@ String CroasterCore::getJsonData(const String &message, const bool &skipCroaster
 
     if (!skipCroaster)
     {
-        JsonObject croaster = doc.createNestedObject("croaster");
+        JsonObject croaster = doc["croaster"].to<JsonObject>();
 
         croaster["versionCode"] = version;
         croaster["interval"] = intervalSendData;

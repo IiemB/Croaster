@@ -1,6 +1,5 @@
 #pragma once
 #include <Arduino.h>
-#include <ArduinoJson.h>
 #include <Thermocouple.h>
 #include <MAX6675_Thermocouple.h>
 #include <SmoothThermocouple.h>

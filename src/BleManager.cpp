@@ -1,38 +1,34 @@
 #if defined(ESP32)
 
-#include "CommandHandler.h"
 #include "BleManager.h"
 #include "WiFiManagerUtil.h"
 
-BLEServer *pServer = nullptr;
-BLECharacteristic *pDataCharacteristic = nullptr;
-uint32_t passkey = 123456;
-
-class MyServerCallbacks : public BLEServerCallbacks
+class BleManager::ServerCallbacks : public BLEServerCallbacks
 {
+    BleManager *parent;
+
 public:
+    ServerCallbacks(BleManager *parent) : parent(parent) {}
     void onConnect(BLEServer *) override
     {
         debugln("# BLE Client Connected");
+        parent->clientConnected = true;
     }
 
     void onDisconnect(BLEServer *) override
     {
         debugln("# BLE Client Disconnected");
+        parent->clientConnected = false;
         BLEDevice::startAdvertising();
     }
 };
 
-class MyCharacteristicCallbacks : public BLECharacteristicCallbacks
+class BleManager::CharacteristicCallbacks : public BLECharacteristicCallbacks
 {
-private:
     CommandHandler *commandHandler;
 
 public:
-    MyCharacteristicCallbacks(CommandHandler *commandHandler) : commandHandler(commandHandler)
-    {
-    }
-
+    CharacteristicCallbacks(CommandHandler *handler) : commandHandler(handler) {}
     void onWrite(BLECharacteristic *pCharacteristic) override
     {
         String raw = pCharacteristic->getValue().c_str();
@@ -42,9 +38,7 @@ public:
 
         if (commandHandler->handle(raw, response, restart, erase))
         {
-
             debugln("# [BLE] " + raw);
-
             if (!response.isEmpty())
             {
                 pCharacteristic->setValue(response.c_str());
@@ -58,11 +52,16 @@ public:
     }
 };
 
-void setupBLE(String name, CommandHandler &commandHandler)
+BleManager::BleManager(CroasterCore &croaster, CommandHandler &commandHandler)
+    : croaster(&croaster), commandHandler(&commandHandler) {}
+
+void BleManager::begin()
 {
-    BLEDevice::init(name.c_str());
+    BLEDevice::init(croaster->ssidName().c_str());
+
     pServer = BLEDevice::createServer();
-    pServer->setCallbacks(new MyServerCallbacks());
+
+    pServer->setCallbacks(new ServerCallbacks(this));
 
     BLEService *pService = pServer->createService(SERVICE_UUID);
     pDataCharacteristic = pService->createCharacteristic(
@@ -73,11 +72,7 @@ void setupBLE(String name, CommandHandler &commandHandler)
             BLECharacteristic::PROPERTY_WRITE_NR);
 
     pDataCharacteristic->addDescriptor(new BLE2902());
-    pDataCharacteristic->setCallbacks(new MyCharacteristicCallbacks(&commandHandler));
-
-    BLESecurity *pSecurity = new BLESecurity();
-    pSecurity->setStaticPIN(passkey);
-    pSecurity->setAuthenticationMode(ESP_LE_AUTH_BOND);
+    pDataCharacteristic->setCallbacks(new CharacteristicCallbacks(commandHandler));
 
     pService->start();
     BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
@@ -85,6 +80,47 @@ void setupBLE(String name, CommandHandler &commandHandler)
     BLEDevice::startAdvertising();
 
     debugln("# BLE Server ready");
+}
+
+void BleManager::loop()
+{
+    broadcastData();
+}
+
+bool BleManager::isClientConnected() const
+{
+    return clientConnected;
+}
+
+void BleManager::broadcastData()
+{
+    if (!clientConnected || !pDataCharacteristic)
+        return;
+
+    unsigned long now = millis();
+
+    unsigned long interval = croaster->intervalSendData * 1000;
+
+    if (now - lastSend >= interval)
+    {
+        lastSend = now;
+
+        String jsonData = croaster->getJsonData();
+
+        sendData(jsonData);
+
+        debugln("# [BLE-JSON] " + jsonData);
+        debugln("");
+    }
+}
+
+void BleManager::sendData(const String &data)
+{
+    if (clientConnected && pDataCharacteristic)
+    {
+        pDataCharacteristic->setValue(data.c_str());
+        pDataCharacteristic->notify();
+    }
 }
 
 #endif

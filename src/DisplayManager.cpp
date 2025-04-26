@@ -1,8 +1,9 @@
 #include "DisplayManager.h"
 #include "Constants.h"
 
-DisplayManager::DisplayManager(int width, int height, uint8_t i2cAddr)
-    : display(width, height, &Wire, OLED_RESET),
+DisplayManager::DisplayManager(CroasterCore &croaster, uint8_t i2cAddr)
+    : display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET),
+      croaster(&croaster),
       i2cAddress(i2cAddr)
 {
 }
@@ -90,11 +91,11 @@ void DisplayManager::splash()
     delay(1000);
 }
 
-void DisplayManager::loop(CroasterCore &croaster)
+void DisplayManager::loop()
 {
     unsigned long now = millis();
 
-    int croasterInterval = croaster.intervalSendData * 1000;
+    int croasterInterval = croaster->intervalSendData * 1000;
 
     // === Invert screen ===
     if (now - lastInversionToggle >= (isDisplayInverted ? inversionDuration : inversionInterval))
@@ -108,11 +109,11 @@ void DisplayManager::loop(CroasterCore &croaster)
     // === Update screen ===
     if (now - lastUpdate >= croasterInterval)
     {
-        et = croaster.tempET;
-        rorET = croaster.rorET;
-        bt = croaster.tempBT;
-        rorBT = croaster.rorBT;
-        unit = croaster.temperatureUnit;
+        et = croaster->tempET;
+        rorET = croaster->rorET;
+        bt = croaster->tempBT;
+        rorBT = croaster->rorBT;
+        unit = croaster->temperatureUnit;
         ipAddr = getIpAddress();
 
         lastUpdate = now;

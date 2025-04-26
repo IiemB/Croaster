@@ -16,9 +16,17 @@
 #include "CommandHandler.h"
 
 // === Global Instances ===
-DisplayManager displayManager(SCREEN_WIDTH, SCREEN_HEIGHT);
 CroasterCore croaster(dummyMode);
+
+DisplayManager displayManager(croaster);
+
 CommandHandler commandHandler(croaster, displayManager);
+
+#if defined(ESP32)
+BleManager bleManager(croaster, commandHandler);
+#endif
+
+WebSocketManager wsManager(croaster, commandHandler);
 
 // === Arduino Setup ===
 void setup()
@@ -26,22 +34,33 @@ void setup()
   Serial.begin(115200);
 
   // Initialize managers
-  commandHandler.init();
+  commandHandler.begin();
+
   setupWiFiManager(croaster.ssidName());
+
 #if defined(ESP32)
-  setupBLE(croaster.ssidName(), commandHandler);
+  bleManager.begin();
 #endif
-  setupWebSocket(commandHandler);
+
+  wsManager.begin();
+
   displayManager.begin();
 }
 
 // === Arduino Loop ===
 void loop()
 {
-  processWiFiManager();          // Non-blocking WiFi config portal
-  loopWebSocket();               // Handle WebSocket messages
-  croaster.loop();               // Read sensors, compute ROR
-  broadcastData(croaster);       // Send data
-  displayManager.loop(croaster); // Update display values to show
-  commandHandler.loop();         // Command handler
+  processWiFiManager();
+
+  croaster.loop();
+
+  wsManager.loop();
+
+  displayManager.loop();
+
+#if defined(ESP32)
+  bleManager.loop();
+#endif
+
+  commandHandler.loop();
 }
