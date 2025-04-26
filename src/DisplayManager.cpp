@@ -95,7 +95,7 @@ void DisplayManager::loop()
 {
     unsigned long now = millis();
 
-    int croasterInterval = croaster->intervalSendData * 1000;
+    unsigned long croasterInterval = croaster->intervalSendData * 1000;
 
     // === Invert screen ===
     if (now - lastInversionToggle >= (isDisplayInverted ? inversionDuration : inversionInterval))

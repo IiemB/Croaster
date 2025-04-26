@@ -3,7 +3,7 @@
 #include "WiFiManagerUtil.h"
 #include "Constants.h"
 
-WebSocketManager::WebSocketManager(CroasterCore &croaster, CommandHandler &commandHandler, uint16_t port) : croaster(&croaster), commandHandler(&commandHandler), server(port)
+WebSocketManager::WebSocketManager(CroasterCore &croaster, CommandHandler &commandHandler, uint16_t port) : server(port), croaster(&croaster), commandHandler(&commandHandler)
 {
 }
 
