@@ -21,7 +21,8 @@ String getShortChipId(uint8_t length)
     String fullId = getUniqueChipId();
     if (length >= fullId.length())
         return fullId;
-    return fullId.substring(fullId.length() - length);
+
+    return fullId.substring(0, length);
 }
 
 String getDeviceName(String prefix, String suffix, uint8_t length)

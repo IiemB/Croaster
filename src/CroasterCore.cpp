@@ -180,7 +180,7 @@ void CroasterCore::resetHistory()
 
 String CroasterCore::ssidName()
 {
-    return getDeviceName("Croaster V" + String(version) + " [", "]");
+    return getDeviceName("[", "] Croaster V" + String(version));
 }
 
 String CroasterCore::getJsonData(const String &message, const bool &skipCroaster)
