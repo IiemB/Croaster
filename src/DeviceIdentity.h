@@ -22,3 +22,16 @@ String getShortChipId(uint8_t length = 4);
  * @return A string representing the device name.
  */
 String getDeviceName(String prefix = "", String suffix = "", uint8_t length = 4);
+
+/**
+ * @brief Retrieves the device's IP address as a string.
+ * @return The IP address in dot-decimal notation.
+ */
+String getIpAddress();
+
+/**
+ * @brief Retrieves the SSID name of the WiFi network.
+ *
+ * @return A String containing the SSID name.
+ */
+String getSsidName();

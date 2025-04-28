@@ -1,4 +1,9 @@
 #include "DeviceIdentity.h"
+#if defined(ESP32)
+#include <WiFi.h>
+#elif defined(ESP8266)
+#include <ESP8266WiFi.h>
+#endif
 
 String getUniqueChipId()
 {
@@ -28,4 +33,14 @@ String getShortChipId(uint8_t length)
 String getDeviceName(String prefix, String suffix, uint8_t length)
 {
     return prefix + getShortChipId(length) + suffix;
+}
+
+String getIpAddress()
+{
+    return WiFi.isConnected() ? WiFi.localIP().toString() : "";
+}
+
+String getSsidName()
+{
+    return WiFi.isConnected() ? WiFi.SSID() : "";
 }

@@ -27,9 +27,3 @@ void eraseESP();
  * @param myWiFiManager Pointer to the WiFiManager instance.
  */
 void configModeCallback(WiFiManager *myWiFiManager);
-
-/**
- * @brief Retrieves the device's IP address as a string.
- * @return The IP address in dot-decimal notation.
- */
-String getIpAddress();
