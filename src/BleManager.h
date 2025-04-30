@@ -67,13 +67,13 @@ private:
      * @class ServerCallbacks
      * @brief Handles BLE server connection and disconnection events.
      */
-    class ServerCallbacks : public BLEServerCallbacks;
+    class ServerCallbacks;
 
     /**
      * @class CharacteristicCallbacks
      * @brief Handles BLE characteristic read/write events.
      */
-    class CharacteristicCallbacks : public BLECharacteristicCallbacks;
+    class CharacteristicCallbacks;
 };
 
 #endif

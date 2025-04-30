@@ -48,8 +48,3 @@ void eraseESP()
     wifiManager.erase();
     restartESP();
 }
-
-String getIpAddress()
-{
-    return WiFi.isConnected() ? WiFi.localIP().toString() : "";
-}

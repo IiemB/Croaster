@@ -1,5 +1,6 @@
 #include "DisplayManager.h"
 #include "Constants.h"
+#include "DeviceIdentity.h"
 
 DisplayManager::DisplayManager(CroasterCore &croaster, uint8_t i2cAddr)
     : display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET),
@@ -95,8 +96,6 @@ void DisplayManager::loop()
 {
     unsigned long now = millis();
 
-    unsigned long croasterInterval = croaster->intervalSendData * 1000;
-
     // === Invert screen ===
     if (now - lastInversionToggle >= (isDisplayInverted ? inversionDuration : inversionInterval))
     {
@@ -107,16 +106,16 @@ void DisplayManager::loop()
     }
 
     // === Update screen ===
-    if (now - lastUpdate >= croasterInterval)
+    if (now - lastUpdate >= 1000)
     {
+        lastUpdate = now;
+
         et = croaster->tempET;
         rorET = croaster->rorET;
         bt = croaster->tempBT;
         rorBT = croaster->rorBT;
         unit = croaster->temperatureUnit;
         ipAddr = getIpAddress();
-
-        lastUpdate = now;
 
         display.clearDisplay();
         drawHeader();
@@ -135,12 +134,13 @@ void DisplayManager::loop()
 
 void DisplayManager::rotateScreen()
 {
-    if (screenRotation < 3)
-        screenRotation++;
-    else
+    if (screenRotation > 0)
         screenRotation = 0;
+    else
+        screenRotation = 2;
 
     display.setRotation(screenRotation);
+    display.display();
 }
 
 void DisplayManager::blinkIndicator(bool state)

@@ -3,7 +3,6 @@
 #include <Adafruit_SSD1306.h>
 #include "Constants.h"
 #include "CroasterCore.h"
-#include "WiFiManagerUtil.h"
 
 /**
  * @class DisplayManager

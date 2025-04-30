@@ -57,7 +57,6 @@ public:
     float timer = 0, rorET = 0, rorBT = 0, tempET = 0, tempBT = 0;
     unsigned long intervalSendData = 3;
     int idJsonData = 0;
-    String ipAddress = "";
 
     /**
      * @brief Main loop for handling sensor updates and data processing.

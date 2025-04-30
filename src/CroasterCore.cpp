@@ -150,12 +150,19 @@ void CroasterCore::loop()
 
 void CroasterCore::changeTemperatureUnit(String unit)
 {
+    if (unit == temperatureUnit)
+    {
+        debugln("# Temperature unit not changed because it same with current unit");
+
+        return;
+    }
+
     if (unit == "C" || unit == "F" || unit == "K")
     {
-        if (temperatureUnit == unit)
-            resetHistory();
-
         temperatureUnit = unit;
+
+        resetHistory();
+
         debugln("# Temperature unit set to " + unit);
     }
     else
@@ -185,12 +192,19 @@ String CroasterCore::ssidName()
 
 String CroasterCore::getJsonData(const String &message, const bool &skipCroaster)
 {
+    String ipAddress = getIpAddress();
+
+    String ssid = getSsidName();
+
     JsonDocument doc;
 
     doc["id"] = idJsonData;
 
     if (!ipAddress.isEmpty())
         doc["ipAddress"] = ipAddress;
+
+    if (!ssid.isEmpty())
+        doc["ssid"] = ssid;
 
     if (!message.isEmpty())
         doc["message"] = message;
