@@ -2,6 +2,7 @@
 #include <WebSocketsServer.h>
 #include "CroasterCore.h"
 #include "CommandHandler.h"
+#include "OtaHandler.h"
 
 /**
  * @class WebSocketManager
@@ -33,6 +34,8 @@ private:
 
     CroasterCore *croaster = nullptr;         ///< Pointer to the CroasterCore instance.
     CommandHandler *commandHandler = nullptr; ///< Pointer to the CommandHandler instance.
+
+    OtaHandler otaHandler; ///< Pointer to the OtaHandler instance.
 
     unsigned long lastSend = 0; ///< Timestamp of the last data broadcast.
 

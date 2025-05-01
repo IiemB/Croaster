@@ -34,9 +34,9 @@ void setup()
   Serial.begin(115200);
 
   // Initialize managers
-  commandHandler.begin();
-
   setupWiFiManager(croaster.ssidName());
+
+  commandHandler.begin();
 
 #if defined(ESP32)
   bleManager.begin();

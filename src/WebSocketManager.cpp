@@ -9,6 +9,16 @@ WebSocketManager::WebSocketManager(CroasterCore &croaster, CommandHandler &comma
 
 void WebSocketManager::handleEvent(const String &cmd, uint8_t num)
 {
+    if (cmd.startsWith("OTA_BEGIN:"))
+    {
+        uint32_t size = cmd.substring(10).toInt();
+        otaHandler.begin(size);
+
+        debugln(cmd);
+
+        return;
+    }
+
     bool restart = false, erase = false;
 
     String response;
@@ -45,10 +55,20 @@ void WebSocketManager::begin()
                 clientConnected++;
 
                 debugln("# WebSocket Client Connected " + String(clientConnected));
+
                 break;
             case WStype_TEXT:
                 this->handleEvent(String((char *)payload), num);
+                
                 break;
+            case WStype_BIN :
+                if (otaHandler.isReceiving())
+                {
+                    otaHandler.handleBinary(payload, length, server, num);
+                }
+
+                break;
+
             default:
                 break;
         } });

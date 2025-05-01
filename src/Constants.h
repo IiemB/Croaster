@@ -16,10 +16,10 @@
 #define debugf(x, ...) Serial.printf(x, __VA_ARGS__)
 
 // Firmware version
-const double version = 0.40;
+const double version = 0.41;
 
 // Dummy mode
-const bool dummyMode = false;
+const bool dummyMode = true;
 
 // Smoothing factor of a temperature value
 #define SMOOTHING_FACTOR 5
