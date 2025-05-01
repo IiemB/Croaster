@@ -16,7 +16,7 @@
 #define debugf(x, ...) Serial.printf(x, __VA_ARGS__)
 
 // Firmware version
-const double version = 0.42;
+const double version = 0.40;
 
 // Dummy mode
 const bool dummyMode = false;

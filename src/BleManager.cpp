@@ -26,41 +26,12 @@ public:
 class BleManager::CharacteristicCallbacks : public BLECharacteristicCallbacks
 {
     CommandHandler *commandHandler;
-    BleManager *parent;
 
 public:
-    CharacteristicCallbacks(BleManager *parent, CommandHandler *handler) : parent(parent), commandHandler(handler) {}
+    CharacteristicCallbacks(CommandHandler *handler) : commandHandler(handler) {}
     void onWrite(BLECharacteristic *pCharacteristic) override
     {
         String raw = pCharacteristic->getValue().c_str();
-
-        if (parent->otaHandler)
-        {
-            std::vector<uint8_t> rx(pCharacteristic->getValue().begin(), pCharacteristic->getValue().end());
-            const uint8_t *data = rx.data();
-            size_t len = rx.size();
-
-            String text = String(reinterpret_cast<const char *>(data), len);
-
-            if (parent->otaHandler->getState() == BleOtaHandler::State::Idle &&
-                parent->otaHandler->beginOtaSession(text.c_str()))
-            {
-                return;
-            }
-
-            if (parent->otaHandler->getState() == BleOtaHandler::State::Receiving)
-            {
-                int result = parent->otaHandler->handlePacket(data, len);
-                if (result < 0)
-                {
-                    debugln("# OTA update failed. Restarting...");
-
-                    restartESP();
-                }
-
-                return;
-            }
-        }
 
         bool restart = false, erase = false;
         String response;
@@ -101,14 +72,12 @@ void BleManager::begin()
             BLECharacteristic::PROPERTY_WRITE_NR);
 
     pDataCharacteristic->addDescriptor(new BLE2902());
-    pDataCharacteristic->setCallbacks(new CharacteristicCallbacks(this, commandHandler));
+    pDataCharacteristic->setCallbacks(new CharacteristicCallbacks(commandHandler));
 
     pService->start();
     BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
     pAdvertising->addServiceUUID(SERVICE_UUID);
     BLEDevice::startAdvertising();
-
-    otaHandler = new BleOtaHandler(pDataCharacteristic);
 
     debugln("# BLE Server ready");
 }
