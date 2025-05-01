@@ -14,6 +14,11 @@
 #include "CroasterCore.h"
 #include "DisplayManager.h"
 #include "CommandHandler.h"
+#if defined(ESP32)
+#include <WiFi.h>
+#elif defined(ESP8266)
+#include <ESP8266WiFi.h>
+#endif
 
 // === Global Instances ===
 CroasterCore croaster(dummyMode);
@@ -31,6 +36,8 @@ WebSocketManager wsManager(croaster, commandHandler);
 // === Arduino Setup ===
 void setup()
 {
+  WiFi.mode(WIFI_STA);
+
   Serial.begin(115200);
 
   // Initialize managers
