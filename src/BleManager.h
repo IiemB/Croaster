@@ -10,6 +10,7 @@
 #include "DisplayManager.h"
 #include "Constants.h"
 #include "CommandHandler.h"
+#include "BleOtaHandler.h"
 
 /**
  * @class BleManager
@@ -47,6 +48,8 @@ private:
 
     CommandHandler *commandHandler = nullptr; ///< Pointer to the CommandHandler instance.
     CroasterCore *croaster = nullptr;         ///< Pointer to the CroasterCore instance.
+
+    BleOtaHandler *otaHandler = nullptr; ///< Pointer to the BleOtaHandler instance.
 
     unsigned long lastSend = 0; ///< Timestamp of the last data broadcast.
 
