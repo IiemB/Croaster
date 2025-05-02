@@ -111,6 +111,9 @@ void DisplayManager::splash()
 
 bool DisplayManager::isOledPresent()
 {
+    Wire.begin();
+    delay(100);
+
     Wire.beginTransmission(i2cAddress);
     return Wire.endTransmission() == 0;
 }
