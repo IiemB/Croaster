@@ -1,6 +1,7 @@
 #include "DisplayManager.h"
 #include "Constants.h"
 #include "DeviceIdentity.h"
+#include <Wire.h>
 
 DisplayManager::DisplayManager(CroasterCore &croaster, uint8_t i2cAddr)
     : display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET),
@@ -9,12 +10,20 @@ DisplayManager::DisplayManager(CroasterCore &croaster, uint8_t i2cAddr)
 {
 }
 
-bool DisplayManager::begin()
+void DisplayManager::begin()
 {
+    hasDisplay = isOledPresent();
+
+    if (!hasDisplay)
+    {
+        debugln(F("# No display found"));
+        return;
+    }
+
     if (!display.begin(SSD1306_SWITCHCAPVCC, i2cAddress))
     {
         debugln(F("# SSD1306 allocation failed"));
-        return false;
+        return;
     }
 
     display.clearDisplay();
@@ -23,11 +32,13 @@ bool DisplayManager::begin()
     splash();
 
     display.setTextWrap(false);
-    return true;
 }
 
 void DisplayManager::drawHeader()
 {
+    if (!hasDisplay)
+        return;
+
     String text = "CROASTER V" + String(version);
 
     if (isIpShowed && !ipAddr.isEmpty())
@@ -42,6 +53,9 @@ void DisplayManager::drawHeader()
 
 void DisplayManager::drawTemperature(String label, float temp, float ror, int yCursor)
 {
+    if (!hasDisplay)
+        return;
+
     String tempText = isnan(temp) ? "N/A" : String(temp, 1) + unit;
     int tempX = display.width() - (18 * tempText.length()) + 3;
 
@@ -68,6 +82,9 @@ void DisplayManager::drawTemperature(String label, float temp, float ror, int yC
 
 void DisplayManager::splash()
 {
+    if (!hasDisplay)
+        return;
+
     display.clearDisplay();
 
     for (int16_t i = 0; i < max(display.width(), display.height()) / 2; i += 2)
@@ -92,8 +109,17 @@ void DisplayManager::splash()
     delay(1000);
 }
 
+bool DisplayManager::isOledPresent()
+{
+    Wire.beginTransmission(i2cAddress);
+    return Wire.endTransmission() == 0;
+}
+
 void DisplayManager::loop()
 {
+    if (!hasDisplay)
+        return;
+
     unsigned long now = millis();
 
     // === Invert screen ===
@@ -134,6 +160,9 @@ void DisplayManager::loop()
 
 void DisplayManager::rotateScreen()
 {
+    if (!hasDisplay)
+        return;
+
     if (screenRotation > 0)
         screenRotation = 0;
     else
@@ -145,6 +174,9 @@ void DisplayManager::rotateScreen()
 
 void DisplayManager::blinkIndicator(bool state)
 {
+    if (!hasDisplay)
+        return;
+
     display.fillCircle(124, 3, 3, state ? 1 : 0);
     display.display();
 }
