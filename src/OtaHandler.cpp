@@ -10,7 +10,7 @@ void OtaHandler::begin(uint32_t totalSize)
         this->totalSize = totalSize;
         written = 0;
         state = State::Receiving;
-        debugf("# [OTA] Begin, total size: %d\n", totalSize);
+        debugln("# [OTA] Begin, total size: " + String(totalSize));
     }
     else
     {
@@ -37,15 +37,7 @@ bool OtaHandler::handleBinary(uint8_t *data, size_t len, WebSocketsServer &serve
 
         server.sendTXT(clientId, jsonOutput);
 
-        debugln("# [OTA] Update failed: Write failed");
-
-        Update.abort();
-
-        debugln("# Restarting...");
-
-        delay(1000);
-
-        restartESP();
+        finalize(true);
 
         return false;
     }
@@ -72,13 +64,30 @@ bool OtaHandler::handleBinary(uint8_t *data, size_t len, WebSocketsServer &serve
     debugln("# [OTA-JSON] " + jsonOutput);
 
     if (isFinished)
-        finish();
+        finalize();
 
     return true;
 }
 
-void OtaHandler::finish()
+void OtaHandler::finalize(bool hasError)
 {
+    if (hasError)
+    {
+        debugln("# [OTA] Update failed: Write failed");
+
+#if defined(ESP32)
+        Update.abort();
+#endif
+
+        debugln("# Restarting...");
+
+        delay(3000);
+
+        restartESP();
+
+        return;
+    }
+
     if (Update.end(true))
     {
         debugln("# [OTA] Update finished");
@@ -86,8 +95,9 @@ void OtaHandler::finish()
     else
     {
         debugln("# [OTA] Update failed: OTA finalize failed");
-
+#if defined(ESP32)
         Update.abort();
+#endif
     }
 
     debugln("# [OTA] Restarting...");

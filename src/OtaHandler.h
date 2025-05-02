@@ -1,10 +1,14 @@
 #pragma once
 
 #include <Arduino.h>
-#include <Update.h>
 #include <WebSocketsServer.h>
 #include "Constants.h"
 #include "WiFiManagerUtil.h"
+#if defined(ESP32)
+#include <Update.h>
+#elif defined(ESP8266)
+#include <Updater.h>
+#endif
 
 /**
  * @class OtaHandler
@@ -73,5 +77,5 @@ private:
      * @param server Reference to the WebSocketsServer handling the connection.
      * @param clientId ID of the client that initiated the OTA process.
      */
-    void finish();
+    void finalize(bool hasError = false);
 };

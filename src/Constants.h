@@ -13,7 +13,6 @@
 
 // Debug macro
 #define debugln(x) Serial.println(x)
-#define debugf(x, ...) Serial.printf(x, __VA_ARGS__)
 
 // Firmware version
 const double version = 0.41;
