@@ -15,7 +15,10 @@ void configModeCallback(WiFiManager *myWiFiManager)
 
 void setupWiFiManager(const String &apName)
 {
+
     debugln("# Setting up WiFi Manager");
+
+    WiFi.mode(WIFI_STA);
 
     wifiManager.setDebugOutput(true);
     wifiManager.setConfigPortalBlocking(false);
