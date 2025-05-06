@@ -38,16 +38,19 @@ public:
 
         if (commandHandler->handle(raw, response, restart, erase))
         {
-            debugln("# [BLE] " + raw);
             if (!response.isEmpty())
             {
                 pCharacteristic->setValue(response.c_str());
                 pCharacteristic->notify();
             }
+
             if (erase)
                 eraseESP();
+
             if (restart)
                 restartESP();
+
+            debugln("# [CMD-BLE] " + raw);
         }
     }
 };
@@ -99,7 +102,7 @@ void BleManager::broadcastData()
 
     unsigned long now = millis();
 
-    unsigned long interval = croaster->intervalSendData * 1000;
+    unsigned long interval = croaster->intervalSendData() * 1000;
 
     if (now - lastSend >= interval)
     {

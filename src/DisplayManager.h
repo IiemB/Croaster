@@ -21,10 +21,10 @@ private:
 
     String ipAddr;
 
-    float et = NAN;
-    float bt = NAN;
-    float rorET = NAN;
-    float rorBT = NAN;
+    double et = NAN;
+    double bt = NAN;
+    double rorET = NAN;
+    double rorBT = NAN;
     String unit = "C";
 
     int screenRotation = 0;
@@ -51,7 +51,7 @@ private:
      * @param ror The rate of rise (RoR) value.
      * @param yCursor The vertical position on the display.
      */
-    void drawTemperature(String label, float temp, float ror, int yCursor);
+    void drawTemperature(String label, double temp, double ror, int yCursor);
 
     /**
      * @brief Displays the splash screen.

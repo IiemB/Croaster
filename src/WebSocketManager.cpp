@@ -25,7 +25,6 @@ void WebSocketManager::handleEvent(const String &cmd, uint8_t num)
 
     if (commandHandler->handle(cmd, response, restart, erase))
     {
-        debugln("# [SOCKET] " + cmd);
 
         if (!response.isEmpty())
         {
@@ -34,8 +33,11 @@ void WebSocketManager::handleEvent(const String &cmd, uint8_t num)
 
         if (erase)
             eraseESP();
+
         if (restart)
             ESP.restart();
+
+        debugln("# [CMD-SOCKET] " + cmd);
     }
 }
 
@@ -96,7 +98,7 @@ void WebSocketManager::broadcastData()
 
     unsigned long now = millis();
 
-    unsigned long interval = croaster->intervalSendData * 1000;
+    unsigned long interval = croaster->intervalSendData() * 1000;
 
     if (now - lastSend >= interval)
     {

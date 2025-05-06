@@ -51,7 +51,7 @@ void DisplayManager::drawHeader()
     display.print(text);
 }
 
-void DisplayManager::drawTemperature(String label, float temp, float ror, int yCursor)
+void DisplayManager::drawTemperature(String label, double temp, double ror, int yCursor)
 {
     if (!hasDisplay)
         return;
@@ -72,7 +72,7 @@ void DisplayManager::drawTemperature(String label, float temp, float ror, int yC
         String rorText = String((int)round(ror));
 
         if (ror >= 0 && ror < 10)
-            rorText = String((float)ror, 1);
+            rorText = String((double)ror, 1);
 
         display.setTextSize(1);
         display.setCursor(0, yCursor + 14);
@@ -143,13 +143,15 @@ void DisplayManager::loop()
         rorET = croaster->rorET;
         bt = croaster->tempBT;
         rorBT = croaster->rorBT;
-        unit = croaster->temperatureUnit;
+        unit = croaster->temperatureUnit();
         ipAddr = getIpAddress();
 
         display.clearDisplay();
         drawHeader();
-        drawTemperature("ET", et, rorET, 16);
-        drawTemperature("BT", bt, rorBT, 43);
+
+        drawTemperature("BT", bt, rorBT, 16);
+        drawTemperature("ET", et, rorET, 43);
+
         display.display();
     }
 

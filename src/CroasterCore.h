@@ -16,24 +16,32 @@ private:
     Thermocouple *thermocoupleBT;
     Thermocouple *thermocoupleET;
 
-    float etHistory[60] = {}, btHistory[60] = {}, timeHistory[60] = {};
+    double etHistory[60] = {}, btHistory[60] = {}, timeHistory[60] = {};
     bool historyInitialized = false;
     unsigned long lastSensorRead = 0;
     unsigned long lastRORUpdate = 0;
+
+    double correctionBt = 0, correctionEt = 0;
+
+    String tempUnit = "C";
+
+    unsigned long intervalSend = 3;
+
+    bool useDummyData;
 
     /**
      * @brief Converts a temperature value from Celsius to the configured unit.
      * @param tempCelsius The temperature in Celsius.
      * @return The converted temperature.
      */
-    float convertTemperature(float tempCelsius);
+    double convertTemperature(double tempCelsius);
 
     /**
      * @brief Reads the temperature in Celsius from a thermocouple.
      * @param thermocouple Pointer to the thermocouple instance.
      * @return The temperature in Celsius.
      */
-    float readCelcius(Thermocouple *thermocouple);
+    double readCelcius(Thermocouple *thermocouple);
 
     /**
      * @brief Reads sensor data and updates internal state.
@@ -45,18 +53,19 @@ private:
      */
     void updateROR();
 
+    /**
+     * @brief Resets the historical data for sensors.
+     */
+    void resetHistory(String item = "something");
+
 public:
+    double timer = 0, rorET = 0, rorBT = 0, tempET = 0, tempBT = 0;
+
     /**
      * @brief Constructs a CroasterCore instance.
      * @param dummyMode If true, uses dummy data instead of real sensor data.
      */
     CroasterCore(bool dummyMode = false);
-
-    bool useDummyData;
-    String temperatureUnit = "C";
-    float timer = 0, rorET = 0, rorBT = 0, tempET = 0, tempBT = 0;
-    unsigned long intervalSendData = 3;
-    int idJsonData = 0;
 
     /**
      * @brief Main loop for handling sensor updates and data processing.
@@ -70,17 +79,56 @@ public:
     void changeTemperatureUnit(String unit);
 
     /**
-     * @brief Retrieves JSON-formatted data from the device.
-     * @param message Optional message to include in the JSON.
-     * @param skipCroaster If true, skips including Croaster-specific data.
-     * @return A JSON string representing the device data.
+     * @brief Retrieves the temperature unit used in the application.
+     *
+     * @return String representing the temperature unit (e.g., "Celsius" or "Fahrenheit").
      */
-    String getJsonData(const String &message = "", const bool &skipCroaster = false);
+    String temperatureUnit();
 
     /**
-     * @brief Resets the historical data for sensors.
+     * @brief Retrieves the interval for sending data.
+     *
+     * @return The interval in seconds as an unsigned long.
      */
-    void resetHistory();
+    unsigned long intervalSendData();
+
+    /**
+     * @brief Changes the interval for sending data.
+     *
+     * @param interval The new interval in seconds.
+     */
+    void changeIntervalSendData(unsigned long interval);
+
+    /**
+     * @brief Changes the state of using dummy data.
+     *
+     * @param useDummy Set to true to use dummy data, false otherwise.
+     */
+    void changeDummyData(bool useDummy);
+
+    /**
+     * @brief Changes the correction value for BT.
+     *
+     * @param value The new correction value to be set.
+     */
+    void changeCorrectionBt(double value);
+
+    /**
+     * @brief Changes the correction value for ET.
+     *
+     * @param value The new correction value to be set.
+     */
+    void changeCorrectionEt(double value);
+
+    /**
+     * @brief Retrieves JSON data based on the provided parameters.
+     *
+     * @param message Optional message to include in the JSON data. Defaults to an empty string.
+     * @param skipCroaster Flag to indicate whether to skip Croaster-specific processing. Defaults to false.
+     * @param id Identifier used to fetch specific JSON data. Defaults to 0.
+     * @return A String containing the JSON data.
+     */
+    String getJsonData(const String &message = "", const bool &skipCroaster = false, int id = 0);
 
     /**
      * @brief Retrieves the SSID name for the device.

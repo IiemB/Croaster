@@ -77,11 +77,11 @@ void CommandHandler::handleBasicCommand(const JsonObject &json, String &response
 
     String command = json["command"].as<String>();
 
-    if (command == "getDataForArtisan")
+    if (command == "getArtisanData")
     {
-        croaster.idJsonData = json["id"];
+        int id = json["id"].as<int>();
 
-        responseOut = croaster.getJsonData(command, true);
+        responseOut = croaster.getJsonData(command, true, id);
     }
     else if (command == "restartesp")
     {
@@ -97,13 +97,11 @@ void CommandHandler::handleBasicCommand(const JsonObject &json, String &response
     }
     else if (command == "dummyOn")
     {
-        croaster.useDummyData = true;
-        croaster.resetHistory();
+        croaster.changeDummyData(true);
     }
     else if (command == "dummyOff")
     {
-        croaster.useDummyData = false;
-        croaster.resetHistory();
+        croaster.changeDummyData(false);
     }
     else if (command == "rotateScreen")
     {
@@ -119,7 +117,9 @@ void CommandHandler::handleJsonCommand(const JsonObject &json, String &responseO
 {
     if (json["tempUnit"].is<String>())
     {
-        croaster.changeTemperatureUnit(json["tempUnit"].as<String>());
+        String tempUnit = json["tempUnit"].as<String>();
+
+        croaster.changeTemperatureUnit(tempUnit);
     }
 
     if (json["interval"].is<int>())
@@ -127,7 +127,21 @@ void CommandHandler::handleJsonCommand(const JsonObject &json, String &responseO
         int interval = json["interval"].as<int>();
 
         if (interval >= 1)
-            croaster.intervalSendData = interval;
+            croaster.changeIntervalSendData(interval);
+    }
+
+    if (json["correctionBt"].is<double>())
+    {
+        double correctionBt = json["correctionBt"].as<double>();
+
+        croaster.changeCorrectionBt(correctionBt);
+    }
+
+    if (json["correctionEt"].is<double>())
+    {
+        double correctionEt = json["correctionEt"].as<double>();
+
+        croaster.changeCorrectionEt(correctionEt);
     }
 
     if (json["wifiConnect"].is<JsonObject>())
