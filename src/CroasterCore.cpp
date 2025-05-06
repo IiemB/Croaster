@@ -46,8 +46,8 @@ void CroasterCore::readSensors()
 
     if (useDummyData)
     {
-        tempBT = random(30, 40) + correctionBt;
-        tempET = random(30, 40) + correctionEt;
+        tempBt = random(30, 40) + correctionBt;
+        tempEt = random(30, 40) + correctionEt;
 
         return;
     }
@@ -57,20 +57,20 @@ void CroasterCore::readSensors()
 
     if (isnan(bt))
     {
-        tempBT = NAN; // Indicate invalid reading
+        tempBt = NAN; // Indicate invalid reading
     }
     else
     {
-        tempBT = convertTemperature(bt) + correctionBt;
+        tempBt = convertTemperature(bt) + correctionBt;
     }
 
     if (isnan(et))
     {
-        tempET = NAN; // Indicate invalid reading
+        tempEt = NAN; // Indicate invalid reading
     }
     else
     {
-        tempET = convertTemperature(et) + correctionEt;
+        tempEt = convertTemperature(et) + correctionEt;
     }
 }
 
@@ -87,8 +87,8 @@ void CroasterCore::updateROR()
     {
         for (int i = 0; i < 60; i++)
         {
-            etHistory[i] = isnan(tempET) ? 0 : tempET; // Use 0 if NAN to initialize
-            btHistory[i] = isnan(tempBT) ? 0 : tempBT; // Use 0 if NAN to initialize
+            etHistory[i] = isnan(tempEt) ? 0 : tempEt; // Use 0 if NAN to initialize
+            btHistory[i] = isnan(tempBt) ? 0 : tempBt; // Use 0 if NAN to initialize
             timeHistory[i] = timer;
         }
 
@@ -110,35 +110,35 @@ void CroasterCore::updateROR()
     double deltaTimer = timeHistory[59] - timeHistory[0];
 
     // Update ET history and RoR if valid
-    if (!isnan(tempET))
+    if (!isnan(tempEt))
     {
-        etHistory[59] = tempET;
+        etHistory[59] = tempEt;
         double deltaET = etHistory[59] - etHistory[0];
 
         bool validDelta = deltaET > 0 && deltaTimer > 0;
 
-        rorET = validDelta ? (deltaET / deltaTimer) * 60 : 0;
+        rorEt = validDelta ? (deltaET / deltaTimer) * 60 : 0;
     }
     else
     {
         etHistory[59] = etHistory[58]; // Retain last valid value
-        rorET = 0;                     // Reset RoR for invalid reading
+        rorEt = 0;                     // Reset RoR for invalid reading
     }
 
     // Update BT history and RoR if valid
-    if (!isnan(tempBT))
+    if (!isnan(tempBt))
     {
-        btHistory[59] = tempBT;
+        btHistory[59] = tempBt;
         double deltaBT = btHistory[59] - btHistory[0];
 
         bool validDelta = deltaBT > 0 && deltaTimer > 0;
 
-        rorBT = validDelta ? (deltaBT / deltaTimer) * 60 : 0;
+        rorBt = validDelta ? (deltaBT / deltaTimer) * 60 : 0;
     }
     else
     {
         btHistory[59] = btHistory[58]; // Retain last valid value
-        rorBT = 0;                     // Reset RoR for invalid reading
+        rorBt = 0;                     // Reset RoR for invalid reading
     }
 }
 
@@ -235,8 +235,8 @@ void CroasterCore::resetHistory(String item)
 {
     for (int i = 0; i < 60; i++)
     {
-        etHistory[i] = isnan(tempET) ? 0 : tempET; // Use 0 if NAN
-        btHistory[i] = isnan(tempBT) ? 0 : tempBT; // Use 0 if NAN
+        etHistory[i] = isnan(tempEt) ? 0 : tempEt; // Use 0 if NAN
+        btHistory[i] = isnan(tempBt) ? 0 : tempBt; // Use 0 if NAN
         timeHistory[i] = timer;
     }
 
@@ -260,6 +260,8 @@ String CroasterCore::getJsonData(const String &message, const bool &skipCroaster
 
     doc["id"] = id;
 
+    doc["versionCode"] = version;
+
     if (!ipAddress.isEmpty())
         doc["ipAddress"] = ipAddress;
 
@@ -271,27 +273,26 @@ String CroasterCore::getJsonData(const String &message, const bool &skipCroaster
 
     JsonObject data = doc["data"].to<JsonObject>();
 
-    if (!isnan(tempBT))
-        data["BT"] = tempBT;
-    if (!isnan(tempET))
-        data["ET"] = tempET;
+    if (!isnan(tempBt))
+        data["BT"] = tempBt;
+    if (!isnan(tempEt))
+        data["ET"] = tempEt;
 
     if (!skipCroaster)
     {
         JsonObject croaster = doc["croaster"].to<JsonObject>();
 
-        croaster["versionCode"] = version;
         croaster["interval"] = intervalSend;
         croaster["timer"] = timer;
-        if (!isnan(tempBT))
+        if (!isnan(tempBt))
         {
-            croaster["tempBT"] = tempBT;
-            croaster["rorBT"] = rorBT;
+            croaster["tempBt"] = tempBt;
+            croaster["rorBt"] = rorBt;
         }
-        if (!isnan(tempET))
+        if (!isnan(tempEt))
         {
-            croaster["tempET"] = tempET;
-            croaster["rorET"] = rorET;
+            croaster["tempEt"] = tempEt;
+            croaster["rorEt"] = rorEt;
         }
 
         croaster["correctionBt"] = correctionBt;

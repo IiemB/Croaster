@@ -23,9 +23,9 @@ private:
 
     double et = NAN;
     double bt = NAN;
-    double rorET = NAN;
-    double rorBT = NAN;
-    String unit = "C";
+    double rorEt = NAN;
+    double rorBt = NAN;
+    String tempUnit = "C";
 
     int screenRotation = 0;
 

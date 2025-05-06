@@ -59,7 +59,7 @@ private:
     void resetHistory(String item = "something");
 
 public:
-    double timer = 0, rorET = 0, rorBT = 0, tempET = 0, tempBT = 0;
+    double timer = 0, rorEt = 0, rorBt = 0, tempEt = 0, tempBt = 0;
 
     /**
      * @brief Constructs a CroasterCore instance.

@@ -56,7 +56,7 @@ void DisplayManager::drawTemperature(String label, double temp, double ror, int 
     if (!hasDisplay)
         return;
 
-    String tempText = isnan(temp) ? "N/A" : String(temp, 1) + unit;
+    String tempText = isnan(temp) ? "N/A" : String(temp, 1) + tempUnit;
     int tempX = display.width() - (18 * tempText.length()) + 3;
 
     display.setTextSize(1);
@@ -139,18 +139,18 @@ void DisplayManager::loop()
     {
         lastUpdate = now;
 
-        et = croaster->tempET;
-        rorET = croaster->rorET;
-        bt = croaster->tempBT;
-        rorBT = croaster->rorBT;
-        unit = croaster->temperatureUnit();
+        et = croaster->tempEt;
+        rorEt = croaster->rorEt;
+        bt = croaster->tempBt;
+        rorBt = croaster->rorBt;
+        tempUnit = croaster->temperatureUnit();
         ipAddr = getIpAddress();
 
         display.clearDisplay();
         drawHeader();
 
-        drawTemperature("BT", bt, rorBT, 16);
-        drawTemperature("ET", et, rorET, 43);
+        drawTemperature("BT", bt, rorBt, 16);
+        drawTemperature("ET", et, rorEt, 43);
 
         display.display();
     }
