@@ -12,9 +12,9 @@
 * Real-time monitoring of **two MAX6675 sensors** (ET and BT)
 * Visual output on a **128x64 OLED display** (SSD1306, I2C)
 * WiFi communication via **WebSocket**, compatible with:
-  + **Artisan Roaster Scope**
-  + **ICRM app**
-* BLE communication (ESP32 only) for the **ICRM app**
+  + [**Artisan Roaster Scope**](https://artisan-scope.org/)
+  + [**ICRM app**](https://iiemb.github.io/#/icrm)
+* BLE communication (ESP32 only) for the [**ICRM app**](https://iiemb.github.io/#/icrm)
 * Custom command system via a centralized `CommandHandler` class
 * Easily extendable with user-defined commands
 
@@ -22,10 +22,10 @@
 
 ## 🧩 Hardware Components
 
-* 1× NodeMCU ESP8266 or ESP32C3 Super Mini
-* 1× 128x64 OLED display (SSD1306, I2C)
-* 2× MAX6675 thermocouple sensor modules
-* 2× K-type thermocouple probes
+* 1× [NodeMCU ESP8266](images/NodeMCU-ESP8266.png) or [ESP32C3 Super Mini](images/ESP32C3-Super-Mini.png)
+* 1× [128x64 OLED display (SSD1306, I2C)](images/OLED-Display.png)
+* 2× [MAX6675 thermocouple sensor modules](images/MAX6675.png)
+* 2× [K-type thermocouple probes](images/Type-K-thermocouple.png)
 
 ---
 
