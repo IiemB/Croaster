@@ -21,11 +21,11 @@ private:
 
     String ipAddr;
 
-    float et = NAN;
-    float bt = NAN;
-    float rorET = NAN;
-    float rorBT = NAN;
-    String unit = "C";
+    double et = NAN;
+    double bt = NAN;
+    double rorEt = NAN;
+    double rorBt = NAN;
+    String tempUnit = "C";
 
     int screenRotation = 0;
 
@@ -36,6 +36,8 @@ private:
 
     unsigned long lastShowIpToggle = 0;
     bool isIpShowed = false;
+
+    bool hasDisplay = false;
 
     /**
      * @brief Draws the header section of the display.
@@ -49,12 +51,19 @@ private:
      * @param ror The rate of rise (RoR) value.
      * @param yCursor The vertical position on the display.
      */
-    void drawTemperature(String label, float temp, float ror, int yCursor);
+    void drawTemperature(String label, double temp, double ror, int yCursor);
 
     /**
      * @brief Displays the splash screen.
      */
     void splash();
+
+    /**
+     * @brief Scans the I2C bus for connected devices.
+     *
+     * @return true if devices are found on the I2C bus, false otherwise.
+     */
+    bool isOledPresent();
 
 public:
     /**
@@ -68,7 +77,7 @@ public:
      * @brief Initializes the display.
      * @return True if initialization is successful, false otherwise.
      */
-    bool begin();
+    void begin();
 
     /**
      * @brief Handles display updates in the main loop.

@@ -1,6 +1,7 @@
 #include "DisplayManager.h"
 #include "Constants.h"
 #include "DeviceIdentity.h"
+#include <Wire.h>
 
 DisplayManager::DisplayManager(CroasterCore &croaster, uint8_t i2cAddr)
     : display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET),
@@ -9,12 +10,20 @@ DisplayManager::DisplayManager(CroasterCore &croaster, uint8_t i2cAddr)
 {
 }
 
-bool DisplayManager::begin()
+void DisplayManager::begin()
 {
+    hasDisplay = isOledPresent();
+
+    if (!hasDisplay)
+    {
+        debugln(F("# No display found"));
+        return;
+    }
+
     if (!display.begin(SSD1306_SWITCHCAPVCC, i2cAddress))
     {
         debugln(F("# SSD1306 allocation failed"));
-        return false;
+        return;
     }
 
     display.clearDisplay();
@@ -23,11 +32,13 @@ bool DisplayManager::begin()
     splash();
 
     display.setTextWrap(false);
-    return true;
 }
 
 void DisplayManager::drawHeader()
 {
+    if (!hasDisplay)
+        return;
+
     String text = "CROASTER V" + String(version);
 
     if (isIpShowed && !ipAddr.isEmpty())
@@ -40,9 +51,12 @@ void DisplayManager::drawHeader()
     display.print(text);
 }
 
-void DisplayManager::drawTemperature(String label, float temp, float ror, int yCursor)
+void DisplayManager::drawTemperature(String label, double temp, double ror, int yCursor)
 {
-    String tempText = isnan(temp) ? "N/A" : String(temp, 1) + unit;
+    if (!hasDisplay)
+        return;
+
+    String tempText = isnan(temp) ? "N/A" : String(temp, 1) + tempUnit;
     int tempX = display.width() - (18 * tempText.length()) + 3;
 
     display.setTextSize(1);
@@ -58,7 +72,7 @@ void DisplayManager::drawTemperature(String label, float temp, float ror, int yC
         String rorText = String((int)round(ror));
 
         if (ror >= 0 && ror < 10)
-            rorText = String((float)ror, 1);
+            rorText = String((double)ror, 1);
 
         display.setTextSize(1);
         display.setCursor(0, yCursor + 14);
@@ -68,6 +82,9 @@ void DisplayManager::drawTemperature(String label, float temp, float ror, int yC
 
 void DisplayManager::splash()
 {
+    if (!hasDisplay)
+        return;
+
     display.clearDisplay();
 
     for (int16_t i = 0; i < max(display.width(), display.height()) / 2; i += 2)
@@ -92,8 +109,20 @@ void DisplayManager::splash()
     delay(1000);
 }
 
+bool DisplayManager::isOledPresent()
+{
+    Wire.begin();
+    delay(100);
+
+    Wire.beginTransmission(i2cAddress);
+    return Wire.endTransmission() == 0;
+}
+
 void DisplayManager::loop()
 {
+    if (!hasDisplay)
+        return;
+
     unsigned long now = millis();
 
     // === Invert screen ===
@@ -110,17 +139,19 @@ void DisplayManager::loop()
     {
         lastUpdate = now;
 
-        et = croaster->tempET;
-        rorET = croaster->rorET;
-        bt = croaster->tempBT;
-        rorBT = croaster->rorBT;
-        unit = croaster->temperatureUnit;
+        et = croaster->tempEt;
+        rorEt = croaster->rorEt;
+        bt = croaster->tempBt;
+        rorBt = croaster->rorBt;
+        tempUnit = croaster->temperatureUnit();
         ipAddr = getIpAddress();
 
         display.clearDisplay();
         drawHeader();
-        drawTemperature("ET", et, rorET, 16);
-        drawTemperature("BT", bt, rorBT, 43);
+
+        drawTemperature("BT", bt, rorBt, 16);
+        drawTemperature("ET", et, rorEt, 43);
+
         display.display();
     }
 
@@ -134,6 +165,9 @@ void DisplayManager::loop()
 
 void DisplayManager::rotateScreen()
 {
+    if (!hasDisplay)
+        return;
+
     if (screenRotation > 0)
         screenRotation = 0;
     else
@@ -145,6 +179,9 @@ void DisplayManager::rotateScreen()
 
 void DisplayManager::blinkIndicator(bool state)
 {
+    if (!hasDisplay)
+        return;
+
     display.fillCircle(124, 3, 3, state ? 1 : 0);
     display.display();
 }
