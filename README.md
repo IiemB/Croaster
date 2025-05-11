@@ -2,7 +2,6 @@
 
 **Croaster** is a lightweight, open-source temperature monitoring system built on ESP-based microcontrollers. Designed for coffee roasting, it reads from two thermocouple sensors and displays real-time data on an OLED screen. Croaster also provides connectivity via WiFi (ESP8266/ESP32) and BLE (ESP32 only) for remote monitoring and control.
 
-📄 [Lihat versi Bahasa Indonesia](README_ID.md)
 
 ---
 
@@ -14,8 +13,8 @@
 * Visual output on a **128x64 OLED display** (SSD1306, I2C)
 * WiFi communication via **WebSocket**, compatible with:
   + **Artisan Roaster Scope**
-  + **ICRM app** *(Android only)*
-* BLE communication (ESP32 only) for the **ICRM app** *(Android only)*
+  + **ICRM app**
+* BLE communication (ESP32 only) for the **ICRM app**
 * Custom command system via a centralized `CommandHandler` class
 * Easily extendable with user-defined commands
 
@@ -32,55 +31,24 @@
 
 ## 🔌 Wiring Diagram
 
-### NodeMCU ESP8266
-
-#### OLED Display
-
-* GND → GND
-* VCC → 3.3V
-* SCL → **D1**
-* SDA → **D2**
-
-#### ET Sensor
-
-* GND → GND
-* VCC → 3.3V
-* SCK → **D5**
-* SO  → **D7**
-* CS  → **D6**
-
-#### BT Sensor
-
-* GND → GND
-* VCC → 3.3V
-* SCK → **D5** *(shared)*
-* SO  → **D7** *(shared)*
-* CS  → **D8**
-
-### ESP32C3 Super Mini
-
-#### OLED Display
-
-* GND → GND
-* VCC → 3.3V
-* SCL → **GPIO9**
-* SDA → **GPIO8**
-
-#### ET Sensor
-
-* GND → GND
-* VCC → 3.3V
-* SCK → **GPIO4**
-* SO  → **GPIO5**
-* CS  → **GPIO6**
-
-#### BT Sensor
-
-* GND → GND
-* VCC → 3.3V
-* SCK → **GPIO4** *(shared)*
-* SO  → **GPIO5** *(shared)*
-* CS  → **GPIO7**
+|  |**NodeMCU ESP8266**|**ESP32C3 Super Mini**|
+|--|--|--|
+|**OLED Display**|GND →**GND**|GND → **GND**|
+| |VCC → **3.3V**|VCC → **3.3V**|
+| |SCL → **D1**|SCL → **GPIO9**|
+| |SDA → **D2**|SDA → **GPIO8**|
+|--|--|--|
+|**ET Sensor**|GND → **GND**|GND → **GND**|
+| |VCC → **3.3V**|VCC → **3.3V**|
+| |SCK → **D5**|SCK → **GPIO4**|
+| |SO  → **D7**|SO  → **GPIO5**|
+| |CS  → **D8**|CS  → **GPIO6**|
+|--|--|--|
+|**BT Sensor**|GND → **GND**|GND → **GND**|
+| |VCC → **3.3V**|VCC → **3.3V**|
+| |SCK → **D5**|SCK → **GPIO4**|
+| |SO  → **D7**|SO  → **GPIO5**|
+| |CS  → **D6**|CS  → **GPIO7**|
 
 ---
 
