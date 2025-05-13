@@ -32,18 +32,18 @@
 ## 🔌 Wiring Diagram
 
 |  |**NodeMCU ESP8266**|**ESP32C3 Super Mini**|
-|--|--|--|
+|:---|:---:|:---:|
 |**OLED Display**|GND →**GND**|GND → **GND**|
 | |VCC → **3.3V**|VCC → **3.3V**|
 | |SCL → **D1**|SCL → **GPIO9**|
 | |SDA → **D2**|SDA → **GPIO8**|
-|--|--|--|
+|||⠀|
 |**ET Sensor**|GND → **GND**|GND → **GND**|
 | |VCC → **3.3V**|VCC → **3.3V**|
 | |SCK → **D5**|SCK → **GPIO4**|
 | |SO  → **D7**|SO  → **GPIO5**|
 | |CS  → **D8**|CS  → **GPIO6**|
-|--|--|--|
+|||⠀|
 |**BT Sensor**|GND → **GND**|GND → **GND**|
 | |VCC → **3.3V**|VCC → **3.3V**|
 | |SCK → **D5**|SCK → **GPIO4**|
