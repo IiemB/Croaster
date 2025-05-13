@@ -2,7 +2,6 @@
 
 **Croaster** is a lightweight, open-source temperature monitoring system built on ESP-based microcontrollers. Designed for coffee roasting, it reads from two thermocouple sensors and displays real-time data on an OLED screen. Croaster also provides connectivity via WiFi (ESP8266/ESP32) and BLE (ESP32 only) for remote monitoring and control.
 
-
 ---
 
 ## 🚀 Features
@@ -58,7 +57,7 @@
 * Modular architecture separating BLE, WebSocket, display, and sensor logic
 * **CommandHandler** class:
   + Manages all incoming BLE/WebSocket JSON commands
-  + Easily customizable for user-defined actions (e.g. `restart`,  `erase`, etc.)
+  + Easily customizable for user-defined actions (e.g. `restart`,               `erase`, etc.)
 
 ---
 
@@ -95,7 +94,12 @@
 2. Open `croaster-arduino` folder in **Arduino IDE**
 3. Select your board:
    - ESP8266 → **NodeMCU 1.0 (ESP-12E)**
-   - ESP32C3 → **Makergo ESP32C3** *(not yet supported by PlatformIO)*
+   - ESP32C3 → **Makergo ESP32C3** *(ESP32C3 Super Mini is not yet supported by PlatformIO)*
+4. Select partition `Huge APP` *(ESP32C3 only)*
+   
+
+     > [!NOTE]
+     > this partition doesn't support OTA via ICRM App. To handle this, you can follow [this steps](references.md).
 
 ---
 
@@ -116,9 +120,31 @@ To connect Croaster to your WiFi network, you can follow this quick video guide:
 
 ---
 
+## 🔌 How to Connect Croaster with Artisan
+
+You can connect your Croaster device to Artisan using either a direct WiFi connection or through your home/local WiFi network.
+
+### 🖥️ Option 1: Direct Connection (Croaster as Access Point)
+
+1. On your computer, connect to the WiFi network broadcasted by your Croaster device. (It will appear as something like `[XXXX] Croaster-XXXX`)
+2. Open Artisan, go to Config → Port.
+3. Set the configuration as shown below:
+    ![image](images/Connect-Artisan-Directly.png)
+
+### 🌐 Option 2: Same WiFi Network (Croaster joins your WiFi)
+
+If your Croaster is already connected to your home WiFi, and your laptop is on the same network:
+
+1. Open Artisan, go to Config → Port.
+2. Enter the IP address assigned to Croaster (you can find this on the Croaster OLED screen or serial log).
+3. Use the configuration shown here:
+    ![image](images/Connect-Artisan-Same-Network.png)
+
+---
+
 ## 📘 License
 
-MIT License — free for personal and commercial use. Contributions welcome!
+[MIT License](LICENSE.md) — free for personal and commercial use. Contributions welcome!
 
 ---
 

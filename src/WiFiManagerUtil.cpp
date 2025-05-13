@@ -23,6 +23,7 @@ void setupWiFiManager(const String &apName)
     wifiManager.setDebugOutput(true);
     wifiManager.setConfigPortalBlocking(false);
     wifiManager.setAPCallback(configModeCallback);
+    wifiManager.setAPStaticIPConfig(IPAddress(10, 0, 1, 1), IPAddress(10, 0, 1, 1), IPAddress(255, 255, 255, 0));
     wifiManager.setClass("invert");
     wifiManager.setConnectTimeout(10);
 
