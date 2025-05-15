@@ -271,6 +271,8 @@ String CroasterCore::getJsonData(const String &message, const bool &skipCroaster
     if (!message.isEmpty())
         doc["message"] = message;
 
+    doc["name"] = ssidName();
+
     JsonObject data = doc["data"].to<JsonObject>();
 
     if (!isnan(tempBt))
