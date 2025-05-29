@@ -78,4 +78,9 @@ private:
      * @param clientId ID of the client that initiated the OTA process.
      */
     void finalize(bool hasError = false);
+
+    /**
+     * @brief Resets the internal state of the handler to its initial values.
+     */
+    void resetState();
 };

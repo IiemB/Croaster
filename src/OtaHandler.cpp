@@ -5,6 +5,8 @@ OtaHandler::OtaHandler() {}
 
 void OtaHandler::begin(uint32_t totalSize)
 {
+    resetState();
+
     if (Update.begin(totalSize))
     {
         this->totalSize = totalSize;
@@ -105,6 +107,13 @@ void OtaHandler::finalize(bool hasError)
     delay(3000);
 
     restartESP();
+}
+
+void OtaHandler::resetState()
+{
+    state = State::Idle;
+    totalSize = 0;
+    written = 0;
 }
 
 bool OtaHandler::isReceiving() const

@@ -11,6 +11,7 @@ void WebSocketManager::handleEvent(const String &cmd, uint8_t num)
 {
     if (cmd.startsWith("OTA_BEGIN:"))
     {
+
         uint32_t size = cmd.substring(10).toInt();
         otaHandler.begin(size);
 
