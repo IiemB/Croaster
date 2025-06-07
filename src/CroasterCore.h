@@ -25,7 +25,7 @@ private:
 
     String tempUnit = "C";
 
-    unsigned long intervalSend = INTERVAL_SEND_S;
+    unsigned long intervalSend = INITIAL_INTERVAL_SEND_S;
 
     bool useDummyData;
 
