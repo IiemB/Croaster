@@ -112,8 +112,8 @@ void BleManager::broadcastData()
 
         sendData(jsonData);
 
-        debugln("# [BLE-JSON] " + jsonData);
-        debugln("");
+        // debugln("# [BLE-JSON] " + jsonData);
+        // debugln("");
     }
 }
 
