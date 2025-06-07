@@ -25,7 +25,7 @@ private:
 
     String tempUnit = "C";
 
-    unsigned long intervalSend = 3;
+    unsigned long intervalSend = INTERVAL_SEND_S;
 
     bool useDummyData;
 
@@ -128,7 +128,7 @@ public:
      * @param id Identifier used to fetch specific JSON data. Defaults to 0.
      * @return A String containing the JSON data.
      */
-    String getJsonData(const String &message = "", const bool &skipCroaster = false, int id = 0);
+    String getJsonData(const String &message = "", const bool skipCroaster = true, int id = 0);
 
     /**
      * @brief Retrieves the SSID name for the device.
