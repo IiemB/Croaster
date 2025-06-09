@@ -20,5 +20,7 @@ const double version = 0.44;
 // Dummy mode
 const bool dummyMode = false;
 
+static constexpr double INITIAL_INTERVAL_SEND_S = .05;
+
 // Smoothing factor of a temperature value
 #define SMOOTHING_FACTOR 5
