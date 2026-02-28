@@ -134,6 +134,14 @@ void DisplayManager::loop()
         debugln(isDisplayInverted ? "# Display Inverted to Prevent Burn-In" : "# Display Reverted to Normal");
     }
 
+    if (isUpdatingFirmware)
+    {
+        if (!isDisplayOn)
+            displayToggle();
+
+        return;
+    }
+
     // === Update screen ===
     if (now - lastUpdate >= 1000)
     {
@@ -184,4 +192,55 @@ void DisplayManager::blinkIndicator(bool state)
 
     display.fillCircle(124, 3, 3, state ? 1 : 0);
     display.display();
+}
+
+void DisplayManager::displayToggle()
+{
+    if (!hasDisplay)
+        return;
+
+    isDisplayOn = !isDisplayOn;
+
+    display.ssd1306_command(isDisplayOn ? SSD1306_DISPLAYON : SSD1306_DISPLAYOFF);
+}
+
+void DisplayManager::updateFirmwareUpdateProgress(int progress)
+{
+    if (!hasDisplay)
+        return;
+
+    String progressText = String(progress);
+    while (progressText.length() < 3)
+        progressText = "_" + progressText;
+    progressText += " %";
+
+    int lineLength = (progress * 128) / 100;
+
+    display.clearDisplay();
+    display.setTextColor(WHITE);
+    display.setTextSize(1);
+    display.setFont(NULL);
+    display.setCursor(0, 15);
+    display.setTextWrap(0);
+    display.setCursor(13, 15);
+    display.println("Updating Firmware");
+    display.setCursor(0, 30);
+    display.setTextWrap(0);
+    display.setCursor(49, 30);
+    display.println(progressText);
+    display.drawLine(0, 50, lineLength, 50, 1);
+    display.display();
+}
+
+void DisplayManager::updatingStatusToggle(bool isUpdating)
+{
+    if (isUpdatingFirmware == isUpdating)
+        return;
+
+    isUpdatingFirmware = isUpdating;
+}
+
+bool DisplayManager::isFirmwareUpdating() const
+{
+    return isUpdatingFirmware;
 }

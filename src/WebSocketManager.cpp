@@ -3,7 +3,7 @@
 #include "WiFiManagerUtil.h"
 #include "Constants.h"
 
-WebSocketManager::WebSocketManager(CroasterCore &croaster, CommandHandler &commandHandler, uint16_t port) : server(port), croaster(&croaster), commandHandler(&commandHandler)
+WebSocketManager::WebSocketManager(CroasterCore &croaster, CommandHandler &commandHandler, DisplayManager &displayManager, uint16_t port) : server(port), croaster(&croaster), commandHandler(&commandHandler), displayManager(&displayManager)
 {
 }
 
@@ -53,6 +53,12 @@ void WebSocketManager::begin()
 
                 debugln("# WebSocket Client Disconnected " + String(clientConnected));
 
+                if (displayManager->isFirmwareUpdating())
+                {
+                    displayManager->updatingStatusToggle(false);
+                    restartESP();
+                }
+
                 break;
             case WStype_CONNECTED:
                 clientConnected++;
@@ -68,6 +74,12 @@ void WebSocketManager::begin()
                 if (otaHandler.isReceiving())
                 {
                     otaHandler.handleBinary(payload, length, server, num);
+                    
+                    int progress = int((double(otaHandler.getWritten()) / double(otaHandler.getTotal())) * 100.0);
+
+                    displayManager->updatingStatusToggle(true);
+
+                    displayManager->updateFirmwareUpdateProgress(progress);
                 }
 
                 break;

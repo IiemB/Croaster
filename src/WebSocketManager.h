@@ -17,7 +17,7 @@ public:
      * @param handler Reference to the CommandHandler instance.
      * @param port The WebSocket server port (default is 81).
      */
-    WebSocketManager(CroasterCore &core, CommandHandler &handler, uint16_t port = 81);
+    WebSocketManager(CroasterCore &core, CommandHandler &handler, DisplayManager &display, uint16_t port = 81);
 
     /**
      * @brief Initializes the WebSocket server.
@@ -36,6 +36,8 @@ private:
     CommandHandler *commandHandler = nullptr; ///< Pointer to the CommandHandler instance.
 
     OtaHandler otaHandler; ///< Pointer to the OtaHandler instance.
+
+    DisplayManager *displayManager = nullptr; ///< Pointer to the DisplayManager instance.
 
     unsigned long lastSend = 0; ///< Timestamp of the last data broadcast.
 
