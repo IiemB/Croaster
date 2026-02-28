@@ -6,7 +6,6 @@
 CroasterCore::CroasterCore(bool dummyMode)
     : useDummyData(dummyMode)
 {
-
     thermocoupleBT = new SmoothThermocouple(new MAX6675_Thermocouple(SCK_PIN, CS_PIN_BT, SO_PIN), SMOOTHING_FACTOR);
     thermocoupleET = new SmoothThermocouple(new MAX6675_Thermocouple(SCK_PIN, CS_PIN_ET, SO_PIN), SMOOTHING_FACTOR);
 }

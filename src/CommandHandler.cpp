@@ -111,6 +111,10 @@ void CommandHandler::handleBasicCommand(const JsonObject &json, String &response
     {
         blinkBuiltinLED();
     }
+    else if (command == "displayToggle")
+    {
+        displayManager.displayToggle();
+    }
 }
 
 void CommandHandler::handleJsonCommand(const JsonObject &json, String &responseOut)

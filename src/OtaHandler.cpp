@@ -17,6 +17,8 @@ void OtaHandler::begin(uint32_t totalSize)
     else
     {
         debugln("# [OTA] Failed to begin update");
+        debugln("# [OTA] Restarting device...");
+        restartESP();
     }
 }
 
@@ -79,6 +81,7 @@ void OtaHandler::finalize(bool hasError)
 
 #if defined(ESP32)
         Update.abort();
+        debugln("# [OTA] Update aborted");
 #endif
 
         debugln("# Restarting...");

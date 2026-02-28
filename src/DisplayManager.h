@@ -39,6 +39,10 @@ private:
 
     bool hasDisplay = false;
 
+    bool isDisplayOn = true;
+
+    bool isUpdatingFirmware = false;
+
     /**
      * @brief Draws the header section of the display.
      */
@@ -94,4 +98,27 @@ public:
      * @param state The state of the indicator (true for on, false for off).
      */
     void blinkIndicator(bool state);
+
+    /**
+     * @brief Toggles the display on or off.
+     */
+    void displayToggle();
+
+    /**
+     * @brief Updates the firmware update progress on the display.
+     * @param progress The firmware update progress percentage (0-100).
+     */
+    void updateFirmwareUpdateProgress(int progress);
+
+    /**
+     * @brief Toggles the firmware updating status display.
+     * @param isUpdating The firmware update status (true if updating, false otherwise).
+     */
+    void updatingStatusToggle(bool isUpdating);
+
+    /**
+     * @brief Checks if the firmware is currently being updated.
+     * @return true if firmware is updating, false otherwise.
+     */
+    bool isFirmwareUpdating() const;
 };

@@ -26,7 +26,7 @@ CommandHandler commandHandler(croaster, displayManager);
 BleManager bleManager(croaster, commandHandler);
 #endif
 
-WebSocketManager wsManager(croaster, commandHandler);
+WebSocketManager wsManager(croaster, commandHandler, displayManager);
 
 // === Arduino Setup ===
 void setup()
