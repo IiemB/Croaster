@@ -18,7 +18,7 @@
 const double version = 0.45;
 
 // Dummy mode
-const bool dummyMode = true;
+const bool dummyMode = false;
 
 // Smoothing factor of a temperature value
 #define SMOOTHING_FACTOR 5

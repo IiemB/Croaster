@@ -317,7 +317,7 @@ String CroasterCore::getJsonData(const String &message, const bool &skipCroaster
 
         croaster["tempUnit"] = tempUnit;
 
-        if (dummyMode)
+        if (useDummyData)
         {
             /*
             You can add more fields to the JSON document that will be readed by ICRM app,

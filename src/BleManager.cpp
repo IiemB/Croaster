@@ -62,6 +62,8 @@ void BleManager::begin()
 {
     BLEDevice::init(croaster->ssidName().c_str());
 
+    BLEDevice::setMTU(517);
+
     pServer = BLEDevice::createServer();
 
     pServer->setCallbacks(new ServerCallbacks(this));
