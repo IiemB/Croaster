@@ -58,7 +58,7 @@ private:
      */
     void resetHistory(String item = "something");
 
-    String genRamdomString(int length);
+    String genRandomString(int length);
 
 public:
     double timer = 0, rorEt = 0, rorBt = 0, tempEt = 0, tempBt = 0;
