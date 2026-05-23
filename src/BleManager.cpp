@@ -36,19 +36,13 @@ public:
         bool restart = false, erase = false;
         String response;
 
-        if (commandHandler->handle(raw, response, restart, erase))
+        if (commandHandler->handle(raw, response))
         {
             if (!response.isEmpty())
             {
                 pCharacteristic->setValue(response.c_str());
                 pCharacteristic->notify();
             }
-
-            if (erase)
-                eraseESP();
-
-            if (restart)
-                restartESP();
 
             debugln("# [CMD-BLE] " + raw);
         }

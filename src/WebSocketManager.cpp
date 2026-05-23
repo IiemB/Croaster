@@ -24,19 +24,13 @@ void WebSocketManager::handleEvent(const String &cmd, uint8_t num)
 
     String response;
 
-    if (commandHandler->handle(cmd, response, restart, erase))
+    if (commandHandler->handle(cmd, response))
     {
 
         if (!response.isEmpty())
         {
             server.sendTXT(num, response);
         }
-
-        if (erase)
-            eraseESP();
-
-        if (restart)
-            ESP.restart();
 
         debugln("# [CMD-SOCKET] " + cmd);
     }

@@ -38,7 +38,7 @@ void CommandHandler::loop()
     }
 }
 
-bool CommandHandler::handle(const String &json, String &responseOut, bool &restart, bool &erase)
+bool CommandHandler::handle(const String &json, String &responseOut)
 {
     JsonDocument doc;
 
@@ -48,15 +48,13 @@ bool CommandHandler::handle(const String &json, String &responseOut, bool &resta
         return false;
     }
 
-    restart = false;
-    erase = false;
     responseOut = "";
 
     if (doc["command"].is<String>())
     {
         JsonObject json = doc.as<JsonObject>();
 
-        handleBasicCommand(json, responseOut, restart, erase);
+        handleBasicCommand(json, responseOut);
         return true;
     }
 
@@ -70,7 +68,7 @@ bool CommandHandler::handle(const String &json, String &responseOut, bool &resta
     return false;
 }
 
-void CommandHandler::handleBasicCommand(const JsonObject &json, String &responseOut, bool &restart, bool &erase)
+void CommandHandler::handleBasicCommand(const JsonObject &json, String &responseOut)
 {
     if (!json["command"].is<String>())
         return;
@@ -85,15 +83,15 @@ void CommandHandler::handleBasicCommand(const JsonObject &json, String &response
     }
     else if (command == "restartesp")
     {
-        restart = true;
-
         responseOut = croaster.getJsonData(command);
+
+        ESP.restart();
     }
     else if (command == "erase")
     {
-        erase = true;
-
         responseOut = croaster.getJsonData(command);
+
+        eraseESP();
     }
     else if (command == "dummyOn")
     {

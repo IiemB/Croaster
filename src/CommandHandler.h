@@ -31,7 +31,7 @@ private:
      * @param restart Set to true if a restart is requested.
      * @param erase Set to true if an erase is requested.
      */
-    void handleBasicCommand(const JsonObject &json, String &responseOut, bool &restart, bool &erase);
+    void handleBasicCommand(const JsonObject &json, String &responseOut);
 
     /**
      * @brief Handles JSON-formatted commands.
@@ -73,5 +73,5 @@ public:
      * @param erase Set to true if an erase is requested.
      * @return True if the command was handled successfully, false otherwise.
      */
-    bool handle(const String &json, String &responseOut, bool &restart, bool &erase);
+    bool handle(const String &json, String &responseOut);
 };
