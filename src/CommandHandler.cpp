@@ -79,18 +79,14 @@ void CommandHandler::handleBasicCommand(const JsonObject &json, String &response
     {
         int id = json["id"].as<int>();
 
-        responseOut = croaster.getJsonData(command, true, id);
+        responseOut = croaster.getJsonData(id);
     }
     else if (command == "restartesp")
     {
-        responseOut = croaster.getJsonData(command);
-
         ESP.restart();
     }
     else if (command == "erase")
     {
-        responseOut = croaster.getJsonData(command);
-
         eraseESP();
     }
     else if (command == "dummyOn")
@@ -112,6 +108,10 @@ void CommandHandler::handleBasicCommand(const JsonObject &json, String &response
     else if (command == "displayToggle")
     {
         displayManager.displayToggle();
+    }
+    else if (command == "getDeviceInfo")
+    {
+        responseOut = genResponseCommand(command, croaster.getDeviceInfo());
     }
 }
 
@@ -172,4 +172,24 @@ void CommandHandler::blinkBuiltinLED(uint8_t times, unsigned long blinkDelay)
     ledState = false;
 
     blinking = true;
+}
+
+String CommandHandler::genResponseCommand(const String command, const String response)
+{
+    JsonDocument doc;
+
+    JsonDocument responseDoc;
+
+    doc["command"] = command;
+
+    if (!deserializeJson(responseDoc, response))
+    {
+        doc["response"] = responseDoc;
+    }
+
+    String jsonOutput;
+
+    serializeJson(doc, jsonOutput);
+
+    return jsonOutput;
 }

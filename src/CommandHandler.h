@@ -47,6 +47,14 @@ private:
      */
     void blinkBuiltinLED(uint8_t times = 2, unsigned long blinkDelay = 250);
 
+    /**
+     * @brief Generates a JSON response for a given command.
+     * @param command The command for which to generate the response.
+     * @param response The response message to include in the JSON.
+     * @return A JSON-formatted string containing the command and response.
+     */
+    String genResponseCommand(const String command, const String response);
+
 public:
     /**
      * @brief Constructs a CommandHandler instance.
@@ -69,8 +77,6 @@ public:
      * @brief Processes an incoming command.
      * @param json The command in JSON format.
      * @param responseOut The response to send back.
-     * @param restart Set to true if a restart is requested.
-     * @param erase Set to true if an erase is requested.
      * @return True if the command was handled successfully, false otherwise.
      */
     bool handle(const String &json, String &responseOut);

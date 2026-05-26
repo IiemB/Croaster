@@ -260,12 +260,63 @@ String CroasterCore::genRandomString(int length)
     return result;
 }
 
-String CroasterCore::ssidName()
+double CroasterCore::roundTo2(double value)
 {
-    return getDeviceName("[", "] Croaster V" + String(version));
+    return round(value * 100.0) / 100.0;
 }
 
-String CroasterCore::getJsonData(const String &message, const bool &skipCroaster, int id)
+String CroasterCore::ssidName()
+{
+    return getDeviceName("[", "] Croaster V" + String(version, 3));
+}
+
+String CroasterCore::getJsonData(int id)
+{
+    JsonDocument doc;
+
+    doc["id"] = id;
+    doc["name"] = ssidName();
+
+    JsonObject data = doc["data"].to<JsonObject>();
+
+    data["interval"] = intervalSend;
+    data["timer"] = timer;
+    if (!isnan(tempBt))
+    {
+        data["BT"] = roundTo2(tempBt);
+        data["DBT"] = roundTo2(rorBt);
+    }
+    if (!isnan(tempEt))
+    {
+        data["ET"] = roundTo2(tempEt);
+        data["DET"] = roundTo2(rorEt);
+    }
+
+    data["cBT"] = roundTo2(correctionBt);
+    data["cET"] = roundTo2(correctionEt);
+
+    data["temp"] = tempUnit;
+
+    /*
+    NOTE
+    You can add more fields to the JSON document that will be readed by ICRM app,
+    such as historical data or other sensor readings.
+    */
+
+    JsonObject extra = data["extra"].to<JsonObject>();
+
+    extra["string"] = genRandomString(10);
+    extra["number"] = random(100, 999);
+    extra["boolean"] = random(0, 2) == 1;
+
+    String jsonOutput;
+
+    serializeJson(doc, jsonOutput);
+
+    return jsonOutput;
+}
+
+String CroasterCore::getDeviceInfo()
 {
     String ipAddress = getIpAddress();
 
@@ -273,62 +324,17 @@ String CroasterCore::getJsonData(const String &message, const bool &skipCroaster
 
     JsonDocument doc;
 
-    doc["id"] = id;
-
-    doc["versionCode"] = version;
+    doc["ver"] = version;
 
     if (!ipAddress.isEmpty())
-        doc["ipAddress"] = ipAddress;
+        doc["ip"] = ipAddress;
 
     if (!ssid.isEmpty())
         doc["ssid"] = ssid;
 
-    if (!message.isEmpty())
-        doc["message"] = message;
-
     doc["name"] = ssidName();
 
-    JsonObject data = doc["data"].to<JsonObject>();
-
-    if (!isnan(tempBt))
-        data["BT"] = tempBt;
-    if (!isnan(tempEt))
-        data["ET"] = tempEt;
-
-    if (!skipCroaster)
-    {
-        JsonObject croaster = doc["croaster"].to<JsonObject>();
-
-        croaster["interval"] = intervalSend;
-        croaster["timer"] = timer;
-        if (!isnan(tempBt))
-        {
-            croaster["tempBt"] = tempBt;
-            croaster["rorBt"] = rorBt;
-        }
-        if (!isnan(tempEt))
-        {
-            croaster["tempEt"] = tempEt;
-            croaster["rorEt"] = rorEt;
-        }
-
-        croaster["correctionBt"] = correctionBt;
-        croaster["correctionEt"] = correctionEt;
-
-        croaster["tempUnit"] = tempUnit;
-
-        /*
-        NOTE
-        You can add more fields to the JSON document that will be readed by ICRM app,
-        such as historical data or other sensor readings.
-        */
-
-        // JsonObject extra = croaster["extra"].to<JsonObject>();
-
-        // extra["string"] = genRandomString(10);
-        // extra["number"] = random(100, 999);
-        // extra["boolean"] = random(0, 2) == 1;
-    }
+    doc["timer"] = timer;
 
     String jsonOutput;
 
