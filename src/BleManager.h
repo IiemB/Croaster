@@ -10,6 +10,7 @@
 #include "DisplayManager.h"
 #include "Constants.h"
 #include "CommandHandler.h"
+#include "OtaHandler.h"
 
 /**
  * @class BleManager
@@ -22,8 +23,9 @@ public:
      * @brief Constructs a BleManager instance.
      * @param croaster Reference to the CroasterCore instance.
      * @param commandHandler Reference to the CommandHandler instance.
+     * @param displayManager Reference to the DisplayManager instance.
      */
-    BleManager(CroasterCore &croaster, CommandHandler &commandHandler);
+    BleManager(CroasterCore &croaster, CommandHandler &commandHandler, DisplayManager &displayManager);
 
     /**
      * @brief Initializes the BLE server and characteristics.
@@ -47,6 +49,9 @@ private:
 
     CommandHandler *commandHandler = nullptr; ///< Pointer to the CommandHandler instance.
     CroasterCore *croaster = nullptr;         ///< Pointer to the CroasterCore instance.
+    DisplayManager *displayManager = nullptr; ///< Pointer to the DisplayManager instance.
+
+    OtaHandler otaHandler; ///< Handles OTA firmware updates over BLE.
 
     unsigned long lastSend = 0; ///< Timestamp of the last data broadcast.
 

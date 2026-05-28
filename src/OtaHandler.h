@@ -6,6 +6,7 @@
 #include "WiFiManagerUtil.h"
 #if defined(ESP32)
 #include <Update.h>
+#include <BLECharacteristic.h>
 #elif defined(ESP8266)
 #include <Updater.h>
 #endif
@@ -38,6 +39,17 @@ public:
      */
     bool handleBinary(uint8_t *data, size_t len, WebSocketsServer &server, uint8_t clientId);
 
+#if defined(ESP32)
+    /**
+     * @brief Processes incoming binary data for the OTA update via BLE.
+     * @param data Pointer to the binary data.
+     * @param len Length of the binary data.
+     * @param pChar Pointer to the BLE characteristic used to send progress notifications.
+     * @return True if the data was handled successfully, false otherwise.
+     */
+    bool handleBinaryBle(uint8_t *data, size_t len, BLECharacteristic *pChar);
+#endif
+
     /**
      * @brief Checks if the OTA process is currently receiving data.
      * @return True if data is being received, false otherwise.
@@ -56,6 +68,12 @@ public:
      */
     uint32_t getWritten() const;
 
+    /**
+     * @brief Aborts the OTA update if no data has been received within the timeout period.
+     * Should be called from the manager's loop().
+     */
+    void checkTimeout();
+
 private:
     /**
      * @enum State
@@ -71,6 +89,9 @@ private:
     State state = State::Idle; ///< Current state of the OTA process.
     uint32_t totalSize = 0;    ///< Total size of the OTA update in bytes.
     uint32_t written = 0;      ///< Number of bytes written so far.
+
+    unsigned long lastChunkTime = 0;                   ///< Timestamp of the last received chunk.
+    static const unsigned long OTA_TIMEOUT_MS = 10000; ///< Abort OTA if no data for 10 seconds.
 
     /**
      * @brief Finalizes the OTA process upon successful completion.

@@ -19,24 +19,64 @@ public:
     {
         debugln("# BLE Client Disconnected");
         parent->clientConnected = false;
+
+        if (parent->otaHandler.isReceiving())
+        {
+            debugln("# [OTA] BLE disconnected during OTA - restarting...");
+            parent->displayManager->updatingStatusToggle(false);
+            restartESP();
+            return;
+        }
+
         BLEDevice::startAdvertising();
     }
 };
 
 class BleManager::CharacteristicCallbacks : public BLECharacteristicCallbacks
 {
-    CommandHandler *commandHandler;
+    BleManager *parent;
 
 public:
-    CharacteristicCallbacks(CommandHandler *handler) : commandHandler(handler) {}
+    CharacteristicCallbacks(BleManager *parent) : parent(parent) {}
     void onWrite(BLECharacteristic *pCharacteristic) override
     {
+        // If OTA is in progress, treat incoming data as a binary firmware chunk
+        if (parent->otaHandler.isReceiving())
+        {
+            uint8_t *data = pCharacteristic->getData();
+            size_t len = pCharacteristic->getLength();
+
+            bool handled = parent->otaHandler.handleBinaryBle(data, len, pCharacteristic);
+
+            if (handled)
+            {
+                int progress = int((double(parent->otaHandler.getWritten()) / double(parent->otaHandler.getTotal())) * 100.0);
+
+                parent->displayManager->updatingStatusToggle(true);
+
+                parent->displayManager->updateFirmwareUpdateProgress(progress);
+            }
+
+            return;
+        }
+
         String raw = pCharacteristic->getValue().c_str();
 
-        bool restart = false, erase = false;
+        // Handle OTA begin command
+        if (raw.startsWith("OTA_BEGIN:"))
+        {
+            uint32_t size = raw.substring(10).toInt();
+
+            parent->otaHandler.begin(size);
+
+            debugln("# [BLE] " + raw);
+
+            return;
+        }
+
         String response;
 
-        if (commandHandler->handle(raw, response))
+        if (parent->commandHandler->handle(raw, response))
         {
             if (!response.isEmpty())
             {
@@ -49,8 +89,8 @@ public:
     }
 };
 
-BleManager::BleManager(CroasterCore &croaster, CommandHandler &commandHandler)
-    : croaster(&croaster), commandHandler(&commandHandler) {}
+BleManager::BleManager(CroasterCore &croaster, CommandHandler &commandHandler, DisplayManager &displayManager)
+    : croaster(&croaster), commandHandler(&commandHandler), displayManager(&displayManager) {}
 
 void BleManager::begin()
 {
@@ -71,7 +111,7 @@ void BleManager::begin()
             BLECharacteristic::PROPERTY_WRITE_NR);
 
     pDataCharacteristic->addDescriptor(new BLE2902());
-    pDataCharacteristic->setCallbacks(new CharacteristicCallbacks(commandHandler));
+    pDataCharacteristic->setCallbacks(new CharacteristicCallbacks(this));
 
     pService->start();
     BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
@@ -83,6 +123,8 @@ void BleManager::begin()
 
 void BleManager::loop()
 {
+    otaHandler.checkTimeout();
+
     broadcastData();
 }
 
@@ -94,6 +136,9 @@ bool BleManager::isClientConnected() const
 void BleManager::broadcastData()
 {
     if (!clientConnected || !pDataCharacteristic)
+        return;
+
+    if (otaHandler.isReceiving())
         return;
 
     unsigned long now = millis();

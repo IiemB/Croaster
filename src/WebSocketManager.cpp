@@ -47,7 +47,7 @@ void WebSocketManager::begin()
 
                 debugln("# WebSocket Client Disconnected " + String(clientConnected));
 
-                if (displayManager->isFirmwareUpdating())
+                if (displayManager->isFirmwareUpdating() || otaHandler.isReceiving())
                 {
                     displayManager->updatingStatusToggle(false);
                     restartESP();
@@ -89,6 +89,8 @@ void WebSocketManager::loop()
 {
     server.loop();
 
+    otaHandler.checkTimeout();
+
     broadcastData();
 }
 
@@ -101,6 +103,9 @@ void WebSocketManager::broadcastData()
 {
 
     if (!isClientConnected())
+        return;
+
+    if (otaHandler.isReceiving())
         return;
 
     unsigned long now = millis();
