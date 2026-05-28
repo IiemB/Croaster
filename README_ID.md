@@ -4,7 +4,7 @@
 
 **Croaster** adalah sistem pemantau suhu ringan dan open-source yang dibangun di atas mikrokontroler berbasis ESP. Dirancang untuk para pecinta dan profesional sangrai kopi, sistem ini membaca dua sensor termokopel (Suhu Biji dan Suhu Lingkungan) dan menampilkan data secara real-time di layar OLED yang ringkas. Croaster terhubung mulus ke perangkat lunak sangrai populer melalui WiFi (WebSocket) dan BLE (khusus ESP32), sehingga kompatibel dengan aplikasi sangrai di desktop maupun ponsel.
 
-**Versi Firmware Saat Ini:** `0.45`
+**Versi Firmware Saat Ini:** `0.46`
 
 ---
 
@@ -77,13 +77,13 @@
 | |VCC → **3.3V**|VCC → **3.3V**|
 | |SCK → **D5**|SCK → **GPIO4**|
 | |SO  → **D7**|SO  → **GPIO5**|
-| |CS  → **D8**|CS  → **GPIO6**|
+| |CS  → **D6**|CS  → **GPIO6**|
 |||⠀|
 |**Sensor BT** (Suhu Biji)|GND → **GND**|GND → **GND**|
 | |VCC → **3.3V**|VCC → **3.3V**|
 | |SCK → **D5**|SCK → **GPIO4**|
 | |SO  → **D7**|SO  → **GPIO5**|
-| |CS  → **D6**|CS  → **GPIO7**|
+| |CS  → **D8**|CS  → **GPIO7**|
 
 > Kedua sensor berbagi jalur **SCK** dan **SO** (bus SPI). Keduanya dibedakan oleh pin **CS** masing-masing.
 
@@ -256,18 +256,33 @@ Croaster menerima perintah berformat JSON melalui WebSocket maupun BLE. Kelas `C
 
 ### Perintah Bawaan
 
+Semua perintah menggunakan kunci `"command"`. Perintah dasar (string):
+
 | JSON Perintah | Aksi |
 |:---|:---|
-| `{"cmd": "restart"}` | Restart perangkat |
-| `{"cmd": "erase"}` | Hapus kredensial WiFi dan restart |
-| `{"cmd": "unit", "value": "F"}` | Ganti satuan suhu ke Fahrenheit |
-| `{"cmd": "unit", "value": "C"}` | Ganti satuan suhu ke Celsius |
-| `{"cmd": "interval", "value": 5}` | Atur interval pengiriman data ke 5 detik |
-| `{"cmd": "correction", "bt": 1.5, "et": -0.5}` | Terapkan offset koreksi suhu |
+| `{"command": "restartesp"}` | Restart perangkat |
+| `{"command": "erase"}` | Hapus kredensial WiFi dan restart |
+| `{"command": "displayToggle"}` | Menyalakan/mematikan layar OLED |
+| `{"command": "rotateScreen"}` | Memutar layar OLED 180° |
+| `{"command": "dummyOn"}` | Mengaktifkan mode dummy/pengujian (tanpa sensor fisik) |
+| `{"command": "dummyOff"}` | Menonaktifkan mode dummy |
+| `{"command": "blink"}` | Mengedipkan LED bawaan |
+| `{"command": "getDeviceInfo"}` | Mengembalikan info perangkat (IP, SSID, versi firmware) |
+| `{"command": "getExtra"}` | Mengembalikan data ekstra yang ditentukan pengguna |
+
+Perintah konfigurasi menggunakan **objek JSON bersarang** di bawah `"command"`:
+
+| JSON Perintah | Aksi |
+|:---|:---|
+| `{"command": {"tempUnit": "F"}}` | Ganti satuan suhu ke Fahrenheit |
+| `{"command": {"tempUnit": "C"}}` | Ganti satuan suhu ke Celsius |
+| `{"command": {"interval": 5}}` | Atur interval pengiriman data ke 5 detik |
+| `{"command": {"correctionBt": 1.5, "correctionEt": -0.5}}` | Terapkan offset koreksi suhu |
+| `{"command": {"wifiConnect": {"ssid": "NamaWiFi", "pass": "password"}}}` | Hubungkan ke jaringan WiFi tertentu |
 
 ### Menambahkan Perintah Kustom
 
-Untuk menambahkan perintah Anda sendiri, edit `CommandHandler.cpp` dan tambahkan kondisi baru di dalam metode `handleJsonCommand`. Handler menerima `JsonObject` yang sudah di-parse, sehingga Anda dapat membaca key/value apapun dari payload JSON.
+Untuk menambahkan perintah dasar (string), tambahkan cabang `else if` baru di dalam `handleBasicCommand` di `CommandHandler.cpp`. Untuk menambahkan perintah konfigurasi, tambahkan kondisi baru di dalam `handleJsonCommand`. Kedua metode menerima `JsonObject` yang sudah di-parse, sehingga Anda dapat membaca key/value apapun dari payload JSON.
 
 ---
 

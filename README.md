@@ -4,7 +4,7 @@
 
 **Croaster** is a lightweight, open-source temperature monitoring system built on ESP-based microcontrollers. Designed for coffee roasting enthusiasts and professionals, it reads from two thermocouple sensors (Bean Temperature and Environment Temperature) and displays real-time data on a compact OLED screen. Croaster connects seamlessly to popular roasting software via WiFi (WebSocket) and BLE (ESP32 only), making it compatible with both desktop and mobile roasting apps.
 
-**Current Firmware Version:** `0.45`
+**Current Firmware Version:** `0.46`
 
 ---
 
@@ -77,13 +77,13 @@
 | |VCC → **3.3V**|VCC → **3.3V**|
 | |SCK → **D5**|SCK → **GPIO4**|
 | |SO  → **D7**|SO  → **GPIO5**|
-| |CS  → **D8**|CS  → **GPIO6**|
+| |CS  → **D6**|CS  → **GPIO6**|
 |||⠀|
 |**BT Sensor** (Bean Temp)|GND → **GND**|GND → **GND**|
 | |VCC → **3.3V**|VCC → **3.3V**|
 | |SCK → **D5**|SCK → **GPIO4**|
 | |SO  → **D7**|SO  → **GPIO5**|
-| |CS  → **D6**|CS  → **GPIO7**|
+| |CS  → **D8**|CS  → **GPIO7**|
 
 > Both sensors share the **SCK** and **SO** lines (SPI bus). They are distinguished by their individual **CS** pins.
 
@@ -256,18 +256,33 @@ Croaster accepts JSON-formatted commands over both WebSocket and BLE. The `Comma
 
 ### Built-in Commands
 
+All commands use the `"command"` key. Basic (string) commands:
+
 | Command JSON | Action |
 |:---|:---|
-| `{"cmd": "restart"}` | Restarts the device |
-| `{"cmd": "erase"}` | Erases WiFi credentials and restarts |
-| `{"cmd": "unit", "value": "F"}` | Switches temperature unit to Fahrenheit |
-| `{"cmd": "unit", "value": "C"}` | Switches temperature unit to Celsius |
-| `{"cmd": "interval", "value": 5}` | Sets data send interval to 5 seconds |
-| `{"cmd": "correction", "bt": 1.5, "et": -0.5}` | Applies temperature correction offset |
+| `{"command": "restartesp"}` | Restarts the device |
+| `{"command": "erase"}` | Erases WiFi credentials and restarts |
+| `{"command": "displayToggle"}` | Toggles the OLED display on/off |
+| `{"command": "rotateScreen"}` | Rotates the OLED screen 180° |
+| `{"command": "dummyOn"}` | Enables dummy/test mode (no real sensors needed) |
+| `{"command": "dummyOff"}` | Disables dummy mode |
+| `{"command": "blink"}` | Blinks the built-in LED |
+| `{"command": "getDeviceInfo"}` | Returns device info (IP, SSID, firmware version) |
+| `{"command": "getExtra"}` | Returns extra user-defined data |
+
+Configuration commands use a **nested JSON object** under `"command"`:
+
+| Command JSON | Action |
+|:---|:---|
+| `{"command": {"tempUnit": "F"}}` | Switches temperature unit to Fahrenheit |
+| `{"command": {"tempUnit": "C"}}` | Switches temperature unit to Celsius |
+| `{"command": {"interval": 5}}` | Sets data send interval to 5 seconds |
+| `{"command": {"correctionBt": 1.5, "correctionEt": -0.5}}` | Applies temperature correction offset |
+| `{"command": {"wifiConnect": {"ssid": "MyWiFi", "pass": "password"}}}` | Connects to a specified WiFi network |
 
 ### Adding Custom Commands
 
-To add your own command, edit `CommandHandler.cpp` and add a new condition inside the `handleJsonCommand` method. The handler receives a parsed `JsonObject`, so you can read any key/value from the JSON payload.
+To add a basic (string) command, add a new `else if` branch inside `handleBasicCommand` in `CommandHandler.cpp`. To add a configuration command, add a new condition inside `handleJsonCommand`. Both methods receive a parsed `JsonObject`, so you can read any key/value from the JSON payload.
 
 ---
 

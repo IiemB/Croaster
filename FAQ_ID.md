@@ -76,7 +76,7 @@ Lihat [Video Setup WiFi](https://www.youtube.com/watch?v=esNiudoCEcU&t=434s) unt
 
 ### Saya lupa password WiFi atau ingin mengganti jaringan. Bagaimana cara mereset?
 
-Kirim perintah `{"cmd": "erase"}` via WebSocket atau BLE (aplikasi ICRM), atau tekan tombol reset sambil menahan tombol boot pada ESP32C3. Ini akan menghapus kredensial WiFi yang tersimpan dan menempatkan Croaster kembali ke mode access point untuk konfigurasi ulang.
+Kirim perintah `{"command": "erase"}` via WebSocket atau BLE (aplikasi ICRM), atau tekan tombol reset sambil menahan tombol boot pada ESP32C3. Ini akan menghapus kredensial WiFi yang tersimpan dan menempatkan Croaster kembali ke mode access point untuk konfigurasi ulang.
 
 ---
 
@@ -96,7 +96,7 @@ Server WebSocket Croaster berjalan di **port 81**.
 
 Secara default, data di-broadcast setiap **3 detik**. Anda dapat mengubahnya dengan mengirim:
 ```json
-{"cmd": "interval", "value": 5}
+{"command": {"interval": 5}}
 ```
 Ganti `5` dengan interval yang Anda inginkan dalam satuan detik.
 
@@ -114,11 +114,11 @@ Tidak. BLE hanya tersedia di platform **ESP32**. ESP8266 hanya mendukung WiFi.
 
 Croaster mendukung **Celsius (C)** dan **Fahrenheit (F)**. Ganti satuan dengan mengirim:
 ```json
-{"cmd": "unit", "value": "F"}
+{"command": {"tempUnit": "F"}}
 ```
 atau
 ```json
-{"cmd": "unit", "value": "C"}
+{"command": {"tempUnit": "C"}}
 ```
 
 ---
@@ -139,7 +139,7 @@ Croaster menerapkan **filter penghalusan** (faktor: 5) untuk mengurangi noise da
 
 Ya. Kirim perintah koreksi:
 ```json
-{"cmd": "correction", "bt": 1.5, "et": -0.5}
+{"command": {"correctionBt": 1.5, "correctionEt": -0.5}}
 ```
 Ini menerapkan offset `+1.5°` pada BT dan offset `-0.5°` pada ET. Koreksi diterapkan di atas pembacaan sensor yang sudah dihaluskan.
 
@@ -209,16 +209,25 @@ Dalam mode ini, Croaster menghasilkan data suhu simulasi, sehingga Anda dapat me
 
 ### Bagaimana cara menambahkan perintah kustom?
 
-1. Buka `CommandHandler.cpp`
-2. Temukan metode `handleJsonCommand`
-3. Tambahkan kondisi Anda, misalnya:
-   ```cpp
-   if (json["cmd"] == "perintahsaya") {
-       // logika Anda di sini
-       responseOut = "{\"status\": \"ok\"}";
-   }
-   ```
-4. Perintah tersebut akan tersedia melalui WebSocket maupun BLE secara otomatis.
+Untuk **perintah dasar (string)**, tambahkan cabang `else if` baru di dalam `handleBasicCommand` di `CommandHandler.cpp`:
+```cpp
+else if (command == "perintahsaya") {
+    // logika Anda di sini
+    responseOut = "{\"status\": \"ok\"}";
+}
+```
+Kirim sebagai: `{"command": "perintahsaya"}`
+
+Untuk **perintah konfigurasi** (format key-value), tambahkan kondisi baru di dalam `handleJsonCommand`:
+```cpp
+if (json["kuncisaya"].is<String>()) {
+    String nilai = json["kuncisaya"].as<String>();
+    // logika Anda di sini
+}
+```
+Kirim sebagai: `{"command": {"kuncisaya": "nilaitertentu"}}`
+
+Kedua tipe tersedia melalui WebSocket maupun BLE secara otomatis.
 
 ---
 

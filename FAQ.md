@@ -76,7 +76,7 @@ See the [WiFi Setup Video](https://www.youtube.com/watch?v=esNiudoCEcU&t=434s) f
 
 ### I forgot my WiFi password or want to change the network. How do I reset?
 
-Send the command `{"cmd": "erase"}` via WebSocket or BLE (ICRM app), or press the reset button while holding the boot button on the ESP32C3. This erases saved WiFi credentials and puts Croaster back into access point mode for reconfiguration.
+Send the command `{"command": "erase"}` via WebSocket or BLE (ICRM app), or press the reset button while holding the boot button on the ESP32C3. This erases saved WiFi credentials and puts Croaster back into access point mode for reconfiguration.
 
 ---
 
@@ -96,7 +96,7 @@ Croaster's WebSocket server runs on **port 81**.
 
 By default, data is broadcast every **3 seconds**. You can change this by sending:
 ```json
-{"cmd": "interval", "value": 5}
+{"command": {"interval": 5}}
 ```
 Replace `5` with your desired interval in seconds.
 
@@ -114,11 +114,11 @@ No. BLE is only available on the **ESP32** platform. The ESP8266 only supports W
 
 Croaster supports **Celsius (C)** and **Fahrenheit (F)**. Switch units by sending:
 ```json
-{"cmd": "unit", "value": "F"}
+{"command": {"tempUnit": "F"}}
 ```
 or
 ```json
-{"cmd": "unit", "value": "C"}
+{"command": {"tempUnit": "C"}}
 ```
 
 ---
@@ -139,7 +139,7 @@ Croaster applies a **smoothing filter** (factor: 5) to reduce noise from the MAX
 
 Yes. Send a correction command:
 ```json
-{"cmd": "correction", "bt": 1.5, "et": -0.5}
+{"command": {"correctionBt": 1.5, "correctionEt": -0.5}}
 ```
 This applies a `+1.5°` offset to BT and a `-0.5°` offset to ET. The correction is applied on top of the smoothed sensor reading.
 
@@ -209,16 +209,25 @@ In this mode, Croaster generates simulated temperature data, so you can test the
 
 ### How do I add a custom command?
 
-1. Open `CommandHandler.cpp`
-2. Find the `handleJsonCommand` method
-3. Add your condition, for example:
-   ```cpp
-   if (json["cmd"] == "mycommand") {
-       // your logic here
-       responseOut = "{\"status\": \"ok\"}";
-   }
-   ```
-4. The command will be available over both WebSocket and BLE automatically.
+For a **basic string command**, add a new `else if` branch inside `handleBasicCommand` in `CommandHandler.cpp`:
+```cpp
+else if (command == "mycommand") {
+    // your logic here
+    responseOut = "{\"status\": \"ok\"}";
+}
+```
+Send it as: `{"command": "mycommand"}`
+
+For a **configuration command** (key-value style), add a new condition inside `handleJsonCommand`:
+```cpp
+if (json["mykey"].is<String>()) {
+    String myValue = json["mykey"].as<String>();
+    // your logic here
+}
+```
+Send it as: `{"command": {"mykey": "somevalue"}}`
+
+Both types are available over WebSocket and BLE automatically.
 
 ---
 
