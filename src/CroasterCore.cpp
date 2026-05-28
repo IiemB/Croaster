@@ -244,22 +244,6 @@ void CroasterCore::resetHistory(String item)
     debugln("# Histories reset due to " + item + " change.");
 }
 
-String CroasterCore::genRandomString(int length)
-{
-    const char charset[] = "0123456789"
-                           "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                           "abcdefghijklmnopqrstuvwxyz";
-
-    String result;
-
-    for (size_t i = 0; i < length; i++)
-    {
-        result += charset[random(0, sizeof(charset) - 1)];
-    }
-
-    return result;
-}
-
 double CroasterCore::roundTo2(double value)
 {
     return round(value * 100.0) / 100.0;
@@ -296,18 +280,6 @@ String CroasterCore::getJsonData(int id)
     data["cET"] = roundTo2(correctionEt);
 
     data["temp"] = tempUnit;
-
-    /*
-    NOTE
-    You can add more fields to the JSON document that will be readed by ICRM app,
-    such as historical data or other sensor readings.
-    */
-
-    JsonObject extra = data["extra"].to<JsonObject>();
-
-    extra["string"] = genRandomString(10);
-    extra["number"] = random(100, 999);
-    extra["boolean"] = random(0, 2) == 1;
 
     String jsonOutput;
 

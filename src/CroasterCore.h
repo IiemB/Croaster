@@ -59,13 +59,6 @@ private:
     void resetHistory(String item = "something");
 
     /**
-     * @brief Generates a random string of a specified length.
-     * @param length The length of the random string to generate.
-     * @return A random string of the specified length.
-     */
-    String genRandomString(int length);
-
-    /**
      * @brief Rounds a double value to 2 decimal places.
      * @param value The value to round.
      * @return The rounded value.

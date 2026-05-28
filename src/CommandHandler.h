@@ -55,6 +55,19 @@ private:
      */
     String genResponseCommand(const String command, const String response);
 
+    /**
+     * @brief Generates a random string of a specified length.
+     * @param length The length of the random string to generate.
+     * @return A random string of the specified length.
+     */
+    String genRandomString(int length);
+
+    /**
+     * @brief Retrieves extra data for the "extra" command.
+     * @return A JSON-formatted string containing extra data.
+     */
+    String getExtraData();
+
 public:
     /**
      * @brief Constructs a CommandHandler instance.

@@ -113,6 +113,10 @@ void CommandHandler::handleBasicCommand(const JsonObject &json, String &response
     {
         responseOut = genResponseCommand(command, croaster.getDeviceInfo());
     }
+    else if (command == "getExtra")
+    {
+        responseOut = genResponseCommand(command, getExtraData());
+    }
 }
 
 void CommandHandler::handleJsonCommand(const JsonObject &json, String &responseOut)
@@ -186,6 +190,44 @@ String CommandHandler::genResponseCommand(const String command, const String res
     {
         doc["response"] = responseDoc;
     }
+
+    String jsonOutput;
+
+    serializeJson(doc, jsonOutput);
+
+    return jsonOutput;
+}
+
+String CommandHandler::genRandomString(int length)
+{
+    const char charset[] = "0123456789"
+                           "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                           "abcdefghijklmnopqrstuvwxyz";
+
+    String result;
+
+    for (size_t i = 0; i < length; i++)
+    {
+        result += charset[random(0, sizeof(charset) - 1)];
+    }
+
+    return result;
+}
+
+String CommandHandler::getExtraData()
+{
+
+    /*
+   NOTE
+   You can add more fields to the JSON document that will be readed by ICRM app,
+   such as historical data or other sensor readings.
+   */
+
+    JsonDocument doc;
+
+    doc["string"] = genRandomString(10);
+    doc["number"] = random(100, 999);
+    doc["boolean"] = random(0, 2) == 1;
 
     String jsonOutput;
 
