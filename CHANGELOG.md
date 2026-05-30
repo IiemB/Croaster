@@ -5,7 +5,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [0.46] — 2026-05-24 to 2026-05-28 (Current)
+## [0.50] — 2026-05-30 (Current)
+
+### Added
+- **OTA over BLE** (ESP32 only): firmware updates can now be performed via BLE in addition to WebSocket/WiFi
+- Timeout checks during BLE OTA to handle stalled transfers
+
+### Changed
+- Improved OTA status reporting: `OtaHandler` now returns an `OtaResult` struct containing a JSON progress payload and an error flag
+- Simplified `OtaHandler` internals — reduced code size while improving clarity
+- `BleManager` updated to relay OTA binary data to `OtaHandler` and forward progress JSON back to the BLE client
+- `WebSocketManager` updated to forward OTA progress JSON back to the WebSocket client consistently
+
+---
+
+## [0.46] — 2026-05-28
 
 ### Added
 - `getExtra` command with corresponding data generation methods (`genRandomString`, random number/boolean)

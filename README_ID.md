@@ -4,7 +4,7 @@
 
 **Croaster** adalah sistem pemantau suhu ringan dan open-source yang dibangun di atas mikrokontroler berbasis ESP. Dirancang untuk para pecinta dan profesional sangrai kopi, sistem ini membaca dua sensor termokopel (Suhu Biji dan Suhu Lingkungan) dan menampilkan data secara real-time di layar OLED yang ringkas. Croaster terhubung mulus ke perangkat lunak sangrai populer melalui WiFi (WebSocket) dan BLE (khusus ESP32), sehingga kompatibel dengan aplikasi sangrai di desktop maupun ponsel.
 
-**Versi Firmware Saat Ini:** `0.46`
+**Versi Firmware Saat Ini:** `0.50`
 
 ---
 
@@ -42,7 +42,7 @@
   + [**Artisan Roaster Scope**](https://artisan-scope.org/) — logger sangrai standar industri
   + [**Aplikasi ICRM**](https://iiemb.github.io/#/icrm) — aplikasi pendamping mobile (Android)
 * **Komunikasi BLE** (khusus ESP32) untuk [**aplikasi ICRM**](https://iiemb.github.io/#/icrm)
-* **Update firmware OTA (Over-The-Air)** via WebSocket (aplikasi ICRM)
+* **Update firmware OTA (Over-The-Air)** via WebSocket (WiFi) dan **BLE** (khusus ESP32)
 * **Captive portal WiFiManager** untuk setup WiFi yang mudah — tanpa perlu flash ulang
 * Penamaan perangkat unik berdasarkan chip ID (contoh: `Croaster-A1B2`)
 * **Mode dummy** untuk pengembangan dan pengujian tanpa sensor fisik
@@ -241,10 +241,11 @@ Gunakan metode ini ketika Croaster sudah terhubung ke jaringan WiFi rumah/kantor
 
 ## ⬆️ Update OTA (Over-The-Air)
 
-Croaster mendukung pembaruan firmware tanpa kabel USB, melalui **aplikasi ICRM** via WebSocket (WiFi).
+Croaster mendukung pembaruan firmware tanpa kabel USB, melalui **aplikasi ICRM** via WebSocket (WiFi) atau BLE (khusus ESP32).
 
-- OTA ditangani oleh kelas `OtaHandler`, yang menerima data firmware biner secara bertahap
+- OTA ditangani oleh kelas `OtaHandler`, yang menerima data firmware biner secara bertahap dan mengembalikan payload JSON progres setelah setiap potongan
 - Kemajuan update ditampilkan di layar OLED selama proses berlangsung
+- OTA via BLE dilengkapi pemeriksaan timeout untuk menangani transfer yang terhenti
 - OTA memerlukan **skema partisi kustom** (`custom32c3sm`) pada ESP32C3 — partisi `Huge APP` **tidak** mendukung OTA
 - Setelah update OTA berhasil, Croaster restart otomatis
 

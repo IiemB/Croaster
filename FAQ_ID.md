@@ -14,10 +14,10 @@ Croaster adalah firmware open-source untuk mikrokontroler berbasis ESP8266 dan E
 
 ### Mikrokontroler apa saja yang didukung?
 
-| Board | WiFi | BLE | OTA |
-|:---|:---:|:---:|:---:|
-| NodeMCU ESP8266 | ✅ | ❌ | ✅ |
-| ESP32C3 Super Mini | ✅ | ✅ | ✅ |
+| Board | WiFi | BLE | OTA (WiFi) | OTA (BLE) |
+|:---|:---:|:---:|:---:|:---:|
+| NodeMCU ESP8266 | ✅ | ❌ | ✅ | ❌ |
+| ESP32C3 Super Mini | ✅ | ✅ | ✅ | ✅ |
 
 ---
 
@@ -179,7 +179,10 @@ Ini adalah **tabel partisi kustom** untuk ESP32C3 Super Mini. Tata letak partisi
 
 ### Bagaimana cara memperbarui firmware secara over the air?
 
-Gunakan **aplikasi ICRM** di Android. Aplikasi akan mengirimkan binary firmware yang telah dikompilasi melalui WebSocket. Croaster menerimanya dalam potongan-potongan, menuliskannya ke flash, dan restart otomatis setelah selesai.
+Gunakan **aplikasi ICRM** di Android. Aplikasi mendukung OTA melalui WiFi (WebSocket) maupun BLE (khusus ESP32):
+
+- **OTA via WiFi:** Aplikasi mengirimkan binary firmware yang telah dikompilasi melalui WebSocket. Croaster menerimanya dalam potongan-potongan, menuliskannya ke flash, dan restart otomatis setelah selesai.
+- **OTA via BLE:** Aplikasi mengirimkan binary firmware melalui BLE. `BleManager` meneruskan data ke `OtaHandler`, yang memprosesnya secara bertahap dengan pemeriksaan timeout. Progres dilaporkan kembali ke aplikasi sebagai JSON.
 
 ---
 
@@ -191,7 +194,7 @@ Alasan paling umum adalah Anda menggunakan skema partisi **Huge APP**, yang tida
 
 ### Apakah OTA bekerja di ESP8266?
 
-OTA via aplikasi ICRM didukung di ESP8266, selama Anda menggunakan skema partisi yang mencakup ruang OTA (skema NodeMCU default mendukung ini).
+OTA via WiFi (WebSocket) menggunakan aplikasi ICRM didukung di ESP8266, selama Anda menggunakan skema partisi yang mencakup ruang OTA (skema NodeMCU default mendukung ini). OTA via BLE tidak tersedia di ESP8266.
 
 ---
 

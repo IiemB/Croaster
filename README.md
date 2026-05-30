@@ -4,7 +4,7 @@
 
 **Croaster** is a lightweight, open-source temperature monitoring system built on ESP-based microcontrollers. Designed for coffee roasting enthusiasts and professionals, it reads from two thermocouple sensors (Bean Temperature and Environment Temperature) and displays real-time data on a compact OLED screen. Croaster connects seamlessly to popular roasting software via WiFi (WebSocket) and BLE (ESP32 only), making it compatible with both desktop and mobile roasting apps.
 
-**Current Firmware Version:** `0.46`
+**Current Firmware Version:** `0.50`
 
 ---
 
@@ -42,7 +42,7 @@
   + [**Artisan Roaster Scope**](https://artisan-scope.org/) — industry-standard roasting logger
   + [**ICRM app**](https://iiemb.github.io/#/icrm) — companion mobile app (Android)
 * **BLE communication** (ESP32 only) for the [**ICRM app**](https://iiemb.github.io/#/icrm)
-* **OTA (Over-The-Air) firmware updates** via WebSocket (ICRM app)
+* **OTA (Over-The-Air) firmware updates** via WebSocket (WiFi) and **BLE** (ESP32 only)
 * **WiFiManager** captive portal for easy WiFi credential setup — no re-flashing needed
 * Unique device naming based on chip ID (e.g. `Croaster-A1B2`)
 * **Dummy mode** for development and testing without physical sensors
@@ -241,10 +241,11 @@ Use this method when Croaster is already connected to your home/office WiFi netw
 
 ## ⬆️ OTA (Over-The-Air) Updates
 
-Croaster supports firmware updates without a USB cable, via the **ICRM app** over WebSocket (WiFi).
+Croaster supports firmware updates without a USB cable, via the **ICRM app** over WebSocket (WiFi) or BLE (ESP32 only).
 
-- OTA is handled by the `OtaHandler` class, which receives binary firmware data in chunks
+- OTA is handled by the `OtaHandler` class, which receives binary firmware data in chunks and returns a JSON progress payload after each chunk
 - Progress is shown on the OLED display during the update
+- BLE OTA includes timeout checks to handle stalled transfers
 - OTA requires the **custom partition scheme** (`custom32c3sm`) on ESP32C3 — the `Huge APP` partition does **not** support OTA
 - After a successful OTA update, Croaster restarts automatically
 
