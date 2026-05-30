@@ -6,3 +6,4 @@
 /croaster/build
 
 croaster-arduino/*
+.DS_Store

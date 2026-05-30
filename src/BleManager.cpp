@@ -19,24 +19,70 @@ public:
     {
         debugln("# BLE Client Disconnected");
         parent->clientConnected = false;
+
+        if (parent->displayManager->isFirmwareUpdating() || parent->otaHandler.isReceiving())
+        {
+            debugln("# [OTA] BLE disconnected during OTA - restarting...");
+            parent->displayManager->updatingStatusToggle(false);
+            restartESP();
+            return;
+        }
+
         BLEDevice::startAdvertising();
     }
 };
 
 class BleManager::CharacteristicCallbacks : public BLECharacteristicCallbacks
 {
-    CommandHandler *commandHandler;
+    BleManager *parent;
 
 public:
-    CharacteristicCallbacks(CommandHandler *handler) : commandHandler(handler) {}
+    CharacteristicCallbacks(BleManager *parent) : parent(parent) {}
     void onWrite(BLECharacteristic *pCharacteristic) override
     {
+        // Check OTA first to avoid parsing binary firmware bytes as a String.
+        if (parent->otaHandler.isReceiving())
+        {
+            OtaResult result = parent->otaHandler.handleBinary(pCharacteristic->getData(), pCharacteristic->getLength());
+
+            pCharacteristic->setValue(result.json.c_str());
+            pCharacteristic->notify();
+
+            if (result.hasError)
+            {
+                parent->displayManager->updatingStatusToggle(false);
+
+                parent->otaHandler.finalize(true);
+
+                return;
+            }
+
+            int progress = int((double(parent->otaHandler.getWritten()) / double(parent->otaHandler.getTotal())) * 100.0);
+
+            parent->displayManager->updatingStatusToggle(true);
+
+            parent->displayManager->updateFirmwareUpdateProgress(progress);
+
+            return;
+        }
+
         String raw = pCharacteristic->getValue().c_str();
 
-        bool restart = false, erase = false;
+        // Handle OTA begin command
+        if (raw.startsWith("OTA_BEGIN:"))
+        {
+            uint32_t size = raw.substring(10).toInt();
+
+            parent->otaHandler.begin(size);
+
+            debugln("# [BLE] " + raw);
+
+            return;
+        }
+
         String response;
 
-        if (commandHandler->handle(raw, response, restart, erase))
+        if (parent->commandHandler->handle(raw, response))
         {
             if (!response.isEmpty())
             {
@@ -44,23 +90,22 @@ public:
                 pCharacteristic->notify();
             }
 
-            if (erase)
-                eraseESP();
-
-            if (restart)
-                restartESP();
-
             debugln("# [CMD-BLE] " + raw);
+
+            if (!response.isEmpty())
+                debugln("# [CMD-BLE-RESP] " + response);
         }
     }
 };
 
-BleManager::BleManager(CroasterCore &croaster, CommandHandler &commandHandler)
-    : croaster(&croaster), commandHandler(&commandHandler) {}
+BleManager::BleManager(CroasterCore &croaster, CommandHandler &commandHandler, DisplayManager &displayManager)
+    : croaster(&croaster), commandHandler(&commandHandler), displayManager(&displayManager) {}
 
 void BleManager::begin()
 {
     BLEDevice::init(croaster->ssidName().c_str());
+
+    BLEDevice::setMTU(517);
 
     pServer = BLEDevice::createServer();
 
@@ -75,7 +120,7 @@ void BleManager::begin()
             BLECharacteristic::PROPERTY_WRITE_NR);
 
     pDataCharacteristic->addDescriptor(new BLE2902());
-    pDataCharacteristic->setCallbacks(new CharacteristicCallbacks(commandHandler));
+    pDataCharacteristic->setCallbacks(new CharacteristicCallbacks(this));
 
     pService->start();
     BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
@@ -88,6 +133,12 @@ void BleManager::begin()
 void BleManager::loop()
 {
     broadcastData();
+
+    if (otaHandler.isDone())
+    {
+        displayManager->updatingStatusToggle(false);
+        otaHandler.finalize();
+    }
 }
 
 bool BleManager::isClientConnected() const
@@ -97,7 +148,7 @@ bool BleManager::isClientConnected() const
 
 void BleManager::broadcastData()
 {
-    if (!clientConnected || !pDataCharacteristic)
+    if (!clientConnected || !pDataCharacteristic || otaHandler.isReceiving())
         return;
 
     unsigned long now = millis();

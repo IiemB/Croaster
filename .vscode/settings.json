@@ -1,5 +1,5 @@
 {
-    "C_Cpp.errorSquiggles": "Disabled",
+    "C_Cpp.errorSquiggles": "enabled",
     "files.associations": {
         "*.xml": "xml",
         "*.arb": "json",
@@ -11,5 +11,6 @@
     "files.exclude": {
         "**/croaster-arduino": true,
         "**/.pio": true
-    }
+    },
+    "C_Cpp.default.compilerPath": "/Users/iiemb/.platformio/packages/toolchain-riscv32-esp/bin/riscv32-esp-elf-gcc"
 }

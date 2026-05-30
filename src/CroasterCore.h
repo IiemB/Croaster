@@ -58,6 +58,13 @@ private:
      */
     void resetHistory(String item = "something");
 
+    /**
+     * @brief Rounds a double value to 2 decimal places.
+     * @param value The value to round.
+     * @return The rounded value.
+     */
+    double roundTo2(double value);
+
 public:
     double timer = 0, rorEt = 0, rorBt = 0, tempEt = 0, tempBt = 0;
 
@@ -122,17 +129,20 @@ public:
 
     /**
      * @brief Retrieves JSON data based on the provided parameters.
-     *
-     * @param message Optional message to include in the JSON data. Defaults to an empty string.
-     * @param skipCroaster Flag to indicate whether to skip Croaster-specific processing. Defaults to false.
      * @param id Identifier used to fetch specific JSON data. Defaults to 0.
      * @return A String containing the JSON data.
      */
-    String getJsonData(const String &message = "", const bool &skipCroaster = false, int id = 0);
+    String getJsonData(int id = 0);
 
     /**
      * @brief Retrieves the SSID name for the device.
      * @return The SSID name as a string.
      */
     String ssidName();
+
+    /**
+     * @brief Retrieves the device information as a string.
+     * @return A string containing the device information.
+     */
+    String getDeviceInfo();
 };

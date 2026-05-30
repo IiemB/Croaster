@@ -23,7 +23,7 @@ DisplayManager displayManager(croaster);
 CommandHandler commandHandler(croaster, displayManager);
 
 #if defined(ESP32)
-BleManager bleManager(croaster, commandHandler);
+BleManager bleManager(croaster, commandHandler, displayManager);
 #endif
 
 WebSocketManager wsManager(croaster, commandHandler, displayManager);

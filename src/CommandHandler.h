@@ -31,7 +31,7 @@ private:
      * @param restart Set to true if a restart is requested.
      * @param erase Set to true if an erase is requested.
      */
-    void handleBasicCommand(const JsonObject &json, String &responseOut, bool &restart, bool &erase);
+    void handleBasicCommand(const JsonObject &json, String &responseOut);
 
     /**
      * @brief Handles JSON-formatted commands.
@@ -46,6 +46,27 @@ private:
      * @param blinkDelay The delay between blinks in milliseconds.
      */
     void blinkBuiltinLED(uint8_t times = 2, unsigned long blinkDelay = 250);
+
+    /**
+     * @brief Generates a JSON response for a given command.
+     * @param command The command for which to generate the response.
+     * @param response The response message to include in the JSON.
+     * @return A JSON-formatted string containing the command and response.
+     */
+    String genResponseCommand(const String command, const String response);
+
+    /**
+     * @brief Generates a random string of a specified length.
+     * @param length The length of the random string to generate.
+     * @return A random string of the specified length.
+     */
+    String genRandomString(int length);
+
+    /**
+     * @brief Retrieves extra data for the "extra" command.
+     * @return A JSON-formatted string containing extra data.
+     */
+    String getExtraData();
 
 public:
     /**
@@ -69,9 +90,7 @@ public:
      * @brief Processes an incoming command.
      * @param json The command in JSON format.
      * @param responseOut The response to send back.
-     * @param restart Set to true if a restart is requested.
-     * @param erase Set to true if an erase is requested.
      * @return True if the command was handled successfully, false otherwise.
      */
-    bool handle(const String &json, String &responseOut, bool &restart, bool &erase);
+    bool handle(const String &json, String &responseOut);
 };

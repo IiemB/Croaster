@@ -20,25 +20,17 @@ void WebSocketManager::handleEvent(const String &cmd, uint8_t num)
         return;
     }
 
-    bool restart = false, erase = false;
-
     String response;
 
-    if (commandHandler->handle(cmd, response, restart, erase))
+    if (commandHandler->handle(cmd, response))
     {
 
         if (!response.isEmpty())
-        {
             server.sendTXT(num, response);
-        }
-
-        if (erase)
-            eraseESP();
-
-        if (restart)
-            ESP.restart();
 
         debugln("# [CMD-SOCKET] " + cmd);
+        if (!response.isEmpty())
+            debugln("# [CMD-SOCKET-RESP] " + response);
     }
 }
 
@@ -53,10 +45,12 @@ void WebSocketManager::begin()
 
                 debugln("# WebSocket Client Disconnected " + String(clientConnected));
 
-                if (displayManager->isFirmwareUpdating())
+                if (displayManager->isFirmwareUpdating() || otaHandler.isReceiving())
                 {
+                    debugln("# [OTA] WebSocket disconnected during OTA - restarting...");
                     displayManager->updatingStatusToggle(false);
                     restartESP();
+                    return;
                 }
 
                 break;
@@ -73,7 +67,18 @@ void WebSocketManager::begin()
             case WStype_BIN :
                 if (otaHandler.isReceiving())
                 {
-                    otaHandler.handleBinary(payload, length, server, num);
+                    OtaResult result = otaHandler.handleBinary(payload, length);
+
+                    server.sendTXT(num, result.json);
+
+                    if (result.hasError)
+                    {
+                        displayManager->updatingStatusToggle(false);
+
+                        otaHandler.finalize(true);
+
+                        return;
+                    }
                     
                     int progress = int((double(otaHandler.getWritten()) / double(otaHandler.getTotal())) * 100.0);
 
@@ -96,6 +101,12 @@ void WebSocketManager::loop()
     server.loop();
 
     broadcastData();
+
+    if (otaHandler.isDone())
+    {
+        displayManager->updatingStatusToggle(false);
+        otaHandler.finalize();
+    }
 }
 
 bool WebSocketManager::isClientConnected() const
@@ -106,7 +117,7 @@ bool WebSocketManager::isClientConnected() const
 void WebSocketManager::broadcastData()
 {
 
-    if (!isClientConnected())
+    if (!isClientConnected() || otaHandler.isReceiving())
         return;
 
     unsigned long now = millis();

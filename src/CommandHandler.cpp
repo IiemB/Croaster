@@ -38,7 +38,7 @@ void CommandHandler::loop()
     }
 }
 
-bool CommandHandler::handle(const String &json, String &responseOut, bool &restart, bool &erase)
+bool CommandHandler::handle(const String &json, String &responseOut)
 {
     JsonDocument doc;
 
@@ -48,15 +48,13 @@ bool CommandHandler::handle(const String &json, String &responseOut, bool &resta
         return false;
     }
 
-    restart = false;
-    erase = false;
     responseOut = "";
 
     if (doc["command"].is<String>())
     {
         JsonObject json = doc.as<JsonObject>();
 
-        handleBasicCommand(json, responseOut, restart, erase);
+        handleBasicCommand(json, responseOut);
         return true;
     }
 
@@ -70,7 +68,7 @@ bool CommandHandler::handle(const String &json, String &responseOut, bool &resta
     return false;
 }
 
-void CommandHandler::handleBasicCommand(const JsonObject &json, String &responseOut, bool &restart, bool &erase)
+void CommandHandler::handleBasicCommand(const JsonObject &json, String &responseOut)
 {
     if (!json["command"].is<String>())
         return;
@@ -81,19 +79,15 @@ void CommandHandler::handleBasicCommand(const JsonObject &json, String &response
     {
         int id = json["id"].as<int>();
 
-        responseOut = croaster.getJsonData(command, true, id);
+        responseOut = croaster.getJsonData(id);
     }
     else if (command == "restartesp")
     {
-        restart = true;
-
-        responseOut = croaster.getJsonData(command);
+        ESP.restart();
     }
     else if (command == "erase")
     {
-        erase = true;
-
-        responseOut = croaster.getJsonData(command);
+        eraseESP();
     }
     else if (command == "dummyOn")
     {
@@ -114,6 +108,14 @@ void CommandHandler::handleBasicCommand(const JsonObject &json, String &response
     else if (command == "displayToggle")
     {
         displayManager.displayToggle();
+    }
+    else if (command == "getDeviceInfo")
+    {
+        responseOut = genResponseCommand(command, croaster.getDeviceInfo());
+    }
+    else if (command == "getExtra")
+    {
+        responseOut = genResponseCommand(command, getExtraData());
     }
 }
 
@@ -174,4 +176,62 @@ void CommandHandler::blinkBuiltinLED(uint8_t times, unsigned long blinkDelay)
     ledState = false;
 
     blinking = true;
+}
+
+String CommandHandler::genResponseCommand(const String command, const String response)
+{
+    JsonDocument doc;
+
+    JsonDocument responseDoc;
+
+    doc["command"] = command;
+
+    if (!deserializeJson(responseDoc, response))
+    {
+        doc["response"] = responseDoc;
+    }
+
+    String jsonOutput;
+
+    serializeJson(doc, jsonOutput);
+
+    return jsonOutput;
+}
+
+String CommandHandler::genRandomString(int length)
+{
+    const char charset[] = "0123456789"
+                           "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                           "abcdefghijklmnopqrstuvwxyz";
+
+    String result;
+
+    for (size_t i = 0; i < length; i++)
+    {
+        result += charset[random(0, sizeof(charset) - 1)];
+    }
+
+    return result;
+}
+
+String CommandHandler::getExtraData()
+{
+
+    /*
+   NOTE
+   You can add more fields to the JSON document that will be readed by ICRM app,
+   such as historical data or other sensor readings.
+   */
+
+    JsonDocument doc;
+
+    doc["string"] = genRandomString(10);
+    doc["number"] = random(100, 999);
+    doc["boolean"] = random(0, 2) == 1;
+
+    String jsonOutput;
+
+    serializeJson(doc, jsonOutput);
+
+    return jsonOutput;
 }
