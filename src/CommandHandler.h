@@ -28,8 +28,6 @@ private:
      * @brief Handles basic commands such as restart or erase.
      * @param json The JSON object containing the command.
      * @param responseOut The response to send back.
-     * @param restart Set to true if a restart is requested.
-     * @param erase Set to true if an erase is requested.
      */
     void handleBasicCommand(const JsonObject &json, String &responseOut);
 
