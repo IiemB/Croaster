@@ -91,6 +91,9 @@ public:
             }
 
             debugln("# [CMD-BLE] " + raw);
+
+            if (!response.isEmpty())
+                debugln("# [CMD-BLE-RESP] " + response);
         }
     }
 };

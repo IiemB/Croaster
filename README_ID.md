@@ -10,19 +10,31 @@
 
 ## 📑 Daftar Isi
 
-- [Fitur](#-fitur)
-- [Komponen Hardware](#-komponen-hardware)
-- [Diagram Pengkabelan](#-diagram-pengkabelan)
-- [Arsitektur Software](#-arsitektur-software)
-- [Library & Dependensi](#-library--dependensi)
-- [Cara Build dan Upload](#-cara-build-dan-upload)
-- [Panduan Setup WiFi](#-panduan-setup-wifi)
-- [Gambaran Komunikasi](#-gambaran-komunikasi)
-- [Cara Menghubungkan Croaster dengan Artisan](#-cara-menghubungkan-croaster-dengan-artisan)
-- [Update OTA (Over-The-Air)](#️-update-ota-over-the-air)
-- [Perintah Kustom](#-perintah-kustom)
-- [Lisensi](#-lisensi)
-- [Kontribusi](#️-kontribusi)
+- [☕ Croaster - Monitor Sangrai Kopi Open Source](#-croaster---monitor-sangrai-kopi-open-source)
+  - [📑 Daftar Isi](#-daftar-isi)
+  - [🚀 Fitur](#-fitur)
+  - [🧩 Komponen Hardware](#-komponen-hardware)
+  - [🔌 Diagram Pengkabelan](#-diagram-pengkabelan)
+  - [🛠 Arsitektur Software](#-arsitektur-software)
+    - [Alur Data](#alur-data)
+  - [📦 Library \& Dependensi](#-library--dependensi)
+  - [🔧 Cara Build dan Upload](#-cara-build-dan-upload)
+    - [✅ PlatformIO (direkomendasikan untuk ESP8266 \& ESP32C3)](#-platformio-direkomendasikan-untuk-esp8266--esp32c3)
+    - [✅ Arduino IDE (alternatif, diperlukan untuk board Makergo ESP32C3)](#-arduino-ide-alternatif-diperlukan-untuk-board-makergo-esp32c3)
+  - [🔗 Panduan Setup WiFi](#-panduan-setup-wifi)
+  - [📡 Gambaran Komunikasi](#-gambaran-komunikasi)
+    - [WebSocket (WiFi)](#websocket-wifi)
+    - [BLE (khusus ESP32)](#ble-khusus-esp32)
+  - [🔌 Cara Menghubungkan Croaster dengan Artisan](#-cara-menghubungkan-croaster-dengan-artisan)
+    - [🖥️ Opsi 1: Koneksi Langsung (Croaster sebagai Access Point)](#️-opsi-1-koneksi-langsung-croaster-sebagai-access-point)
+    - [🌐 Opsi 2: Jaringan WiFi yang Sama (Croaster bergabung ke WiFi Anda)](#-opsi-2-jaringan-wifi-yang-sama-croaster-bergabung-ke-wifi-anda)
+  - [⬆️ Update OTA (Over-The-Air)](#️-update-ota-over-the-air)
+  - [🧪 Perintah Kustom](#-perintah-kustom)
+    - [Perintah Bawaan](#perintah-bawaan)
+    - [Menambahkan Perintah Kustom](#menambahkan-perintah-kustom)
+  - [📘 Lisensi](#-lisensi)
+  - [❤️ Kontribusi](#️-kontribusi)
+  - [🔗 Tautan Terkait](#-tautan-terkait)
 
 ---
 
@@ -100,7 +112,7 @@ Croaster menggunakan **arsitektur C++ modular** yang bersih, dibangun dengan fra
 | `CommandHandler` | `CommandHandler.h/.cpp` | Parsing dan dispatching perintah JSON (BLE & WebSocket) |
 | `WebSocketManager` | `WebSocketManager.h/.cpp` | Server WebSocket, broadcast data, trigger OTA |
 | `BleManager` | `BleManager.h/.cpp` | Server BLE, notify karakteristik, penerimaan perintah *(khusus ESP32)* |
-| `OtaHandler` | `OtaHandler.h/.cpp` | Penanganan update OTA biner via WebSocket |
+| `OtaHandler` | `OtaHandler.h/.cpp` | Penanganan update OTA biner via WebSocket dan BLE |
 | `WiFiManagerUtil` | `WiFiManagerUtil.h/.cpp` | Setup dan lifecycle captive portal WiFiManager |
 | `DeviceIdentity` | `DeviceIdentity.h/.cpp` | Helper chip ID, nama perangkat, alamat IP |
 
@@ -215,6 +227,11 @@ Untuk panduan visual, lihat: ➡️ [Cara Menghubungkan ke WiFi - YouTube](https
 ## 🔌 Cara Menghubungkan Croaster dengan Artisan
 
 Anda dapat menghubungkan Croaster ke Artisan menggunakan koneksi WiFi langsung atau melalui jaringan WiFi rumah/lokal Anda.
+
+1. Buka Artisan → **Config → Device**
+2. Pilih **Meter → WebSocket**
+
+   ![image](images/Select-WebSocket-Device.png)
 
 ### 🖥️ Opsi 1: Koneksi Langsung (Croaster sebagai Access Point)
 

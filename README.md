@@ -10,19 +10,31 @@
 
 ## 📑 Table of Contents
 
-- [Features](#-features)
-- [Hardware Components](#-hardware-components)
-- [Wiring Diagram](#-wiring-diagram)
-- [Software Architecture](#-software-architecture)
-- [Libraries & Dependencies](#-libraries--dependencies)
-- [How to Build and Upload](#-how-to-build-and-upload)
-- [WiFi Setup Guide](#-wifi-setup-guide)
-- [Communication Overview](#-communication-overview)
-- [How to Connect Croaster with Artisan](#-how-to-connect-croaster-with-artisan)
-- [OTA (Over-The-Air) Updates](#-ota-over-the-air-updates)
-- [Custom Commands](#-custom-commands)
-- [License](#-license)
-- [Contributing](#️-contributing)
+- [☕ Croaster - Open Source Coffee Roaster Monitor](#-croaster---open-source-coffee-roaster-monitor)
+  - [📑 Table of Contents](#-table-of-contents)
+  - [🚀 Features](#-features)
+  - [🧩 Hardware Components](#-hardware-components)
+  - [🔌 Wiring Diagram](#-wiring-diagram)
+  - [🛠 Software Architecture](#-software-architecture)
+    - [Data Flow](#data-flow)
+  - [📦 Libraries \& Dependencies](#-libraries--dependencies)
+  - [🔧 How to Build and Upload](#-how-to-build-and-upload)
+    - [✅ PlatformIO (recommended for ESP8266 \& ESP32C3)](#-platformio-recommended-for-esp8266--esp32c3)
+    - [✅ Arduino IDE (alternative, required for Makergo ESP32C3 board)](#-arduino-ide-alternative-required-for-makergo-esp32c3-board)
+  - [🔗 WiFi Setup Guide](#-wifi-setup-guide)
+  - [📡 Communication Overview](#-communication-overview)
+    - [WebSocket (WiFi)](#websocket-wifi)
+    - [BLE (ESP32 only)](#ble-esp32-only)
+  - [🔌 How to Connect Croaster with Artisan](#-how-to-connect-croaster-with-artisan)
+    - [🖥️ Option 1: Direct Connection (Croaster as Access Point)](#️-option-1-direct-connection-croaster-as-access-point)
+    - [🌐 Option 2: Same WiFi Network (Croaster joins your WiFi)](#-option-2-same-wifi-network-croaster-joins-your-wifi)
+  - [⬆️ OTA (Over-The-Air) Updates](#️-ota-over-the-air-updates)
+  - [🧪 Custom Commands](#-custom-commands)
+    - [Built-in Commands](#built-in-commands)
+    - [Adding Custom Commands](#adding-custom-commands)
+  - [📘 License](#-license)
+  - [❤️ Contributing](#️-contributing)
+  - [🔗 Related Links](#-related-links)
 
 ---
 
@@ -100,7 +112,7 @@ Croaster uses a clean, **modular C++ architecture** built with the Arduino frame
 | `CommandHandler` | `CommandHandler.h/.cpp` | JSON command parsing and dispatching (BLE & WebSocket) |
 | `WebSocketManager` | `WebSocketManager.h/.cpp` | WebSocket server, data broadcast, OTA trigger |
 | `BleManager` | `BleManager.h/.cpp` | BLE server, characteristic notify, command receive *(ESP32 only)* |
-| `OtaHandler` | `OtaHandler.h/.cpp` | Binary OTA update handling over WebSocket |
+| `OtaHandler` | `OtaHandler.h/.cpp` | Binary OTA update handling over WebSocket and BLE |
 | `WiFiManagerUtil` | `WiFiManagerUtil.h/.cpp` | WiFiManager captive portal setup and lifecycle |
 | `DeviceIdentity` | `DeviceIdentity.h/.cpp` | Chip ID, device name, IP address helpers |
 
@@ -215,6 +227,11 @@ For a visual walkthrough, see: ➡️ [How to Connect to WiFi - YouTube](https:/
 ## 🔌 How to Connect Croaster with Artisan
 
 You can connect your Croaster device to Artisan using either a direct WiFi connection or through your home/local WiFi network.
+
+1. Open Artisan → **Config → Device**
+2. Select **Meter → WebSocket**
+   
+   ![image](images/Select-WebSocket-Device.png)
 
 ### 🖥️ Option 1: Direct Connection (Croaster as Access Point)
 

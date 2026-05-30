@@ -26,11 +26,11 @@ void WebSocketManager::handleEvent(const String &cmd, uint8_t num)
     {
 
         if (!response.isEmpty())
-        {
             server.sendTXT(num, response);
-        }
 
         debugln("# [CMD-SOCKET] " + cmd);
+        if (!response.isEmpty())
+            debugln("# [CMD-SOCKET-RESP] " + response);
     }
 }
 
