@@ -20,7 +20,7 @@ public:
         debugln("# BLE Client Disconnected");
         parent->clientConnected = false;
 
-        if (parent->otaHandler.isReceiving())
+        if (parent->displayManager->isFirmwareUpdating() || parent->otaHandler.isReceiving())
         {
             debugln("# [OTA] BLE disconnected during OTA - restarting...");
             parent->displayManager->updatingStatusToggle(false);
@@ -40,22 +40,28 @@ public:
     CharacteristicCallbacks(BleManager *parent) : parent(parent) {}
     void onWrite(BLECharacteristic *pCharacteristic) override
     {
-        // If OTA is in progress, treat incoming data as a binary firmware chunk
+        // Check OTA first to avoid parsing binary firmware bytes as a String.
         if (parent->otaHandler.isReceiving())
         {
-            uint8_t *data = pCharacteristic->getData();
-            size_t len = pCharacteristic->getLength();
+            OtaResult result = parent->otaHandler.handleBinary(pCharacteristic->getData(), pCharacteristic->getLength());
 
-            bool handled = parent->otaHandler.handleBinaryBle(data, len, pCharacteristic);
+            pCharacteristic->setValue(result.json.c_str());
+            pCharacteristic->notify();
 
-            if (handled)
+            if (result.hasError)
             {
-                int progress = int((double(parent->otaHandler.getWritten()) / double(parent->otaHandler.getTotal())) * 100.0);
+                parent->displayManager->updatingStatusToggle(false);
 
-                parent->displayManager->updatingStatusToggle(true);
+                parent->otaHandler.finalize(true);
 
-                parent->displayManager->updateFirmwareUpdateProgress(progress);
+                return;
             }
+
+            int progress = int((double(parent->otaHandler.getWritten()) / double(parent->otaHandler.getTotal())) * 100.0);
+
+            parent->displayManager->updatingStatusToggle(true);
+
+            parent->displayManager->updateFirmwareUpdateProgress(progress);
 
             return;
         }
@@ -123,9 +129,13 @@ void BleManager::begin()
 
 void BleManager::loop()
 {
-    otaHandler.checkTimeout();
-
     broadcastData();
+
+    if (otaHandler.isDone())
+    {
+        displayManager->updatingStatusToggle(false);
+        otaHandler.finalize();
+    }
 }
 
 bool BleManager::isClientConnected() const
@@ -135,10 +145,7 @@ bool BleManager::isClientConnected() const
 
 void BleManager::broadcastData()
 {
-    if (!clientConnected || !pDataCharacteristic)
-        return;
-
-    if (otaHandler.isReceiving())
+    if (!clientConnected || !pDataCharacteristic || otaHandler.isReceiving())
         return;
 
     unsigned long now = millis();

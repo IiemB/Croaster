@@ -11,7 +11,6 @@ void OtaHandler::begin(uint32_t totalSize)
     {
         this->totalSize = totalSize;
         written = 0;
-        lastChunkTime = millis();
         state = State::Receiving;
         debugln("# [OTA] Begin, total size: " + String(totalSize));
     }
@@ -23,37 +22,33 @@ void OtaHandler::begin(uint32_t totalSize)
     }
 }
 
-bool OtaHandler::handleBinary(uint8_t *data, size_t len, WebSocketsServer &server, uint8_t clientId)
+OtaResult OtaHandler::handleBinary(uint8_t *data, size_t len)
 {
     JsonDocument doc;
-
     String jsonOutput;
 
     if (state != State::Receiving)
-        return false;
-
-    size_t writtenChunk = Update.write(data, len);
-    if (writtenChunk != len)
     {
-
         doc["status"] = "failed";
 
         serializeJson(doc, jsonOutput);
 
-        server.sendTXT(clientId, jsonOutput);
+        return {jsonOutput, true};
+    }
 
-        finalize(true);
+    size_t writtenChunk = Update.write(data, len);
+    if (writtenChunk != len)
+    {
+        doc["status"] = "failed";
 
-        return false;
+        serializeJson(doc, jsonOutput);
+
+        return {jsonOutput, true};
     }
 
     written += writtenChunk;
 
-    lastChunkTime = millis();
-
     bool isFinished = written >= totalSize;
-
-    doc["status"] = "receiving";
 
     if (isFinished)
         doc["status"] = "done";
@@ -61,19 +56,16 @@ bool OtaHandler::handleBinary(uint8_t *data, size_t len, WebSocketsServer &serve
         doc["status"] = "receiving";
 
     doc["written"] = double(written);
-
     doc["totalSize"] = double(totalSize);
 
     serializeJson(doc, jsonOutput);
 
-    server.sendTXT(clientId, jsonOutput);
-
     debugln("# [OTA-JSON] " + jsonOutput);
 
     if (isFinished)
-        finalize();
+        state = State::Done;
 
-    return true;
+    return {jsonOutput, false};
 }
 
 void OtaHandler::finalize(bool hasError)
@@ -120,78 +112,16 @@ void OtaHandler::resetState()
     state = State::Idle;
     totalSize = 0;
     written = 0;
-    lastChunkTime = 0;
 }
-
-void OtaHandler::checkTimeout()
-{
-    if (state != State::Receiving)
-        return;
-
-    if (millis() - lastChunkTime > OTA_TIMEOUT_MS)
-    {
-        debugln("# [OTA] Timeout - no data received, aborting...");
-        finalize(true);
-    }
-}
-
-#if defined(ESP32)
-bool OtaHandler::handleBinaryBle(uint8_t *data, size_t len, BLECharacteristic *pChar)
-{
-    JsonDocument doc;
-
-    String jsonOutput;
-
-    if (state != State::Receiving)
-        return false;
-
-    size_t writtenChunk = Update.write(data, len);
-    if (writtenChunk != len)
-    {
-        doc["status"] = "failed";
-
-        serializeJson(doc, jsonOutput);
-
-        pChar->setValue(jsonOutput.c_str());
-        pChar->notify();
-
-        finalize(true);
-
-        return false;
-    }
-
-    written += writtenChunk;
-
-    lastChunkTime = millis();
-
-    bool isFinished = written >= totalSize;
-
-    if (isFinished)
-        doc["status"] = "done";
-    else
-        doc["status"] = "receiving";
-
-    doc["written"] = double(written);
-
-    doc["totalSize"] = double(totalSize);
-
-    serializeJson(doc, jsonOutput);
-
-    pChar->setValue(jsonOutput.c_str());
-    pChar->notify();
-
-    debugln("# [OTA-BLE-JSON] " + jsonOutput);
-
-    if (isFinished)
-        finalize();
-
-    return true;
-}
-#endif
 
 bool OtaHandler::isReceiving() const
 {
     return state == State::Receiving;
+}
+
+bool OtaHandler::isDone() const
+{
+    return state == State::Done;
 }
 
 uint32_t OtaHandler::getTotal() const

@@ -20,8 +20,6 @@ void WebSocketManager::handleEvent(const String &cmd, uint8_t num)
         return;
     }
 
-    bool restart = false, erase = false;
-
     String response;
 
     if (commandHandler->handle(cmd, response))
@@ -49,8 +47,10 @@ void WebSocketManager::begin()
 
                 if (displayManager->isFirmwareUpdating() || otaHandler.isReceiving())
                 {
+                    debugln("# [OTA] WebSocket disconnected during OTA - restarting...");
                     displayManager->updatingStatusToggle(false);
                     restartESP();
+                    return;
                 }
 
                 break;
@@ -67,7 +67,18 @@ void WebSocketManager::begin()
             case WStype_BIN :
                 if (otaHandler.isReceiving())
                 {
-                    otaHandler.handleBinary(payload, length, server, num);
+                    OtaResult result = otaHandler.handleBinary(payload, length);
+
+                    server.sendTXT(num, result.json);
+
+                    if (result.hasError)
+                    {
+                        displayManager->updatingStatusToggle(false);
+
+                        otaHandler.finalize(true);
+
+                        return;
+                    }
                     
                     int progress = int((double(otaHandler.getWritten()) / double(otaHandler.getTotal())) * 100.0);
 
@@ -89,9 +100,13 @@ void WebSocketManager::loop()
 {
     server.loop();
 
-    otaHandler.checkTimeout();
-
     broadcastData();
+
+    if (otaHandler.isDone())
+    {
+        displayManager->updatingStatusToggle(false);
+        otaHandler.finalize();
+    }
 }
 
 bool WebSocketManager::isClientConnected() const
@@ -102,10 +117,7 @@ bool WebSocketManager::isClientConnected() const
 void WebSocketManager::broadcastData()
 {
 
-    if (!isClientConnected())
-        return;
-
-    if (otaHandler.isReceiving())
+    if (!isClientConnected() || otaHandler.isReceiving())
         return;
 
     unsigned long now = millis();
