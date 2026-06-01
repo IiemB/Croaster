@@ -22,7 +22,7 @@ void OtaHandler::begin(uint32_t totalSize)
     }
 }
 
-OtaResult OtaHandler::handleBinary(uint8_t *data, size_t len)
+String OtaHandler::handleBinary(uint8_t *data, size_t len)
 {
     JsonDocument doc;
     String jsonOutput;
@@ -33,7 +33,7 @@ OtaResult OtaHandler::handleBinary(uint8_t *data, size_t len)
 
         serializeJson(doc, jsonOutput);
 
-        return {jsonOutput, true};
+        return jsonOutput;
     }
 
     size_t writtenChunk = Update.write(data, len);
@@ -43,7 +43,7 @@ OtaResult OtaHandler::handleBinary(uint8_t *data, size_t len)
 
         serializeJson(doc, jsonOutput);
 
-        return {jsonOutput, true};
+        return jsonOutput;
     }
 
     written += writtenChunk;
@@ -65,7 +65,7 @@ OtaResult OtaHandler::handleBinary(uint8_t *data, size_t len)
     if (isFinished)
         state = State::Done;
 
-    return {jsonOutput, false};
+    return jsonOutput;
 }
 
 void OtaHandler::finalize(bool hasError)
@@ -119,9 +119,21 @@ bool OtaHandler::isReceiving() const
     return state == State::Receiving;
 }
 
-bool OtaHandler::isDone() const
+void OtaHandler::handleState()
 {
-    return state == State::Done;
+    switch (state)
+    {
+    case State::Failed:
+        finalize(true);
+        break;
+
+    case State::Done:
+        finalize(false);
+        break;
+
+    default:
+        break;
+    }
 }
 
 uint32_t OtaHandler::getTotal() const

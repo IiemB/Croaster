@@ -55,13 +55,16 @@ bool CommandHandler::handle(const String &json, String &responseOut)
         JsonObject json = doc.as<JsonObject>();
 
         handleBasicCommand(json, responseOut);
+
         return true;
     }
 
     if (doc["command"].is<JsonObject>())
     {
         JsonObject obj = doc["command"];
+
         handleJsonCommand(obj, responseOut);
+
         return true;
     }
 
@@ -89,13 +92,9 @@ void CommandHandler::handleBasicCommand(const JsonObject &json, String &response
     {
         eraseESP();
     }
-    else if (command == "dummyOn")
+    else if (command == "dummyToggle")
     {
-        croaster.changeDummyData(true);
-    }
-    else if (command == "dummyOff")
-    {
-        croaster.changeDummyData(false);
+        croaster.toggleDummyData();
     }
     else if (command == "rotateScreen")
     {
@@ -186,7 +185,7 @@ String CommandHandler::genResponseCommand(const String command, const String res
 
     doc["command"] = command;
 
-    if (!deserializeJson(responseDoc, response))
+    if (!response.isEmpty() && !deserializeJson(responseDoc, response))
     {
         doc["response"] = responseDoc;
     }

@@ -67,18 +67,9 @@ void WebSocketManager::begin()
             case WStype_BIN :
                 if (otaHandler.isReceiving())
                 {
-                    OtaResult result = otaHandler.handleBinary(payload, length);
+                    String result = otaHandler.handleBinary(payload, length);
 
-                    server.sendTXT(num, result.json);
-
-                    if (result.hasError)
-                    {
-                        displayManager->updatingStatusToggle(false);
-
-                        otaHandler.finalize(true);
-
-                        return;
-                    }
+                    server.sendTXT(num, result);
                     
                     int progress = int((double(otaHandler.getWritten()) / double(otaHandler.getTotal())) * 100.0);
 
@@ -102,11 +93,7 @@ void WebSocketManager::loop()
 
     broadcastData();
 
-    if (otaHandler.isDone())
-    {
-        displayManager->updatingStatusToggle(false);
-        otaHandler.finalize();
-    }
+    otaHandler.handleState();
 }
 
 bool WebSocketManager::isClientConnected() const

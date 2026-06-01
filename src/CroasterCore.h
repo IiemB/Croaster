@@ -107,11 +107,9 @@ public:
     void changeIntervalSendData(unsigned long interval);
 
     /**
-     * @brief Changes the state of using dummy data.
-     *
-     * @param useDummy Set to true to use dummy data, false otherwise.
+     * @brief Toggles the use of dummy data for testing purposes.
      */
-    void changeDummyData(bool useDummy);
+    void toggleDummyData();
 
     /**
      * @brief Changes the correction value for BT.
