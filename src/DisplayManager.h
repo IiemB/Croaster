@@ -32,7 +32,7 @@ private:
     unsigned long lastInversionToggle = 0;
     bool isDisplayInverted = false;
     const unsigned long inversionInterval = 60000;
-    const unsigned long inversionDuration = 5000;
+    const unsigned long inversionDuration = 60000;
 
     unsigned long lastShowIpToggle = 0;
     bool isIpShowed = false;

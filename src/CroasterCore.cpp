@@ -188,16 +188,11 @@ void CroasterCore::changeIntervalSendData(unsigned long interval)
     resetHistory("intervalSend");
 }
 
-void CroasterCore::changeDummyData(bool useDummy)
+void CroasterCore::toggleDummyData()
 {
-    if (useDummyData == useDummy)
-    {
-        debugln("# useDummyData not changed because it same with current value");
+    useDummyData = !useDummyData;
 
-        return;
-    }
-
-    useDummyData = useDummy;
+    debugln("# useDummyData changed to " + String(useDummyData));
 
     resetHistory("useDummyData");
 }
@@ -251,7 +246,7 @@ double CroasterCore::roundTo2(double value)
 
 String CroasterCore::ssidName()
 {
-    return getDeviceName("[", "] Croaster V" + String(version, 3));
+    return getDeviceName("[", "] Croaster V" + String(version));
 }
 
 String CroasterCore::getJsonData(int id)

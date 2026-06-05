@@ -10,16 +10,6 @@
 #endif
 
 /**
- * @struct OtaResult
- * @brief Result returned by OtaHandler::handleBinary.
- */
-struct OtaResult
-{
-    String json;   ///< JSON progress payload to forward to the client.
-    bool hasError; ///< True if the write failed.
-};
-
-/**
  * @class OtaHandler
  * @brief Handles Over-The-Air (OTA) firmware updates via WebSocket and BLE.
  */
@@ -41,9 +31,9 @@ public:
      * @brief Processes incoming binary data for the OTA update.
      * @param data Pointer to the binary data.
      * @param len Length of the binary data.
-     * @return OtaResult containing the JSON payload and an error flag.
+     * @return A JSON string indicating the status of the OTA process and progress information.
      */
-    OtaResult handleBinary(uint8_t *data, size_t len);
+    String handleBinary(uint8_t *data, size_t len);
 
     /**
      * @brief Checks if the OTA process is currently receiving data.
@@ -53,9 +43,8 @@ public:
 
     /**
      * @brief Checks if the OTA process is complete.
-     * @return True if the OTA process is done, false otherwise.
      */
-    bool isDone() const;
+    void handleState();
 
     /**
      * @brief Gets the total size of the OTA update.
@@ -69,12 +58,6 @@ public:
      */
     uint32_t getWritten() const;
 
-    /**
-     * @brief Finalizes the OTA process.
-     * @param hasError If true, aborts the update and restarts. If false, ends successfully and restarts.
-     */
-    void finalize(bool hasError = false);
-
 private:
     /**
      * @enum State
@@ -84,6 +67,7 @@ private:
     {
         Idle,      ///< No OTA process is active.
         Receiving, ///< OTA packets are being received.
+        Failed,    ///< An error occurred during the OTA process.
         Done       ///< OTA process is complete.
     };
 
@@ -95,4 +79,10 @@ private:
      * @brief Resets the internal state of the handler to its initial values.
      */
     void resetState();
+
+    /**
+     * @brief Finalizes the OTA process.
+     * @param hasError If true, aborts the update and restarts. If false, ends successfully and restarts.
+     */
+    void finalize(bool hasError = false);
 };

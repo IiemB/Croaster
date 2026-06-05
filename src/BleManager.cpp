@@ -43,19 +43,10 @@ public:
         // Check OTA first to avoid parsing binary firmware bytes as a String.
         if (parent->otaHandler.isReceiving())
         {
-            OtaResult result = parent->otaHandler.handleBinary(pCharacteristic->getData(), pCharacteristic->getLength());
+            String result = parent->otaHandler.handleBinary(pCharacteristic->getData(), pCharacteristic->getLength());
 
-            pCharacteristic->setValue(result.json.c_str());
+            pCharacteristic->setValue(result.c_str());
             pCharacteristic->notify();
-
-            if (result.hasError)
-            {
-                parent->displayManager->updatingStatusToggle(false);
-
-                parent->otaHandler.finalize(true);
-
-                return;
-            }
 
             int progress = int((double(parent->otaHandler.getWritten()) / double(parent->otaHandler.getTotal())) * 100.0);
 
@@ -134,11 +125,7 @@ void BleManager::loop()
 {
     broadcastData();
 
-    if (otaHandler.isDone())
-    {
-        displayManager->updatingStatusToggle(false);
-        otaHandler.finalize();
-    }
+    otaHandler.handleState();
 }
 
 bool BleManager::isClientConnected() const

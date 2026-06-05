@@ -5,7 +5,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [0.50] — 2026-05-30 (Current)
+## [0.51] — 2026-06-01 (Current)
+
+### Changed
+- Refactored OTA handling to return a JSON progress string directly while simplifying internal state management
+- Updated `BleManager` and `WebSocketManager` to use the streamlined OTA progress flow
+- Simplified command and core OTA integration paths for the new handler contract
+
+### Fixed
+- Increased the display inversion duration from 5 seconds to 60 seconds
+
+---
+
+## [0.50] — 2026-05-30
 
 ### Added
 - **OTA over BLE** (ESP32 only): firmware updates can now be performed via BLE in addition to WebSocket/WiFi
