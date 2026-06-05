@@ -12,6 +12,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Updated `BleManager` and `WebSocketManager` to use the streamlined OTA progress flow
 - Simplified command and core OTA integration paths for the new handler contract
 
+### Fixed
+- Increased the display inversion duration from 5 seconds to 60 seconds
+
 ---
 
 ## [0.50] — 2026-05-30
