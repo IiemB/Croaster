@@ -282,8 +282,7 @@ All commands use the `"command"` key. Basic (string) commands:
 | `{"command": "erase"}` | Erases WiFi credentials and restarts |
 | `{"command": "displayToggle"}` | Toggles the OLED display on/off |
 | `{"command": "rotateScreen"}` | Rotates the OLED screen 180° |
-| `{"command": "dummyOn"}` | Enables dummy/test mode (no real sensors needed) |
-| `{"command": "dummyOff"}` | Disables dummy mode |
+| `{"command": "dummyToggle"}` | Toggles dummy/test mode on or off |
 | `{"command": "blink"}` | Blinks the built-in LED |
 | `{"command": "getDeviceInfo"}` | Returns device info (IP, SSID, firmware version) |
 | `{"command": "getExtra"}` | Returns extra user-defined data |

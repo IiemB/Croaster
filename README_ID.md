@@ -282,8 +282,7 @@ Semua perintah menggunakan kunci `"command"`. Perintah dasar (string):
 | `{"command": "erase"}` | Hapus kredensial WiFi dan restart |
 | `{"command": "displayToggle"}` | Menyalakan/mematikan layar OLED |
 | `{"command": "rotateScreen"}` | Memutar layar OLED 180° |
-| `{"command": "dummyOn"}` | Mengaktifkan mode dummy/pengujian (tanpa sensor fisik) |
-| `{"command": "dummyOff"}` | Menonaktifkan mode dummy |
+| `{"command": "dummyToggle"}` | Mengaktifkan atau menonaktifkan mode dummy/pengujian |
 | `{"command": "blink"}` | Mengedipkan LED bawaan |
 | `{"command": "getDeviceInfo"}` | Mengembalikan info perangkat (IP, SSID, versi firmware) |
 | `{"command": "getExtra"}` | Mengembalikan data ekstra yang ditentukan pengguna |
