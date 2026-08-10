@@ -7,3 +7,6 @@
 
 croaster-arduino/*
 .DS_Store
+*.FCBak
+*.FCStd.*
+*.FCStd[0-9]*
