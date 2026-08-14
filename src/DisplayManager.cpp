@@ -1,6 +1,7 @@
 #include "DisplayManager.h"
 #include "Constants.h"
 #include "DeviceIdentity.h"
+#include "DisplayAnimation.h"
 #include <Wire.h>
 
 DisplayManager::DisplayManager(CroasterCore &croaster, uint8_t i2cAddr)
@@ -86,27 +87,13 @@ void DisplayManager::splash()
         return;
 
     display.clearDisplay();
+    DisplayAnimation animation;
 
-    for (int16_t i = 0; i < max(display.width(), display.height()) / 2; i += 2)
+    for (int16_t i = 0; i < 50; i += 1)
     {
-        display.drawCircle(display.width() / 2, display.height() / 2, i, SSD1306_WHITE);
-        display.display();
+        animation.showFire(display);
         delay(1);
     }
-
-    delay(1000);
-
-    display.clearDisplay();
-
-    for (int16_t i = max(display.width(), display.height()) / 2; i > 0; i -= 3)
-    {
-        // The INVERSE color is used so circles alternate white/black
-        display.fillCircle(display.width() / 2, display.height() / 2, i, SSD1306_INVERSE);
-        display.display(); // Update screen with each newly-drawn circle
-        delay(1);
-    }
-
-    delay(1000);
 }
 
 bool DisplayManager::isOledPresent()
