@@ -3,10 +3,14 @@
 #include <Arduino.h>
 #include <Adafruit_SSD1306.h>
 
-class DisplayAnimation
+/**
+ * @class CroasterDisplayAnimation
+ * @brief Fire animation used on the splash screen (reference SSD1306 display).
+ */
+class CroasterDisplayAnimation
 {
 public:
-    DisplayAnimation(int16_t x = 40, int16_t y = 8);
+    CroasterDisplayAnimation(int16_t x = 40, int16_t y = 8);
 
     void showFire(Adafruit_SSD1306 &display);
     void reset();

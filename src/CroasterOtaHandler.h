@@ -1,8 +1,8 @@
 #pragma once
 
 #include <Arduino.h>
-#include "Constants.h"
-#include "WiFiManagerUtil.h"
+#include "CroasterConstants.h"
+#include "CroasterWiFiManager.h"
 #if defined(ESP32)
 #include <Update.h>
 #elif defined(ESP8266)
@@ -10,16 +10,16 @@
 #endif
 
 /**
- * @class OtaHandler
+ * @class CroasterOtaHandler
  * @brief Handles Over-The-Air (OTA) firmware updates via WebSocket and BLE.
  */
-class OtaHandler
+class CroasterOtaHandler
 {
 public:
     /**
-     * @brief Constructor for OtaHandler.
+     * @brief Constructor for CroasterOtaHandler.
      */
-    OtaHandler();
+    CroasterOtaHandler();
 
     /**
      * @brief Initializes the OTA process with the total size of the update.

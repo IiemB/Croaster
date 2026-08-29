@@ -1,9 +1,9 @@
-#include "OtaHandler.h"
+#include "CroasterOtaHandler.h"
 #include <ArduinoJson.h>
 
-OtaHandler::OtaHandler() {}
+CroasterOtaHandler::CroasterOtaHandler() {}
 
-void OtaHandler::begin(uint32_t totalSize)
+void CroasterOtaHandler::begin(uint32_t totalSize)
 {
     resetState();
 
@@ -18,11 +18,11 @@ void OtaHandler::begin(uint32_t totalSize)
     {
         debugln("# [OTA] Failed to begin update");
         debugln("# [OTA] Restarting device...");
-        restartESP();
+        CroasterWiFiManager::restart();
     }
 }
 
-String OtaHandler::handleBinary(uint8_t *data, size_t len)
+String CroasterOtaHandler::handleBinary(uint8_t *data, size_t len)
 {
     JsonDocument doc;
     String jsonOutput;
@@ -68,7 +68,7 @@ String OtaHandler::handleBinary(uint8_t *data, size_t len)
     return jsonOutput;
 }
 
-void OtaHandler::finalize(bool hasError)
+void CroasterOtaHandler::finalize(bool hasError)
 {
     if (hasError)
     {
@@ -83,7 +83,7 @@ void OtaHandler::finalize(bool hasError)
 
         delay(3000);
 
-        restartESP();
+        CroasterWiFiManager::restart();
 
         return;
     }
@@ -104,22 +104,22 @@ void OtaHandler::finalize(bool hasError)
 
     delay(3000);
 
-    restartESP();
+    CroasterWiFiManager::restart();
 }
 
-void OtaHandler::resetState()
+void CroasterOtaHandler::resetState()
 {
     state = State::Idle;
     totalSize = 0;
     written = 0;
 }
 
-bool OtaHandler::isReceiving() const
+bool CroasterOtaHandler::isReceiving() const
 {
     return state == State::Receiving;
 }
 
-void OtaHandler::handleState()
+void CroasterOtaHandler::handleState()
 {
     switch (state)
     {
@@ -136,12 +136,12 @@ void OtaHandler::handleState()
     }
 }
 
-uint32_t OtaHandler::getTotal() const
+uint32_t CroasterOtaHandler::getTotal() const
 {
     return totalSize;
 }
 
-uint32_t OtaHandler::getWritten() const
+uint32_t CroasterOtaHandler::getWritten() const
 {
     return written;
 }

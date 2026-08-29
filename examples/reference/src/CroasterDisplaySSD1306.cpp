@@ -1,17 +1,17 @@
-#include "DisplayManager.h"
-#include "Constants.h"
-#include "DeviceIdentity.h"
-#include "DisplayAnimation.h"
+#include "CroasterDisplaySSD1306.h"
+#include <CroasterConstants.h>
+#include <CroasterDeviceIdentity.h>
+#include "CroasterDisplayAnimation.h"
 #include <Wire.h>
 
-DisplayManager::DisplayManager(CroasterCore &croaster, uint8_t i2cAddr)
-    : display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET),
-      croaster(&croaster),
+CroasterDisplaySSD1306::CroasterDisplaySSD1306(CroasterCore &croaster, uint8_t i2cAddr)
+    : CroasterDisplay(croaster),
+      display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET),
       i2cAddress(i2cAddr)
 {
 }
 
-void DisplayManager::begin()
+void CroasterDisplaySSD1306::begin()
 {
     hasDisplay = isOledPresent();
 
@@ -35,7 +35,7 @@ void DisplayManager::begin()
     display.setTextWrap(false);
 }
 
-void DisplayManager::drawHeader()
+void CroasterDisplaySSD1306::drawHeader()
 {
     if (!hasDisplay)
         return;
@@ -52,7 +52,7 @@ void DisplayManager::drawHeader()
     display.print(text);
 }
 
-void DisplayManager::drawTemperature(String label, double temp, double ror, int yCursor)
+void CroasterDisplaySSD1306::drawTemperature(String label, double temp, double ror, int yCursor)
 {
     if (!hasDisplay)
         return;
@@ -81,13 +81,13 @@ void DisplayManager::drawTemperature(String label, double temp, double ror, int 
     }
 }
 
-void DisplayManager::splash()
+void CroasterDisplaySSD1306::splash()
 {
     if (!hasDisplay)
         return;
 
     display.clearDisplay();
-    DisplayAnimation animation;
+    CroasterDisplayAnimation animation;
 
     for (int16_t i = 0; i < 50; i += 1)
     {
@@ -96,7 +96,7 @@ void DisplayManager::splash()
     }
 }
 
-bool DisplayManager::isOledPresent()
+bool CroasterDisplaySSD1306::isOledPresent()
 {
     Wire.begin();
     delay(100);
@@ -105,7 +105,7 @@ bool DisplayManager::isOledPresent()
     return Wire.endTransmission() == 0;
 }
 
-void DisplayManager::loop()
+void CroasterDisplaySSD1306::loop()
 {
     if (!hasDisplay)
         return;
@@ -134,12 +134,12 @@ void DisplayManager::loop()
     {
         lastUpdate = now;
 
-        et = croaster->tempEt;
-        rorEt = croaster->rorEt;
-        bt = croaster->tempBt;
-        rorBt = croaster->rorBt;
-        tempUnit = croaster->temperatureUnit();
-        ipAddr = getIpAddress();
+        et = _core->tempEt;
+        rorEt = _core->rorEt;
+        bt = _core->tempBt;
+        rorBt = _core->rorBt;
+        tempUnit = _core->temperatureUnit();
+        ipAddr = CroasterDeviceIdentity::ipAddress();
 
         display.clearDisplay();
         drawHeader();
@@ -158,7 +158,7 @@ void DisplayManager::loop()
     }
 }
 
-void DisplayManager::rotateScreen()
+void CroasterDisplaySSD1306::rotateScreen()
 {
     if (!hasDisplay)
         return;
@@ -172,7 +172,7 @@ void DisplayManager::rotateScreen()
     display.display();
 }
 
-void DisplayManager::blinkIndicator(bool state)
+void CroasterDisplaySSD1306::blinkIndicator(bool state)
 {
     if (!hasDisplay)
         return;
@@ -181,7 +181,7 @@ void DisplayManager::blinkIndicator(bool state)
     display.display();
 }
 
-void DisplayManager::displayToggle()
+void CroasterDisplaySSD1306::displayToggle()
 {
     if (!hasDisplay)
         return;
@@ -191,7 +191,7 @@ void DisplayManager::displayToggle()
     display.ssd1306_command(isDisplayOn ? SSD1306_DISPLAYON : SSD1306_DISPLAYOFF);
 }
 
-void DisplayManager::updateFirmwareUpdateProgress(int progress)
+void CroasterDisplaySSD1306::updateFirmwareUpdateProgress(int progress)
 {
     if (!hasDisplay)
         return;
@@ -219,7 +219,7 @@ void DisplayManager::updateFirmwareUpdateProgress(int progress)
     display.display();
 }
 
-void DisplayManager::updatingStatusToggle(bool isUpdating)
+void CroasterDisplaySSD1306::updatingStatusToggle(bool isUpdating)
 {
     if (isUpdatingFirmware == isUpdating)
         return;
@@ -227,7 +227,7 @@ void DisplayManager::updatingStatusToggle(bool isUpdating)
     isUpdatingFirmware = isUpdating;
 }
 
-bool DisplayManager::isFirmwareUpdating() const
+bool CroasterDisplaySSD1306::isFirmwareUpdating() const
 {
     return isUpdatingFirmware;
 }

@@ -1,13 +1,13 @@
 #include "CroasterCore.h"
-#include "DeviceIdentity.h"
-#include "Constants.h"
+#include "CroasterDeviceIdentity.h"
+#include "CroasterConstants.h"
 #include <ArduinoJson.h>
 
-CroasterCore::CroasterCore(bool dummyMode)
-    : useDummyData(dummyMode)
+CroasterCore::CroasterCore(bool dummyMode, CroasterPinConfig pins)
+    : useDummyData(dummyMode), _pins(pins)
 {
-    thermocoupleBT = new SmoothThermocouple(new MAX6675_Thermocouple(SCK_PIN, CS_PIN_BT, SO_PIN), SMOOTHING_FACTOR);
-    thermocoupleET = new SmoothThermocouple(new MAX6675_Thermocouple(SCK_PIN, CS_PIN_ET, SO_PIN), SMOOTHING_FACTOR);
+    thermocoupleBT = new SmoothThermocouple(new MAX6675_Thermocouple(_pins.sckPin, _pins.csPinBt, _pins.soPin), SMOOTHING_FACTOR);
+    thermocoupleET = new SmoothThermocouple(new MAX6675_Thermocouple(_pins.sckPin, _pins.csPinEt, _pins.soPin), SMOOTHING_FACTOR);
 }
 
 double CroasterCore::convertTemperature(double tempCelsius)
@@ -246,7 +246,7 @@ double CroasterCore::roundTo2(double value)
 
 String CroasterCore::ssidName()
 {
-    return getDeviceName("[", "] Croaster V" + String(version));
+    return CroasterDeviceIdentity::deviceName("[", "] Croaster V" + String(version));
 }
 
 String CroasterCore::getJsonData(int id)
@@ -285,9 +285,9 @@ String CroasterCore::getJsonData(int id)
 
 String CroasterCore::getDeviceInfo()
 {
-    String ipAddress = getIpAddress();
+    String ipAddress = CroasterDeviceIdentity::ipAddress();
 
-    String ssid = getSsidName();
+    String ssid = CroasterDeviceIdentity::ssidName();
 
     JsonDocument doc;
 

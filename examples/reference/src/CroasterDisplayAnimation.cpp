@@ -1,4 +1,4 @@
-#include "DisplayAnimation.h"
+#include "CroasterDisplayAnimation.h"
 
 #include <Adafruit_GFX.h>
 
@@ -35,12 +35,12 @@ namespace
         {0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 7, 128, 0, 0, 0, 0, 7, 192, 0, 0, 0, 0, 6, 112, 0, 0, 0, 0, 12, 56, 0, 0, 0, 0, 12, 28, 0, 0, 0, 0, 28, 6, 0, 0, 0, 0, 24, 3, 128, 0, 0, 0, 56, 1, 192, 0, 0, 0, 48, 0, 224, 0, 0, 0, 96, 0, 112, 0, 0, 0, 224, 0, 56, 0, 0, 1, 192, 0, 24, 0, 0, 1, 128, 0, 12, 0, 0, 3, 0, 0, 6, 0, 0, 6, 0, 96, 7, 0, 0, 14, 0, 112, 3, 0, 0, 28, 0, 120, 1, 128, 0, 56, 0, 60, 1, 192, 0, 48, 0, 54, 0, 192, 0, 96, 0, 55, 0, 192, 0, 192, 0, 51, 0, 96, 1, 192, 0, 49, 128, 96, 1, 128, 0, 49, 128, 32, 1, 128, 32, 97, 192, 48, 3, 0, 112, 96, 192, 48, 3, 0, 248, 96, 192, 48, 6, 0, 220, 192, 192, 16, 6, 1, 135, 192, 192, 16, 6, 1, 128, 0, 192, 24, 6, 1, 128, 0, 192, 24, 6, 1, 128, 0, 192, 24, 6, 3, 128, 0, 192, 48, 6, 1, 128, 0, 192, 48, 6, 1, 128, 1, 128, 48, 6, 1, 128, 3, 128, 48, 6, 0, 192, 3, 0, 112, 3, 0, 224, 6, 0, 96, 3, 0, 112, 6, 0, 224, 1, 128, 0, 0, 0, 192, 1, 192, 0, 0, 1, 128, 0, 192, 0, 0, 3, 128, 0, 112, 0, 0, 7, 0, 0, 56, 0, 0, 14, 0, 0, 31, 0, 0, 60, 0, 0, 7, 224, 0, 112, 0, 0, 1, 224, 0, 96, 0}};
 }
 
-DisplayAnimation::DisplayAnimation(int16_t x, int16_t y)
+CroasterDisplayAnimation::CroasterDisplayAnimation(int16_t x, int16_t y)
     : xPos(x), yPos(y)
 {
 }
 
-void DisplayAnimation::showFire(Adafruit_SSD1306 &display)
+void CroasterDisplayAnimation::showFire(Adafruit_SSD1306 &display)
 {
     display.clearDisplay();
     display.drawBitmap(xPos, yPos, kFireFrames[frame], FRAME_WIDTH, FRAME_HEIGHT, 1);
@@ -49,7 +49,7 @@ void DisplayAnimation::showFire(Adafruit_SSD1306 &display)
     delay(FRAME_DELAY);
 }
 
-void DisplayAnimation::reset()
+void CroasterDisplayAnimation::reset()
 {
     frame = 0;
 }

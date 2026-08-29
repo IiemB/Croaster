@@ -35,14 +35,22 @@ move_file() {
 # Main script
 echo "Copying files..."
 
-# Process main.cpp
-move_file "./src/main.cpp" "./croaster-arduino/croaster-arduino.ino"
+# Process main.cpp (the reference example sketch)
+move_file "./examples/reference/src/main.cpp" "./croaster-arduino/croaster-arduino.ino"
 
-# Process other files in src directory, excluding main.cpp
-for file in ./src/*; do
-    if [ "$file" != "./src/main.cpp" ] && [ -f "$file" ]; then
-        dest_path=$(echo "$file" | sed 's/src/croaster-arduino/')
+# Process other files in the reference example src directory, excluding main.cpp
+for file in ./examples/reference/src/*; do
+    if [ "$file" != "./examples/reference/src/main.cpp" ] && [ -f "$file" ]; then
+        dest_path=$(echo "$file" | sed 's|examples/reference/src|croaster-arduino|')
         move_file "$file" "$dest_path"
+    fi
+done
+
+# Copy the library headers/sources used by the sketch into the Arduino sketch
+# folder (Arduino IDE needs every source in the sketch folder).
+for file in ./src/*; do
+    if [ -f "$file" ]; then
+        move_file "$file" "./croaster-arduino/$(basename "$file")"
     fi
 done
 

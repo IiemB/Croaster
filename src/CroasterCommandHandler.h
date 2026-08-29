@@ -1,21 +1,19 @@
 #pragma once
 #include <Arduino.h>
 #include <ArduinoJson.h>
+#include "CroasterConstants.h"
 #include "CroasterCore.h"
-#include "DisplayManager.h"
-
-#define LED_ON LOW
-#define LED_OFF HIGH
+#include "CroasterDisplay.h"
 
 /**
- * @class CommandHandler
+ * @class CroasterCommandHandler
  * @brief Handles incoming commands and manages device behavior accordingly.
  */
-class CommandHandler
+class CroasterCommandHandler
 {
 private:
     CroasterCore &croaster;
-    DisplayManager &displayManager;
+    CroasterDisplay *display; ///< Optional display (may be nullptr).
 
     bool blinking = false;
     uint8_t blinkCount = 0;
@@ -68,14 +66,14 @@ private:
 
 public:
     /**
-     * @brief Constructs a CommandHandler instance.
+     * @brief Constructs a CroasterCommandHandler instance.
      * @param core Reference to the CroasterCore instance.
-     * @param display Reference to the DisplayManager instance.
+     * @param display Optional display for the LED blink indicator (may be nullptr).
      */
-    CommandHandler(CroasterCore &core, DisplayManager &display);
+    CroasterCommandHandler(CroasterCore &core, CroasterDisplay *display = nullptr);
 
     /**
-     * @brief Initializes the CommandHandler.
+     * @brief Initializes the CroasterCommandHandler.
      */
     void begin();
 

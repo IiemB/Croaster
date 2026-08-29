@@ -1,11 +1,11 @@
-#include "DeviceIdentity.h"
+#include "CroasterDeviceIdentity.h"
 #if defined(ESP32)
 #include <WiFi.h>
 #elif defined(ESP8266)
 #include <ESP8266WiFi.h>
 #endif
 
-String getUniqueChipId()
+String CroasterDeviceIdentity::uniqueChipId()
 {
 #if defined(ESP32)
     uint64_t chipId = ESP.getEfuseMac();
@@ -21,26 +21,26 @@ String getUniqueChipId()
 #endif
 }
 
-String getShortChipId(uint8_t length)
+String CroasterDeviceIdentity::shortChipId(uint8_t length)
 {
-    String fullId = getUniqueChipId();
+    String fullId = uniqueChipId();
     if (length >= fullId.length())
         return fullId;
 
     return fullId.substring(0, length);
 }
 
-String getDeviceName(String prefix, String suffix, uint8_t length)
+String CroasterDeviceIdentity::deviceName(String prefix, String suffix, uint8_t length)
 {
-    return prefix + getShortChipId(length) + suffix;
+    return prefix + shortChipId(length) + suffix;
 }
 
-String getIpAddress()
+String CroasterDeviceIdentity::ipAddress()
 {
     return WiFi.isConnected() ? WiFi.localIP().toString() : "";
 }
 
-String getSsidName()
+String CroasterDeviceIdentity::ssidName()
 {
     return WiFi.isConnected() ? WiFi.SSID() : "";
 }

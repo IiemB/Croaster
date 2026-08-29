@@ -165,7 +165,7 @@ The **Makergo ESP32C3 SuperMini** board definition is not officially available i
 
 ### What is `copy_to_ino.sh`?
 
-This is a shell script that copies the source files from the `src/` directory (PlatformIO structure) into the `croaster-arduino/` folder with the correct Arduino sketch naming convention. Run it before opening the project in Arduino IDE.
+This is a shell script that copies the source files from the reference firmware (`examples/reference/src/`, PlatformIO structure) plus the library (`src/`) into the `croaster-arduino/` folder with the correct Arduino sketch naming convention. Run it before opening the project in Arduino IDE.
 
 ---
 
@@ -182,7 +182,7 @@ It is a **custom partition table** for the ESP32C3 Super Mini. This partition la
 Use the **ICRM app** on Android. The app supports OTA over both WiFi (WebSocket) and BLE (ESP32 only):
 
 - **WiFi OTA:** The app sends the compiled firmware binary over WebSocket. Croaster receives it in chunks, writes it to flash, and restarts automatically once complete.
-- **BLE OTA:** The app sends the firmware binary over BLE. `BleManager` relays the data to `OtaHandler`, which processes it in chunks with timeout checks. Progress is reported back to the app as JSON.
+- **BLE OTA:** The app sends the firmware binary over BLE. `CroasterBleManager` relays the data to `CroasterOtaHandler`, which processes it in chunks with timeout checks. Progress is reported back to the app as JSON.
 
 ---
 
@@ -202,7 +202,7 @@ OTA via WiFi (WebSocket) using the ICRM app is supported on ESP8266, as long as 
 
 ### How do I test Croaster without physical sensors?
 
-Set `dummyMode = true` in `Constants.h`:
+Set `dummyMode = true` in `CroasterConstants.h`:
 ```cpp
 const bool dummyMode = true;
 ```
@@ -212,7 +212,7 @@ In this mode, Croaster generates simulated temperature data, so you can test the
 
 ### How do I add a custom command?
 
-For a **basic string command**, add a new `else if` branch inside `handleBasicCommand` in `CommandHandler.cpp`:
+For a **basic string command**, add a new `else if` branch inside `handleBasicCommand` in `CroasterCommandHandler.cpp`:
 ```cpp
 else if (command == "mycommand") {
     // your logic here
@@ -236,7 +236,7 @@ Both types are available over WebSocket and BLE automatically.
 
 ### What JSON format does Croaster broadcast?
 
-Croaster sends a JSON payload over WebSocket and BLE at each interval. The payload includes temperature readings, RoR values, a timer, and the firmware version. The exact structure can be found in `CroasterCore.cpp` and `WebSocketManager.cpp`.
+Croaster sends a JSON payload over WebSocket and BLE at each interval. The payload includes temperature readings, RoR values, a timer, and the firmware version. The exact structure can be found in `CroasterCore.cpp` and `CroasterWebSocketManager.cpp`.
 
 ---
 
@@ -253,7 +253,7 @@ Croaster sends a JSON payload over WebSocket and BLE at each interval. The paylo
 ### The OLED display is blank or shows garbage.
 
 - Verify that the SDA/SCL wires are not swapped.
-- Confirm the I2C address. The SSD1306 usually uses `0x3C`. If yours uses `0x3D`, update `DisplayManager.cpp`.
+- Confirm the I2C address. The SSD1306 usually uses `0x3C`. If yours uses `0x3D`, update `CroasterDisplaySSD1306.cpp` in `examples/reference/src/`.
 - Check the 3.3V supply to the display.
 
 ---

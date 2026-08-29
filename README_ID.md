@@ -4,7 +4,7 @@
 
 **Croaster** adalah sistem pemantau suhu ringan dan open-source yang dibangun di atas mikrokontroler berbasis ESP. Dirancang untuk para pecinta dan profesional sangrai kopi, sistem ini membaca dua sensor termokopel (Suhu Biji dan Suhu Lingkungan) dan menampilkan data secara real-time di layar OLED yang ringkas. Croaster terhubung mulus ke perangkat lunak sangrai populer melalui WiFi (WebSocket) dan BLE (khusus ESP32), sehingga kompatibel dengan aplikasi sangrai di desktop maupun ponsel.
 
-**Versi Firmware Saat Ini:** `0.51`
+**Versi Firmware Saat Ini:** `0.52`
 
 ---
 
@@ -58,7 +58,7 @@
 * **Captive portal WiFiManager** untuk setup WiFi yang mudah — tanpa perlu flash ulang
 * Penamaan perangkat unik berdasarkan chip ID (contoh: `Croaster-A1B2`)
 * **Mode dummy** untuk pengembangan dan pengujian tanpa sensor fisik
-* Sistem perintah JSON kustom melalui kelas `CommandHandler` yang terpusat
+* Sistem perintah JSON kustom melalui kelas `CroasterCommandHandler` yang terpusat
 * Mudah diperluas dengan perintah buatan pengguna
 
 ---
@@ -103,18 +103,32 @@
 
 ## 🛠 Arsitektur Software
 
-Croaster menggunakan **arsitektur C++ modular** yang bersih, dibangun dengan framework Arduino. Setiap subsistem dikemas dalam kelasnya sendiri:
+Croaster menggunakan **arsitektur C++ modular** yang bersih, dibangun dengan framework Arduino. Setiap subsistem dikemas dalam kelasnya sendiri.
+
+Repositori kini disusun sebagai **library yang dapat digunakan ulang** (akar repositori: `src/` + `library.json`/`library.properties`) ditambah **firmware referensi** di `examples/reference/`. Library ini **agnostik terhadap display dan konfigurasi pin** — proyek pengguna menyediakan implementasi display dan tata letak pin mereka sendiri.
+
+### Modul library (akar repositori `src/`)
 
 | Modul | File | Tanggung Jawab |
 |:---|:---|:---|
-| `CroasterCore` | `CroasterCore.h/.cpp` | Pembacaan sensor, kalkulasi RoR, penghalusan suhu, state data |
-| `DisplayManager` | `DisplayManager.h/.cpp` | Loop rendering OLED, layar status |
-| `CommandHandler` | `CommandHandler.h/.cpp` | Parsing dan dispatching perintah JSON (BLE & WebSocket) |
-| `WebSocketManager` | `WebSocketManager.h/.cpp` | Server WebSocket, broadcast data, trigger OTA |
-| `BleManager` | `BleManager.h/.cpp` | Server BLE, notify karakteristik, penerimaan perintah *(khusus ESP32)* |
-| `OtaHandler` | `OtaHandler.h/.cpp` | Penanganan update OTA biner via WebSocket dan BLE |
-| `WiFiManagerUtil` | `WiFiManagerUtil.h/.cpp` | Setup dan lifecycle captive portal WiFiManager |
-| `DeviceIdentity` | `DeviceIdentity.h/.cpp` | Helper chip ID, nama perangkat, alamat IP |
+| `CroasterCore` | `src/CroasterCore.h/.cpp` | Pembacaan sensor, kalkulasi RoR, penghalusan suhu, state data |
+| `CroasterDisplay` | `src/CroasterDisplay.h` | **Antarmuka display abstrak** — diimplementasikan oleh proyek pengguna |
+| `CroasterPinConfig` | `src/CroasterPinConfig.h/.cpp` | Tata letak pin termokopel (diteruskan ke `CroasterCore`) |
+| `CroasterCommandHandler` | `src/CroasterCommandHandler.h/.cpp` | Parsing dan dispatching perintah JSON (BLE & WebSocket) |
+| `CroasterWebSocketManager` | `src/CroasterWebSocketManager.h/.cpp` | Server WebSocket, broadcast data, trigger OTA |
+| `CroasterBleManager` | `src/CroasterBleManager.h/.cpp` | Server BLE, notify karakteristik, penerimaan perintah *(hanya dikompilasi bila board punya BLE)* |
+| `CroasterOtaHandler` | `src/CroasterOtaHandler.h/.cpp` | Penanganan update OTA biner via WebSocket dan BLE |
+| `CroasterWiFiManager` | `src/CroasterWiFiManager.h/.cpp` | Setup dan lifecycle captive portal WiFiManager |
+| `CroasterDeviceIdentity` | `src/CroasterDeviceIdentity.h/.cpp` | Helper chip ID, nama perangkat, alamat IP |
+
+### Modul firmware referensi (`examples/reference/src/`)
+
+Firmware referensi menambahkan layar OLED SSD1306 yang konkret:
+
+| Modul | File | Tanggung Jawab |
+|:---|:---|:---|
+| `CroasterDisplaySSD1306` | `examples/reference/src/CroasterDisplaySSD1306.h/.cpp` | Loop rendering OLED 128×64 SSD1306, layar status |
+| `CroasterDisplayAnimation` | `examples/reference/src/CroasterDisplayAnimation.h/.cpp` | Animasi api di layar splash |
 
 ### Alur Data
 
@@ -122,7 +136,7 @@ Croaster menggunakan **arsitektur C++ modular** yang bersih, dibangun dengan fra
 Sensor MAX6675 → CroasterCore (baca + halus + RoR)
                        ↓
           ┌────────────┴────────────┐
-    WebSocketManager           BleManager (ESP32)
+  CroasterWebSocketManager  CroasterBleManager (board dengan BLE)
           ↓                         ↓
    Artisan / ICRM              ICRM (Android)
 ```
@@ -146,12 +160,14 @@ Sensor MAX6675 → CroasterCore (baca + halus + RoR)
 
 ### ✅ PlatformIO (direkomendasikan untuk ESP8266 & ESP32C3)
 
+Akar repositori adalah **library yang dapat digunakan ulang**. Firmware referensi berada di `examples/reference/` — build dan upload dari folder tersebut:
+
 1. Install [PlatformIO](https://platformio.org/) (ekstensi VS Code atau CLI)
 2. Clone repositori:
 
    ```bash
    git clone git@github.com:IiemB/Croaster.git
-   cd Croaster
+   cd Croaster/examples/reference
    ```
 
 3. Periksa `platformio.ini` dan pilih environment target Anda
@@ -166,6 +182,47 @@ Sensor MAX6675 → CroasterCore (baca + halus + RoR)
    ```
 
 > **Catatan:** ESP32C3 Super Mini menggunakan skema partisi kustom (`custom32c3sm.csv`) untuk memaksimalkan penyimpanan aplikasi. Lihat [references.md](references.md) untuk detail setup.
+
+### 📦 Menggunakan Croaster sebagai library di proyek Anda
+
+Akar repositori adalah library PlatformIO/Arduino standar. Tambahkan ke `platformio.ini` proyek lain:
+
+```ini
+[env:board_anda]
+lib_deps =
+    https://github.com/IiemB/Croaster.git
+```
+
+Lalu implementasikan antarmuka `CroasterDisplay` (lihat `examples/reference/src/CroasterDisplaySSD1306.*` untuk contoh lengkap) dan teruskan `CroasterPinConfig` board Anda ke `CroasterCore`:
+
+```cpp
+#include <CroasterCore.h>
+#include <CroasterPinConfig.h>
+#include <CroasterCommandHandler.h>
+#include <CroasterWebSocketManager.h>
+#include <CroasterBleManager.h>
+#include <CroasterWiFiManager.h>
+
+// Tata letak pin untuk board Anda
+CroasterPinConfig myPins = { /* sckPin, soPin, csPinBt, csPinEt */ };
+
+CroasterCore croaster(dummyMode, myPins);  // tata letak pin Anda
+MyDisplay display(croaster);               // subclass CroasterDisplay Anda
+CroasterCommandHandler commands(croaster, &display);
+CroasterWebSocketManager ws(croaster, commands, &display);
+
+#if CROASTER_HAS_BLE  // terdeteksi otomatis: 1 di ESP32, 0 lainnya
+CroasterBleManager ble(croaster, commands, &display);
+#endif
+```
+
+- **Display** — implementasikan `CroasterDisplay` (`begin`, `loop`, `rotateScreen`,
+  `blinkIndicator`, `displayToggle`, dan metode progres OTA). Teruskan `nullptr`
+  bila board tidak memiliki display.
+- **Pin** — buat `CroasterPinConfig` Anda sendiri dan teruskan ke `CroasterCore`.
+- **BLE** — library mendeteksi dukungan BLE saat kompilasi melalui
+  `CROASTER_HAS_BLE` (1 di ESP32, 0 di tempat lain) dan hanya mengompilasi
+  `CroasterBleManager` bila tersedia.
 
 ### ✅ Arduino IDE (alternatif, diperlukan untuk board Makergo ESP32C3)
 
@@ -260,7 +317,7 @@ Gunakan metode ini ketika Croaster sudah terhubung ke jaringan WiFi rumah/kantor
 
 Croaster mendukung pembaruan firmware tanpa kabel USB, melalui **aplikasi ICRM** via WebSocket (WiFi) atau BLE (khusus ESP32).
 
-- OTA ditangani oleh kelas `OtaHandler`, yang menerima data firmware biner secara bertahap dan mengembalikan payload JSON progres setelah setiap potongan
+- OTA ditangani oleh kelas `CroasterOtaHandler`, yang menerima data firmware biner secara bertahap dan mengembalikan payload JSON progres setelah setiap potongan
 - Kemajuan update ditampilkan di layar OLED selama proses berlangsung
 - OTA via BLE dilengkapi pemeriksaan timeout untuk menangani transfer yang terhenti
 - OTA memerlukan **skema partisi kustom** (`custom32c3sm`) pada ESP32C3 — partisi `Huge APP` **tidak** mendukung OTA
@@ -270,7 +327,7 @@ Croaster mendukung pembaruan firmware tanpa kabel USB, melalui **aplikasi ICRM**
 
 ## 🧪 Perintah Kustom
 
-Croaster menerima perintah berformat JSON melalui WebSocket maupun BLE. Kelas `CommandHandler` mengelola semua perintah yang masuk.
+Croaster menerima perintah berformat JSON melalui WebSocket maupun BLE. Kelas `CroasterCommandHandler` mengelola semua perintah yang masuk.
 
 ### Perintah Bawaan
 
@@ -300,7 +357,7 @@ Perintah konfigurasi menggunakan **objek JSON bersarang** di bawah `"command"`:
 
 ### Menambahkan Perintah Kustom
 
-Untuk menambahkan perintah dasar (string), tambahkan cabang `else if` baru di dalam `handleBasicCommand` di `CommandHandler.cpp`. Untuk menambahkan perintah konfigurasi, tambahkan kondisi baru di dalam `handleJsonCommand`. Kedua metode menerima `JsonObject` yang sudah di-parse, sehingga Anda dapat membaca key/value apapun dari payload JSON.
+Untuk menambahkan perintah dasar (string), tambahkan cabang `else if` baru di dalam `handleBasicCommand` di `CroasterCommandHandler.cpp`. Untuk menambahkan perintah konfigurasi, tambahkan kondisi baru di dalam `handleJsonCommand`. Kedua metode menerima `JsonObject` yang sudah di-parse, sehingga Anda dapat membaca key/value apapun dari payload JSON.
 
 ---
 

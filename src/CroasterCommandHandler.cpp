@@ -1,23 +1,23 @@
-#include "CommandHandler.h"
-#include "WiFiManagerUtil.h"
+#include "CroasterCommandHandler.h"
+#include "CroasterWiFiManager.h"
 #include <ArduinoJson.h>
-#include "Constants.h"
+#include "CroasterConstants.h"
 #if defined(ESP32)
 #include <WiFi.h>
 #elif defined(ESP8266)
 #include <ESP8266WiFi.h>
 #endif
 
-CommandHandler::CommandHandler(CroasterCore &core, DisplayManager &display)
-    : croaster(core), displayManager(display) {}
+CroasterCommandHandler::CroasterCommandHandler(CroasterCore &core, CroasterDisplay *display)
+    : croaster(core), display(display) {}
 
-void CommandHandler::begin()
+void CroasterCommandHandler::begin()
 {
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, LED_OFF);
 }
 
-void CommandHandler::loop()
+void CroasterCommandHandler::loop()
 {
     unsigned long now = millis();
 
@@ -25,7 +25,8 @@ void CommandHandler::loop()
     {
         ledState = !ledState;
         digitalWrite(LED_BUILTIN, ledState ? LED_ON : LED_OFF);
-        displayManager.blinkIndicator(ledState);
+        if (display)
+            display->blinkIndicator(ledState);
         lastBlinkTime = now;
         blinkCount++;
 
@@ -33,12 +34,13 @@ void CommandHandler::loop()
         {
             blinking = false;
             digitalWrite(LED_BUILTIN, LED_OFF);   // turn off when done
-            displayManager.blinkIndicator(false); // turn off when done
+            if (display)
+                display->blinkIndicator(false); // turn off when done
         }
     }
 }
 
-bool CommandHandler::handle(const String &json, String &responseOut)
+bool CroasterCommandHandler::handle(const String &json, String &responseOut)
 {
     JsonDocument doc;
 
@@ -71,7 +73,7 @@ bool CommandHandler::handle(const String &json, String &responseOut)
     return false;
 }
 
-void CommandHandler::handleBasicCommand(const JsonObject &json, String &responseOut)
+void CroasterCommandHandler::handleBasicCommand(const JsonObject &json, String &responseOut)
 {
     if (!json["command"].is<String>())
         return;
@@ -90,7 +92,7 @@ void CommandHandler::handleBasicCommand(const JsonObject &json, String &response
     }
     else if (command == "erase")
     {
-        eraseESP();
+        CroasterWiFiManager::erase();
     }
     else if (command == "dummyToggle")
     {
@@ -98,7 +100,8 @@ void CommandHandler::handleBasicCommand(const JsonObject &json, String &response
     }
     else if (command == "rotateScreen")
     {
-        displayManager.rotateScreen();
+        if (display)
+            display->rotateScreen();
     }
     else if (command == "blink")
     {
@@ -106,7 +109,8 @@ void CommandHandler::handleBasicCommand(const JsonObject &json, String &response
     }
     else if (command == "displayToggle")
     {
-        displayManager.displayToggle();
+        if (display)
+            display->displayToggle();
     }
     else if (command == "getDeviceInfo")
     {
@@ -118,7 +122,7 @@ void CommandHandler::handleBasicCommand(const JsonObject &json, String &response
     }
 }
 
-void CommandHandler::handleJsonCommand(const JsonObject &json, String &responseOut)
+void CroasterCommandHandler::handleJsonCommand(const JsonObject &json, String &responseOut)
 {
     if (json["tempUnit"].is<String>())
     {
@@ -165,9 +169,8 @@ void CommandHandler::handleJsonCommand(const JsonObject &json, String &responseO
     }
 }
 
-void CommandHandler::blinkBuiltinLED(uint8_t times, unsigned long blinkDelay)
+void CroasterCommandHandler::blinkBuiltinLED(uint8_t times, unsigned long blinkDelay)
 {
-
     blinkTotal = times * 2; // on/off = 2 toggles per blink
     blinkCount = 0;
     lastBlinkTime = millis();
@@ -177,7 +180,7 @@ void CommandHandler::blinkBuiltinLED(uint8_t times, unsigned long blinkDelay)
     blinking = true;
 }
 
-String CommandHandler::genResponseCommand(const String command, const String response)
+String CroasterCommandHandler::genResponseCommand(const String command, const String response)
 {
     JsonDocument doc;
 
@@ -197,7 +200,7 @@ String CommandHandler::genResponseCommand(const String command, const String res
     return jsonOutput;
 }
 
-String CommandHandler::genRandomString(int length)
+String CroasterCommandHandler::genRandomString(int length)
 {
     const char charset[] = "0123456789"
                            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -213,9 +216,8 @@ String CommandHandler::genRandomString(int length)
     return result;
 }
 
-String CommandHandler::getExtraData()
+String CroasterCommandHandler::getExtraData()
 {
-
     /*
    NOTE
    You can add more fields to the JSON document that will be readed by ICRM app,

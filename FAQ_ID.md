@@ -165,7 +165,7 @@ Definisi board **Makergo ESP32C3 SuperMini** tidak tersedia secara resmi di regi
 
 ### Apa itu `copy_to_ino.sh`?
 
-Ini adalah shell script yang menyalin file sumber dari direktori `src/` (struktur PlatformIO) ke folder `croaster-arduino/` dengan konvensi penamaan sketch Arduino yang benar. Jalankan sebelum membuka project di Arduino IDE.
+Ini adalah shell script yang menyalin file sumber dari firmware referensi (`examples/reference/src/`, struktur PlatformIO) plus library (`src/`) ke folder `croaster-arduino/` dengan konvensi penamaan sketch Arduino yang benar. Jalankan sebelum membuka project di Arduino IDE.
 
 ---
 
@@ -182,7 +182,7 @@ Ini adalah **tabel partisi kustom** untuk ESP32C3 Super Mini. Tata letak partisi
 Gunakan **aplikasi ICRM** di Android. Aplikasi mendukung OTA melalui WiFi (WebSocket) maupun BLE (khusus ESP32):
 
 - **OTA via WiFi:** Aplikasi mengirimkan binary firmware yang telah dikompilasi melalui WebSocket. Croaster menerimanya dalam potongan-potongan, menuliskannya ke flash, dan restart otomatis setelah selesai.
-- **OTA via BLE:** Aplikasi mengirimkan binary firmware melalui BLE. `BleManager` meneruskan data ke `OtaHandler`, yang memprosesnya secara bertahap dengan pemeriksaan timeout. Progres dilaporkan kembali ke aplikasi sebagai JSON.
+- **OTA via BLE:** Aplikasi mengirimkan binary firmware melalui BLE. `CroasterBleManager` meneruskan data ke `CroasterOtaHandler`, yang memprosesnya secara bertahap dengan pemeriksaan timeout. Progres dilaporkan kembali ke aplikasi sebagai JSON.
 
 ---
 
@@ -202,7 +202,7 @@ OTA via WiFi (WebSocket) menggunakan aplikasi ICRM didukung di ESP8266, selama A
 
 ### Bagaimana cara menguji Croaster tanpa sensor fisik?
 
-Atur `dummyMode = true` di `Constants.h`:
+Atur `dummyMode = true` di `CroasterConstants.h`:
 ```cpp
 const bool dummyMode = true;
 ```
@@ -212,7 +212,7 @@ Dalam mode ini, Croaster menghasilkan data suhu simulasi, sehingga Anda dapat me
 
 ### Bagaimana cara menambahkan perintah kustom?
 
-Untuk **perintah dasar (string)**, tambahkan cabang `else if` baru di dalam `handleBasicCommand` di `CommandHandler.cpp`:
+Untuk **perintah dasar (string)**, tambahkan cabang `else if` baru di dalam `handleBasicCommand` di `CroasterCommandHandler.cpp`:
 ```cpp
 else if (command == "perintahsaya") {
     // logika Anda di sini
@@ -236,7 +236,7 @@ Kedua tipe tersedia melalui WebSocket maupun BLE secara otomatis.
 
 ### Format JSON apa yang di-broadcast oleh Croaster?
 
-Croaster mengirimkan payload JSON melalui WebSocket dan BLE di setiap interval. Payload tersebut mencakup pembacaan suhu, nilai RoR, timer, dan versi firmware. Struktur lengkapnya dapat ditemukan di `CroasterCore.cpp` dan `WebSocketManager.cpp`.
+Croaster mengirimkan payload JSON melalui WebSocket dan BLE di setiap interval. Payload tersebut mencakup pembacaan suhu, nilai RoR, timer, dan versi firmware. Struktur lengkapnya dapat ditemukan di `CroasterCore.cpp` dan `CroasterWebSocketManager.cpp`.
 
 ---
 
@@ -253,7 +253,7 @@ Croaster mengirimkan payload JSON melalui WebSocket dan BLE di setiap interval. 
 ### Layar OLED kosong atau menampilkan karakter tidak jelas.
 
 - Verifikasi bahwa kabel SDA/SCL tidak tertukar.
-- Konfirmasi alamat I2C. SSD1306 biasanya menggunakan `0x3C`. Jika milik Anda menggunakan `0x3D`, perbarui `DisplayManager.cpp`.
+- Konfirmasi alamat I2C. SSD1306 biasanya menggunakan `0x3C`. Jika milik Anda menggunakan `0x3D`, perbarui `CroasterDisplaySSD1306.cpp` di `examples/reference/src/`.
 - Periksa suplai 3.3V ke layar.
 
 ---

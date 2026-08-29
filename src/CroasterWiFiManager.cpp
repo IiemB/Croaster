@@ -1,21 +1,20 @@
-#include "WiFiManagerUtil.h"
-#include "Constants.h"
+#include "CroasterWiFiManager.h"
+#include "CroasterConstants.h"
 #if defined(ESP32)
 #include <WiFi.h>
 #elif defined(ESP8266)
 #include <ESP8266WiFi.h>
 #endif
 
-WiFiManager wifiManager;
+static WiFiManager wifiManager;
 
-void configModeCallback(WiFiManager *myWiFiManager)
+void CroasterWiFiManager::configModeCallback(WiFiManager *myWiFiManager)
 {
     debugln("# Config mode: " + WiFi.softAPIP().toString());
 }
 
-void setupWiFiManager(const String &apName)
+void CroasterWiFiManager::setup(const String &apName)
 {
-
     debugln("# Setting up WiFi Manager");
 
     WiFi.mode(WIFI_STA);
@@ -33,18 +32,18 @@ void setupWiFiManager(const String &apName)
     }
 }
 
-void processWiFiManager()
+void CroasterWiFiManager::process()
 {
     wifiManager.process();
 }
 
-void restartESP()
+void CroasterWiFiManager::restart()
 {
     wifiManager.reboot();
 }
 
-void eraseESP()
+void CroasterWiFiManager::erase()
 {
     wifiManager.erase();
-    restartESP();
+    restart();
 }

@@ -3,8 +3,8 @@
 #include <Thermocouple.h>
 #include <MAX6675_Thermocouple.h>
 #include <SmoothThermocouple.h>
-#include "Constants.h"
-#include "PinConfig.h"
+#include "CroasterConstants.h"
+#include "CroasterPinConfig.h"
 
 /**
  * @class CroasterCore
@@ -15,6 +15,8 @@ class CroasterCore
 private:
     Thermocouple *thermocoupleBT;
     Thermocouple *thermocoupleET;
+
+    CroasterPinConfig _pins;
 
     double etHistory[60] = {}, btHistory[60] = {}, timeHistory[60] = {};
     bool historyInitialized = false;
@@ -71,8 +73,10 @@ public:
     /**
      * @brief Constructs a CroasterCore instance.
      * @param dummyMode If true, uses dummy data instead of real sensor data.
+     * @param pins The thermocouple pin layout for the target board (defaults to
+     *             the reference ESP8266 / ESP32-C3 layout).
      */
-    CroasterCore(bool dummyMode = false);
+    CroasterCore(bool dummyMode = false, CroasterPinConfig pins = CroasterPinConfig::defaults());
 
     /**
      * @brief Main loop for handling sensor updates and data processing.

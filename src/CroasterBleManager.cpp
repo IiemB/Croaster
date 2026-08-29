@@ -1,14 +1,14 @@
-#if defined(ESP32)
+#include "CroasterBleManager.h"
+#include "CroasterWiFiManager.h"
 
-#include "BleManager.h"
-#include "WiFiManagerUtil.h"
+#if CROASTER_HAS_BLE
 
-class BleManager::ServerCallbacks : public BLEServerCallbacks
+class CroasterBleManager::ServerCallbacks : public BLEServerCallbacks
 {
-    BleManager *parent;
+    CroasterBleManager *parent;
 
 public:
-    ServerCallbacks(BleManager *parent) : parent(parent) {}
+    ServerCallbacks(CroasterBleManager *parent) : parent(parent) {}
     void onConnect(BLEServer *) override
     {
         debugln("# BLE Client Connected");
@@ -20,11 +20,12 @@ public:
         debugln("# BLE Client Disconnected");
         parent->clientConnected = false;
 
-        if (parent->displayManager->isFirmwareUpdating() || parent->otaHandler.isReceiving())
+        if ((parent->display && parent->display->isFirmwareUpdating()) || parent->otaHandler.isReceiving())
         {
             debugln("# [OTA] BLE disconnected during OTA - restarting...");
-            parent->displayManager->updatingStatusToggle(false);
-            restartESP();
+            if (parent->display)
+                parent->display->updatingStatusToggle(false);
+            CroasterWiFiManager::restart();
             return;
         }
 
@@ -32,12 +33,12 @@ public:
     }
 };
 
-class BleManager::CharacteristicCallbacks : public BLECharacteristicCallbacks
+class CroasterBleManager::CharacteristicCallbacks : public BLECharacteristicCallbacks
 {
-    BleManager *parent;
+    CroasterBleManager *parent;
 
 public:
-    CharacteristicCallbacks(BleManager *parent) : parent(parent) {}
+    CharacteristicCallbacks(CroasterBleManager *parent) : parent(parent) {}
     void onWrite(BLECharacteristic *pCharacteristic) override
     {
         // Check OTA first to avoid parsing binary firmware bytes as a String.
@@ -50,9 +51,11 @@ public:
 
             int progress = int((double(parent->otaHandler.getWritten()) / double(parent->otaHandler.getTotal())) * 100.0);
 
-            parent->displayManager->updatingStatusToggle(true);
-
-            parent->displayManager->updateFirmwareUpdateProgress(progress);
+            if (parent->display)
+            {
+                parent->display->updatingStatusToggle(true);
+                parent->display->updateFirmwareUpdateProgress(progress);
+            }
 
             return;
         }
@@ -89,10 +92,10 @@ public:
     }
 };
 
-BleManager::BleManager(CroasterCore &croaster, CommandHandler &commandHandler, DisplayManager &displayManager)
-    : croaster(&croaster), commandHandler(&commandHandler), displayManager(&displayManager) {}
+CroasterBleManager::CroasterBleManager(CroasterCore &croaster, CroasterCommandHandler &commandHandler, CroasterDisplay *display)
+    : croaster(&croaster), commandHandler(&commandHandler), display(display) {}
 
-void BleManager::begin()
+void CroasterBleManager::begin()
 {
     BLEDevice::init(croaster->ssidName().c_str());
 
@@ -121,19 +124,19 @@ void BleManager::begin()
     debugln("# BLE Server ready");
 }
 
-void BleManager::loop()
+void CroasterBleManager::loop()
 {
     broadcastData();
 
     otaHandler.handleState();
 }
 
-bool BleManager::isClientConnected() const
+bool CroasterBleManager::isClientConnected() const
 {
     return clientConnected;
 }
 
-void BleManager::broadcastData()
+void CroasterBleManager::broadcastData()
 {
     if (!clientConnected || !pDataCharacteristic || otaHandler.isReceiving())
         return;
@@ -155,7 +158,7 @@ void BleManager::broadcastData()
     }
 }
 
-void BleManager::sendData(const String &data)
+void CroasterBleManager::sendData(const String &data)
 {
     if (clientConnected && pDataCharacteristic)
     {

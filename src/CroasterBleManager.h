@@ -1,31 +1,35 @@
 #pragma once
 
-#if defined(ESP32)
+#include "CroasterConstants.h"
+
+#if CROASTER_HAS_BLE
 
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEServer.h>
 #include <BLE2902.h>
 #include "CroasterCore.h"
-#include "DisplayManager.h"
-#include "Constants.h"
-#include "CommandHandler.h"
-#include "OtaHandler.h"
+#include "CroasterDisplay.h"
+#include "CroasterCommandHandler.h"
+#include "CroasterOtaHandler.h"
 
 /**
- * @class BleManager
+ * @class CroasterBleManager
  * @brief Manages BLE (Bluetooth Low Energy) communication for the Croaster device.
+ *
+ * Only compiled on boards that provide BLE (see CROASTER_HAS_BLE in
+ * CroasterConstants.h). The display is optional and may be nullptr.
  */
-class BleManager
+class CroasterBleManager
 {
 public:
     /**
-     * @brief Constructs a BleManager instance.
+     * @brief Constructs a CroasterBleManager instance.
      * @param croaster Reference to the CroasterCore instance.
-     * @param commandHandler Reference to the CommandHandler instance.
-     * @param displayManager Reference to the DisplayManager instance.
+     * @param commandHandler Reference to the CroasterCommandHandler instance.
+     * @param display Optional display for OTA progress (may be nullptr).
      */
-    BleManager(CroasterCore &croaster, CommandHandler &commandHandler, DisplayManager &displayManager);
+    CroasterBleManager(CroasterCore &croaster, CroasterCommandHandler &commandHandler, CroasterDisplay *display);
 
     /**
      * @brief Initializes the BLE server and characteristics.
@@ -47,11 +51,11 @@ private:
     BLEServer *pServer = nullptr;                     ///< Pointer to the BLE server instance.
     BLECharacteristic *pDataCharacteristic = nullptr; ///< Pointer to the BLE data characteristic.
 
-    CommandHandler *commandHandler = nullptr; ///< Pointer to the CommandHandler instance.
-    CroasterCore *croaster = nullptr;         ///< Pointer to the CroasterCore instance.
-    DisplayManager *displayManager = nullptr; ///< Pointer to the DisplayManager instance.
+    CroasterCommandHandler *commandHandler = nullptr; ///< Pointer to the CroasterCommandHandler instance.
+    CroasterCore *croaster = nullptr;                 ///< Pointer to the CroasterCore instance.
+    CroasterDisplay *display = nullptr;               ///< Optional display (may be nullptr).
 
-    OtaHandler otaHandler; ///< Handles OTA firmware updates over BLE.
+    CroasterOtaHandler otaHandler; ///< Handles OTA firmware updates over BLE.
 
     unsigned long lastSend = 0; ///< Timestamp of the last data broadcast.
 

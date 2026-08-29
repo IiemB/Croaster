@@ -1,17 +1,17 @@
-#include "WebSocketManager.h"
+#include "CroasterWebSocketManager.h"
 #include <ArduinoJson.h>
-#include "WiFiManagerUtil.h"
-#include "Constants.h"
+#include "CroasterWiFiManager.h"
+#include "CroasterConstants.h"
 
-WebSocketManager::WebSocketManager(CroasterCore &croaster, CommandHandler &commandHandler, DisplayManager &displayManager, uint16_t port) : server(port), croaster(&croaster), commandHandler(&commandHandler), displayManager(&displayManager)
+CroasterWebSocketManager::CroasterWebSocketManager(CroasterCore &croaster, CroasterCommandHandler &commandHandler, CroasterDisplay *display, uint16_t port)
+    : server(port), croaster(&croaster), commandHandler(&commandHandler), display(display)
 {
 }
 
-void WebSocketManager::handleEvent(const String &cmd, uint8_t num)
+void CroasterWebSocketManager::handleEvent(const String &cmd, uint8_t num)
 {
     if (cmd.startsWith("OTA_BEGIN:"))
     {
-
         uint32_t size = cmd.substring(10).toInt();
         otaHandler.begin(size);
 
@@ -24,7 +24,6 @@ void WebSocketManager::handleEvent(const String &cmd, uint8_t num)
 
     if (commandHandler->handle(cmd, response))
     {
-
         if (!response.isEmpty())
             server.sendTXT(num, response);
 
@@ -34,7 +33,7 @@ void WebSocketManager::handleEvent(const String &cmd, uint8_t num)
     }
 }
 
-void WebSocketManager::begin()
+void CroasterWebSocketManager::begin()
 {
     server.begin();
     server.onEvent([this](uint8_t num, WStype_t type, uint8_t *payload, size_t length)
@@ -45,11 +44,12 @@ void WebSocketManager::begin()
 
                 debugln("# WebSocket Client Disconnected " + String(clientConnected));
 
-                if (displayManager->isFirmwareUpdating() || otaHandler.isReceiving())
+                if ((display && display->isFirmwareUpdating()) || otaHandler.isReceiving())
                 {
                     debugln("# [OTA] WebSocket disconnected during OTA - restarting...");
-                    displayManager->updatingStatusToggle(false);
-                    restartESP();
+                    if (display)
+                        display->updatingStatusToggle(false);
+                    CroasterWiFiManager::restart();
                     return;
                 }
 
@@ -62,20 +62,22 @@ void WebSocketManager::begin()
                 break;
             case WStype_TEXT:
                 this->handleEvent(String((char *)payload), num);
-                
+
                 break;
-            case WStype_BIN :
+            case WStype_BIN:
                 if (otaHandler.isReceiving())
                 {
                     String result = otaHandler.handleBinary(payload, length);
 
                     server.sendTXT(num, result);
-                    
+
                     int progress = int((double(otaHandler.getWritten()) / double(otaHandler.getTotal())) * 100.0);
 
-                    displayManager->updatingStatusToggle(true);
-
-                    displayManager->updateFirmwareUpdateProgress(progress);
+                    if (display)
+                    {
+                        display->updatingStatusToggle(true);
+                        display->updateFirmwareUpdateProgress(progress);
+                    }
                 }
 
                 break;
@@ -87,7 +89,7 @@ void WebSocketManager::begin()
     debugln("# WebSocket started");
 }
 
-void WebSocketManager::loop()
+void CroasterWebSocketManager::loop()
 {
     server.loop();
 
@@ -96,14 +98,13 @@ void WebSocketManager::loop()
     otaHandler.handleState();
 }
 
-bool WebSocketManager::isClientConnected() const
+bool CroasterWebSocketManager::isClientConnected() const
 {
     return clientConnected > 0;
 }
 
-void WebSocketManager::broadcastData()
+void CroasterWebSocketManager::broadcastData()
 {
-
     if (!isClientConnected() || otaHandler.isReceiving())
         return;
 

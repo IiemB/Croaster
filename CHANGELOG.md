@@ -5,7 +5,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [0.51] — 2026-06-01 (Current)
+## [0.52] — 2026-08-29 (Current)
+
+### Added
+- **Repository is now a reusable library** (`library.json` / `library.properties` at the repo root) — another project can consume it via `lib_deps = https://github.com/IiemB/Croaster.git`
+- **Reference firmware moved to `examples/reference/`** (own `platformio.ini` with `esp32c3` + `esp8266` envs), consuming the library from `../..` exactly like an external project
+- **`CroasterDisplay` abstract interface** — the library core is display-agnostic; consuming projects implement their own display (the SSD1306 implementation lives in the reference example as `CroasterDisplaySSD1306`). A `nullptr` display is fully supported (headless boards)
+- **`CroasterPinConfig` struct** — pin layout is decoupled from the core and passed to `CroasterCore`; `defaults()` returns the reference ESP8266/ESP32-C3 wiring
+- **Compile-time BLE detection** via `CROASTER_HAS_BLE` (1 on ESP32, 0 elsewhere) in `CroasterConstants.h` — `CroasterBleManager` is only compiled when the board has BLE
+- `SmoothThermocoupleFix.cpp` added to the library (fixes the MAX6675_Thermocouple v2.0.2 link error for all build types)
+
+### Changed
+- All classes renamed with the `Croaster` prefix: `BleManager` → `CroasterBleManager`, `CommandHandler` → `CroasterCommandHandler`, `WebSocketManager` → `CroasterWebSocketManager`, `OtaHandler` → `CroasterOtaHandler`, `WiFiManagerUtil` → `CroasterWiFiManager` (class with static methods), `DeviceIdentity` → `CroasterDeviceIdentity`, `DisplayManager` → `CroasterDisplay` (interface) / `CroasterDisplaySSD1306` (reference impl), `DisplayAnimation` → `CroasterDisplayAnimation`
+- `Constants.h` → `CroasterConstants.h`, `PinConfig.h` → `CroasterPinConfig.h`
+- `LED_ON`/`LED_OFF` now default in `CroasterConstants.h` (guarded so boards can override via build flags); removed the redundant `-D LED_ON` build flag
+- `CroasterWiFiManager::restart()/erase()` replace the old `restartESP()/eraseESP()` helpers
+
+---
+
+## [0.51] — 2026-06-01
 
 ### Changed
 - Refactored OTA handling to return a JSON progress string directly while simplifying internal state management
