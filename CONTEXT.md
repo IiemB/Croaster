@@ -45,10 +45,11 @@ Flutter app (remote `git@github.com:IiemB/Croaster.git`) and is consumed via
 - Firmware version bumped to `0.62`; `build_all.sh` now emits
   `builds/Croaster_<board>_<version>.bin` (version read from
   `src/CroasterConstants.h`).
-- (Fill in: current HEAD / clean-or-pending after each commit.)
+- HEAD = `2ef81f0` (version bump + build output rename), pushed to
+  `origin/decoupling` (upstream tracking set). Working tree clean apart from
+  pre-existing untracked `implementation/*/.vscode/` + `.gitignore`.
 
 ## Next steps
-- Push `decoupling` to origin.
 - Flash + verify the esp32s3 build on real hardware (touch, chart swipe,
   dark mode, OTA over BLE/WebSocket).
 - Confirm `boardName()` strings against the ICRM app's `CroasterBoardTypes`.
