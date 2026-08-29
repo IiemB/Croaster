@@ -149,29 +149,18 @@ Ini menerapkan offset `+1.5°` pada BT dan offset `-0.5°` pada ET. Koreksi dite
 
 ### Metode build mana yang sebaiknya saya gunakan?
 
-| Skenario | Metode yang Direkomendasikan |
-|:---|:---|
-| ESP8266 | PlatformIO atau Arduino IDE |
-| ESP32C3 (dengan dukungan OTA) | Arduino IDE dengan partisi Custom SuperMini |
-| ESP32C3 (tanpa OTA, ukuran sketch maksimal) | Arduino IDE dengan partisi Huge APP |
+**PlatformIO adalah satu-satunya alur kerja yang didukung** (Arduino IDE tidak digunakan). Setiap board memiliki folder implementasi sendiri:
 
----
-
-### Mengapa saya tidak bisa menggunakan PlatformIO untuk ESP32C3 Super Mini?
-
-Definisi board **Makergo ESP32C3 SuperMini** tidak tersedia secara resmi di registry board PlatformIO. Anda dapat menambahkannya secara manual menggunakan konfigurasi komunitas dari [repositori ini](https://github.com/sigmdel/supermini_esp32c3_sketches.git), namun metode yang didukung secara resmi adalah menggunakan **Arduino IDE** dengan paket board Makergo.
-
----
-
-### Apa itu `copy_to_ino.sh`?
-
-Ini adalah shell script yang menyalin file sumber dari implementasi ESP32-C3 (`implementation/esp32c3/src/`, struktur PlatformIO) plus library (`src/`) ke folder `croaster-arduino/` dengan konvensi penamaan sketch Arduino yang benar. Jalankan sebelum membuka project di Arduino IDE.
+| Board | Folder | Perintah |
+|:---|:---|:---|
+| ESP8266 (NodeMCU / ESP-12E) | `implementation/esp8266/` | `pio run -e esp8266 -t upload` |
+| ESP32-C3 Super Mini | `implementation/esp32c3/` | `pio run -e esp32c3 -t upload` |
 
 ---
 
 ### Apa itu file `custom32c3sm.csv`?
 
-Ini adalah **tabel partisi kustom** untuk ESP32C3 Super Mini. Tata letak partisi ini mengalokasikan lebih banyak penyimpanan untuk aplikasi (`1900544` byte) sekaligus menyisihkan ruang untuk update OTA. Tanpanya, update OTA tidak dapat berjalan berdampingan dengan binary firmware yang besar. Lihat [references.md](references.md) untuk langkah instalasi.
+Ini adalah **tabel partisi kustom** untuk ESP32C3 Super Mini. Tata letak partisi ini mengalokasikan lebih banyak penyimpanan untuk aplikasi (`1900544` byte) sekaligus menyisihkan ruang untuk update OTA. Tanpanya, update OTA tidak dapat berjalan berdampingan dengan binary firmware yang besar. File ini berada di akar repositori dan dirujuk oleh `implementation/esp32c3/platformio.ini` (`board_build.partitions = ../../custom32c3sm.csv`).
 
 ---
 
@@ -188,7 +177,7 @@ Gunakan **aplikasi ICRM** di Android. Aplikasi mendukung OTA melalui WiFi (WebSo
 
 ### OTA tidak bekerja di ESP32C3 saya. Mengapa?
 
-Alasan paling umum adalah Anda menggunakan skema partisi **Huge APP**, yang tidak menyisihkan ruang untuk OTA. Ganti ke partisi **Custom SuperMini** seperti yang dijelaskan di [references.md](references.md). Setelah flash ulang dengan partisi yang benar, OTA akan berfungsi.
+Alasan paling umum adalah skema partisi tidak menyisihkan ruang untuk OTA. Implementasi ESP32-C3 menggunakan partisi kustom `custom32c3sm.csv` (diatur di `platformio.ini`), yang menyisihkan slot OTA. Flash ulang dengan partisi tersebut dan OTA akan berfungsi.
 
 ---
 

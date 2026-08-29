@@ -8,11 +8,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [0.52] — 2026-08-29 (Current)
 
 ### Added
-- **Repository is now a reusable library** (`library.json` / `library.properties` at the repo root) — another project can consume it via `lib_deps = https://github.com/IiemB/Croaster.git`
+- **Repository is now a reusable library** (`library.json` at the repo root) — another project can consume it via `lib_deps = https://github.com/IiemB/Croaster.git`
 - **`examples/` renamed to `implementation/<board>/`** — per-board implementations (`implementation/esp32c3/`, `implementation/esp8266/`), each consuming the library from `../..` exactly like an external project
 - **Shared SSD1306 display in `implementation/common/`** — both the `esp32c3` and `esp8266` implementations reference the same display/ animation (no duplicated data); the ESP8266 (NodeMCU / ESP-12E) implementation was restored as `implementation/esp8266/`
 - **`CroasterDisplay` abstract interface** — the library core is display-agnostic; consuming projects implement their own display (the SSD1306 implementation lives in the reference example as `CroasterDisplaySSD1306`). A `nullptr` display is fully supported (headless boards)
-- **`CroasterPinConfig` struct** — pin layout is decoupled from the core and passed to `CroasterCore`; `defaults()` returns the reference ESP8266/ESP32-C3 wiring
+- **`CroasterPinConfig` struct** — pin layout is decoupled from the core and passed to `CroasterCore`; each implementation provides its own pins in `config.h`
 - **`CroasterApp` single `begin()`/`loop()` entry point** — lives in the library (`src/CroasterApp.h/.cpp`); the sketch is reduced to `app.begin()` / `app.loop()`
 - **`CroasterApp` is display-agnostic** — it takes `CroasterCore&` + `CroasterDisplay*` (+ LED pin/level); the display type is defined in the implementation (`main.cpp`)
 - **Custom command registration** — `CroasterCommandHandler::onCommand()` / `onJsonCommand()` let an implementation add commands without touching the library
@@ -23,7 +23,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - All classes renamed with the `Croaster` prefix: `BleManager` → `CroasterBleManager`, `CommandHandler` → `CroasterCommandHandler`, `WebSocketManager` → `CroasterWebSocketManager`, `OtaHandler` → `CroasterOtaHandler`, `WiFiManagerUtil` → `CroasterWiFiManager` (class with static methods), `DeviceIdentity` → `CroasterDeviceIdentity`, `DisplayManager` → `CroasterDisplay` (interface) / `CroasterDisplaySSD1306` (reference impl), `DisplayAnimation` → `CroasterDisplayAnimation`
 - `Constants.h` → `CroasterConstants.h`, `PinConfig.h` → `CroasterPinConfig.h`
 - `LED_ON`/`LED_OFF` macros removed from `CroasterConstants.h`; `CroasterCommandHandler` now takes `ledPin`/`ledOnLevel` per-instance (supplied by the implementation); removed the redundant `-D LED_ON` build flag
-- `CroasterApp` moved from the implementation into the library core (`src/CroasterApp.h/.cpp`); registered in `library.json`/`library.properties`
+- `CroasterApp` moved from the implementation into the library core (`src/CroasterApp.h/.cpp`); registered in `library.json`
+- **Arduino IDE support removed** — PlatformIO is the only workflow; deleted `copy_to_ino.sh`, `library.properties`, `setup_custom_partition_macos.sh` and `references.md`
+- Removed `CroasterPinConfig::defaults()` — `CroasterCore` now requires an explicit `CroasterPinConfig` (no library pin defaults)
 - Pin and dummy-mode configuration moved to the implementation (`implementation/esp32c3/src/config.h`); the `dummyMode` global was removed from `CroasterConstants.h`
 - Display constants (`SCREEN_WIDTH`/`SCREEN_HEIGHT`/`OLED_RESET`) moved to `CroasterDisplaySSD1306.h`; LED pin/polarity moved to the implementation's `config.h` (`ledPin`/`ledOnLevel`) — `CroasterConstants.h` no longer defines display/LED config
 - `CroasterWiFiManager::restart()/erase()` replace the old `restartESP()/eraseESP()` helpers

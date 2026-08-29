@@ -20,7 +20,7 @@
   - [📦 Library \& Dependensi](#-library--dependensi)
   - [🔧 Cara Build dan Upload](#-cara-build-dan-upload)
     - [✅ PlatformIO (direkomendasikan untuk ESP8266 \& ESP32C3)](#-platformio-direkomendasikan-untuk-esp8266--esp32c3)
-    - [✅ Arduino IDE (alternatif, diperlukan untuk board Makergo ESP32C3)](#-arduino-ide-alternatif-diperlukan-untuk-board-makergo-esp32c3)
+    - [✅ PlatformIO](#-platformio)
   - [🔗 Panduan Setup WiFi](#-panduan-setup-wifi)
   - [📡 Gambaran Komunikasi](#-gambaran-komunikasi)
     - [WebSocket (WiFi)](#websocket-wifi)
@@ -172,7 +172,7 @@ Sensor MAX6675 → CroasterCore (baca + halus + RoR)
 
 ## 🔧 Cara Build dan Upload
 
-### ✅ PlatformIO (direkomendasikan untuk ESP8266 & ESP32C3)
+> PlatformIO adalah satu-satunya alur kerja yang didukung (Arduino IDE tidak lagi digunakan).
 
 Akar repositori adalah **library yang dapat digunakan ulang**. Setiap board memiliki folder implementasi sendiri — build dan upload dari folder tersebut:
 
@@ -195,11 +195,11 @@ Akar repositori adalah **library yang dapat digunakan ulang**. Setiap board memi
    pio run -e esp8266 -t upload
    ```
 
-> **Catatan:** ESP32C3 Super Mini menggunakan skema partisi kustom (`custom32c3sm.csv`) untuk memaksimalkan penyimpanan aplikasi. Lihat [references.md](references.md) untuk detail setup.
+> **Catatan:** ESP32C3 Super Mini menggunakan skema partisi kustom (`custom32c3sm.csv`, di akar repositori) untuk memaksimalkan penyimpanan aplikasi (slot aplikasi 1,9 MB, mendukung OTA).
 
 ### 📦 Menggunakan Croaster sebagai library di proyek Anda
 
-Akar repositori adalah library PlatformIO/Arduino standar. Tambahkan ke `platformio.ini` proyek lain:
+Akar repositori adalah library PlatformIO standar. Tambahkan ke `platformio.ini` proyek lain:
 
 ```ini
 [env:board_anda]
@@ -258,30 +258,6 @@ CroasterBleManager ble(croaster, commands, &display);
 - **Perintah kustom** — tambahkan perintah tanpa menyentuh library:
   `app.commands().onCommand("ping", ...)` untuk perintah string dan
   `app.commands().onJsonCommand("myKey", ...)` untuk perintah JSON bersarang.
-
-### ✅ Arduino IDE (alternatif, diperlukan untuk board Makergo ESP32C3)
-
-> Arduino IDE diperlukan jika Anda menggunakan definisi board **Makergo ESP32C3 SuperMini**, yang belum sepenuhnya didukung oleh PlatformIO.
-
-1. Jalankan skrip konversi untuk menyalin file sumber ke folder sketch Arduino:
-
-   ```bash
-   ./copy_to_ino.sh
-   ```
-
-2. Buka folder `croaster-arduino/` di **Arduino IDE 2.x**
-3. Pilih board Anda:
-   - **ESP8266** → `NodeMCU 1.0 (ESP-12E Module)`
-   - **ESP32C3** → `Makergo ESP32C3 SuperMini`
-4. Untuk **ESP32C3**, pilih skema partisi:
-   - Gunakan `Huge APP` untuk ukuran sketch maksimum (OTA tidak didukung)
-   - Gunakan `Custom SuperMini` untuk mendukung OTA (lihat [references.md](references.md) untuk setup)
-
-   > [!NOTE]
-   > Partisi `Huge APP` **tidak** mendukung OTA via Aplikasi ICRM. Untuk mengaktifkan OTA, ikuti langkah partisi kustom di [references.md](references.md).
-
-5. Install semua library yang diperlukan via Arduino Library Manager (lihat [Library & Dependensi](#-library--dependensi))
-6. Upload via `Sketch → Upload`
 
 ---
 
@@ -355,7 +331,7 @@ Croaster mendukung pembaruan firmware tanpa kabel USB, melalui **aplikasi ICRM**
 - OTA ditangani oleh kelas `CroasterOtaHandler`, yang menerima data firmware biner secara bertahap dan mengembalikan payload JSON progres setelah setiap potongan
 - Kemajuan update ditampilkan di layar OLED selama proses berlangsung
 - OTA via BLE dilengkapi pemeriksaan timeout untuk menangani transfer yang terhenti
-- OTA memerlukan **skema partisi kustom** (`custom32c3sm`) pada ESP32C3 — partisi `Huge APP` **tidak** mendukung OTA
+- OTA memerlukan **skema partisi kustom** (`custom32c3sm`) pada ESP32C3
 - Setelah update OTA berhasil, Croaster restart otomatis
 
 ---
@@ -413,5 +389,4 @@ Pull request, laporan bug, dan permintaan fitur sangat disambut! Jangan ragu unt
 - [Aplikasi ICRM](https://iiemb.github.io/#/icrm) — aplikasi Android pendamping untuk Croaster
 - [Artisan Roaster Scope](https://artisan-scope.org/) — logger sangrai kopi open-source
 - [Video Setup WiFi](https://www.youtube.com/watch?v=esNiudoCEcU&t=434s) — panduan visual singkat
-- [Referensi & Setup Lanjutan](references.md) — partisi kustom, OTA, tips PlatformIO
 - [FAQ (Bahasa Indonesia)](FAQ_ID.md) — pertanyaan yang sering diajukan

@@ -20,7 +20,7 @@
   - [📦 Libraries \& Dependencies](#-libraries--dependencies)
   - [🔧 How to Build and Upload](#-how-to-build-and-upload)
     - [✅ PlatformIO (recommended for ESP8266 \& ESP32C3)](#-platformio-recommended-for-esp8266--esp32c3)
-    - [✅ Arduino IDE (alternative, required for Makergo ESP32C3 board)](#-arduino-ide-alternative-required-for-makergo-esp32c3-board)
+    - [✅ PlatformIO](#-platformio)
   - [🔗 WiFi Setup Guide](#-wifi-setup-guide)
   - [📡 Communication Overview](#-communication-overview)
     - [WebSocket (WiFi)](#websocket-wifi)
@@ -171,7 +171,7 @@ MAX6675 Sensors → CroasterCore (read + smooth + RoR)
 
 ## 🔧 How to Build and Upload
 
-### ✅ PlatformIO (recommended for ESP8266 & ESP32C3)
+> PlatformIO is the only supported workflow (Arduino IDE is not used anymore).
 
 The repository root is a **reusable library**. Each board has its own
 implementation folder — build and upload from there:
@@ -195,11 +195,11 @@ implementation folder — build and upload from there:
    pio run -e esp8266 -t upload
    ```
 
-> **Note:** ESP32C3 Super Mini uses a custom partition scheme (`custom32c3sm.csv`) to maximize app storage. See [references.md](references.md) for setup details.
+> **Note:** ESP32C3 Super Mini uses a custom partition scheme (`custom32c3sm.csv`, at the repo root) to maximize app storage (1.9 MB app slot, OTA-capable).
 
 ### 📦 Using Croaster as a library in your own project
 
-The repository root is a standard PlatformIO/Arduino library. Add it to another
+The repository root is a standard PlatformIO library. Add it to another
 project's `platformio.ini`:
 
 ```ini
@@ -262,30 +262,6 @@ CroasterBleManager ble(croaster, commands, &display);
 - **Custom commands** — add commands without touching the library:
   `app.commands().onCommand("ping", ...)` for string commands and
   `app.commands().onJsonCommand("myKey", ...)` for nested JSON commands.
-
-### ✅ Arduino IDE (alternative, required for Makergo ESP32C3 board)
-
-> Arduino IDE is required if you use the **Makergo ESP32C3 SuperMini** board definition, which is not yet fully supported by PlatformIO.
-
-1. Run the conversion script to copy source files into the Arduino sketch folder:
-
-   ```bash
-   ./copy_to_ino.sh
-   ```
-
-2. Open the `croaster-arduino/` folder in **Arduino IDE 2.x**
-3. Select your board:
-   - **ESP8266** → `NodeMCU 1.0 (ESP-12E Module)`
-   - **ESP32C3** → `Makergo ESP32C3 SuperMini`
-4. For **ESP32C3**, select the partition scheme:
-   - Use `Huge APP` for maximum sketch size (OTA not supported)
-   - Use `Custom SuperMini` for OTA support (see [references.md](references.md) for setup)
-
-   > [!NOTE]
-   > The `Huge APP` partition does **not** support OTA via the ICRM App. To enable OTA, follow the custom partition steps in [references.md](references.md).
-
-5. Install all required libraries via Arduino Library Manager (see [Libraries & Dependencies](#-libraries--dependencies))
-6. Upload via `Sketch → Upload`
 
 ---
 
@@ -359,7 +335,7 @@ Croaster supports firmware updates without a USB cable, via the **ICRM app** ove
 - OTA is handled by the `CroasterOtaHandler` class, which receives binary firmware data in chunks and returns a JSON progress payload after each chunk
 - Progress is shown on the OLED display during the update
 - BLE OTA includes timeout checks to handle stalled transfers
-- OTA requires the **custom partition scheme** (`custom32c3sm`) on ESP32C3 — the `Huge APP` partition does **not** support OTA
+- OTA requires the **custom partition scheme** (`custom32c3sm`) on ESP32C3
 - After a successful OTA update, Croaster restarts automatically
 
 ---
@@ -417,5 +393,4 @@ Pull requests, bug reports, and feature requests are welcome! Feel free to open 
 - [ICRM App](https://iiemb.github.io/#/icrm) — companion Android app for Croaster
 - [Artisan Roaster Scope](https://artisan-scope.org/) — open-source coffee roasting logger
 - [WiFi Setup Video](https://www.youtube.com/watch?v=esNiudoCEcU&t=434s) — quick visual guide
-- [References & Advanced Setup](references.md) — custom partitions, OTA, PlatformIO tips
 - [FAQ](FAQ.md) — frequently asked questions

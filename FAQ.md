@@ -149,29 +149,19 @@ This applies a `+1.5°` offset to BT and a `-0.5°` offset to ET. The correction
 
 ### Which build method should I use?
 
-| Scenario | Recommended Method |
-|:---|:---|
-| ESP8266 | PlatformIO or Arduino IDE |
-| ESP32C3 (with OTA support) | Arduino IDE with Custom SuperMini partition |
-| ESP32C3 (without OTA, max sketch size) | Arduino IDE with Huge APP partition |
+**PlatformIO is the only supported workflow** (Arduino IDE is not used). Each
+board has its own implementation folder:
 
----
-
-### Why can't I use PlatformIO for the ESP32C3 Super Mini?
-
-The **Makergo ESP32C3 SuperMini** board definition is not officially available in the PlatformIO board registry. You can add it manually using the community config from [this repository](https://github.com/sigmdel/supermini_esp32c3_sketches.git), but the officially supported method is to use **Arduino IDE** with the Makergo board package.
-
----
-
-### What is `copy_to_ino.sh`?
-
-This is a shell script that copies the source files from the ESP32-C3 implementation (`implementation/esp32c3/src/`, PlatformIO structure) plus the library (`src/`) into the `croaster-arduino/` folder with the correct Arduino sketch naming convention. Run it before opening the project in Arduino IDE.
+| Board | Folder | Command |
+|:---|:---|:---|
+| ESP8266 (NodeMCU / ESP-12E) | `implementation/esp8266/` | `pio run -e esp8266 -t upload` |
+| ESP32-C3 Super Mini | `implementation/esp32c3/` | `pio run -e esp32c3 -t upload` |
 
 ---
 
 ### What is the `custom32c3sm.csv` file?
 
-It is a **custom partition table** for the ESP32C3 Super Mini. This partition layout allocates more storage for the application (`1900544` bytes) while still reserving space for OTA updates. Without it, OTA updates cannot coexist with a large firmware binary. See [references.md](references.md) for installation steps.
+It is a **custom partition table** for the ESP32C3 Super Mini. This partition layout allocates more storage for the application (`1900544` bytes) while still reserving space for OTA updates. Without it, OTA updates cannot coexist with a large firmware binary. It lives at the repo root and is referenced by `implementation/esp32c3/platformio.ini` (`board_build.partitions = ../../custom32c3sm.csv`).
 
 ---
 
@@ -188,7 +178,7 @@ Use the **ICRM app** on Android. The app supports OTA over both WiFi (WebSocket)
 
 ### OTA doesn't work on my ESP32C3. Why?
 
-The most common reason is that you are using the **Huge APP** partition scheme, which does not reserve space for OTA. Switch to the **Custom SuperMini** partition as described in [references.md](references.md). After re-flashing with the correct partition, OTA will work.
+The most common reason is that the partition scheme does not reserve space for OTA. The ESP32-C3 implementation uses the custom `custom32c3sm.csv` partition (set in `platformio.ini`), which reserves an OTA slot. Re-flash with that partition and OTA will work.
 
 ---
 

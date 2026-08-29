@@ -73,10 +73,10 @@ public:
     /**
      * @brief Constructs a CroasterCore instance.
      * @param dummyMode If true, uses dummy data instead of real sensor data.
-     * @param pins The thermocouple pin layout for the target board (defaults to
-     *             the reference ESP8266 / ESP32-C3 layout).
+     * @param pins The thermocouple pin layout for the target board (provided by
+     *             the implementation's config.h — there is no library default).
      */
-    CroasterCore(bool dummyMode = false, CroasterPinConfig pins = CroasterPinConfig::defaults());
+    CroasterCore(bool dummyMode, CroasterPinConfig pins);
 
     /**
      * @brief Main loop for handling sensor updates and data processing.
