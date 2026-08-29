@@ -21,7 +21,7 @@ OUT="$ROOT/builds"
 
 # Firmware version — read from the library core so the output filename stays
 # in sync with croaster/src/CroasterConstants.h ("constexpr double version = X.Y;").
-VERSION="$(sed -n 's/^constexpr double version = \([0-9.]*\);\1/p' "$ROOT/croaster/src/CroasterConstants.h")"
+VERSION="$(sed -n 's/^constexpr double version = \([0-9.]*\);/\1/p' "$ROOT/croaster/src/CroasterConstants.h")"
 if [ -z "$VERSION" ]; then
     echo "error: could not read version from croaster/src/CroasterConstants.h" >&2
     exit 1

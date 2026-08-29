@@ -41,10 +41,10 @@ describes.
   `build_type = release`, and the `<board>-debug` env `extends` it.
 - PlatformIO is **not on PATH** on macOS — the script uses
   `~/.platformio/penv/bin/pio`; set `PIO=...` to override.
-- ⚠️ **Gotcha:** boards consume the library from `../../croaster`; PlatformIO
-  snapshots it into `.pio/libdeps/<env>/Croaster/`. **Delete `.pio/libdeps`**
-  after editing `croaster/src/` library code, or the build silently uses the
-  stale copy.
+- Boards consume the library via **`symlink://`** lib_deps
+  (`Croaster=symlink://../../croaster`, `CroasterDisplaySSD1306=symlink://../common`);
+  PlatformIO links the live sources into `.pio/libdeps/<env>/`, so edits to
+  `croaster/src/` are picked up with no `.pio/libdeps` clearing.
 - Each board hardcodes its id via `CroasterDeviceIdentity::setBoardName("...")`
   in its `main.cpp` (read by
   `CroasterDeviceIdentity::boardName()`; reported to the app as `board`).

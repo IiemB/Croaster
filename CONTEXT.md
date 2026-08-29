@@ -71,7 +71,9 @@ Flutter app (remote `git@github.com:IiemB/Croaster.git`) and is consumed via
 
 ## Gotchas
 - PlatformIO not on PATH → `~/.platformio/penv/bin/pio` or `PIO=`.
-- **Delete `.pio/libdeps`** after editing `croaster/src/` library code (stale snapshot).
+- Libs are **live-linked** via `symlink://` lib_deps
+  (`Croaster=symlink://../../croaster`, `CroasterDisplaySSD1306=symlink://../common`)
+  — editing `croaster/src/` needs no `.pio/libdeps` cleanup.
 - ESP32-C3: WiFiManager AP can fail to broadcast under the PIO core (2.0.17) —
   fixed via DIO flash mode + `WiFi.setTxPower(WIFI_POWER_18_5dBm)` in the
   configMode callback (see `boards/esp32c3/` notes).
