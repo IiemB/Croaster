@@ -45,9 +45,16 @@ public:
     /**
      * @brief Identifies the board this firmware is running on.
      * @return A machine-friendly board id (e.g. "esp32c3", "esp32s3",
-     *         "esp8266") matching the app's CroasterBoardTypes enum. Each
-     *         implementation defines it via the CROASTER_BOARD_NAME build
-     *         flag; defaults to "unknown" when not defined.
+     *         "esp8266") matching the app's CroasterBoardTypes enum. Set by
+     *         the implementation at startup via setBoardName(); defaults to
+     *         "unknown" until then.
      */
     static String boardName();
+
+    /**
+     * @brief Sets the board id reported by boardName().
+     * @param name A machine-friendly board id (e.g. "esp32s3"), hardcoded by
+     *             each implementation in its own main.cpp (no build flag).
+     */
+    static void setBoardName(const String &name);
 };

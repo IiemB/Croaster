@@ -10,6 +10,9 @@
 // Single entry-point application wrapper (begin()/loop() only).
 #include <CroasterApp.h>
 
+// Board id reported to the app (getDeviceInfo "board") — hardcoded here.
+#include <CroasterDeviceIdentity.h>
+
 // Board wiring: the core and the display are created here so CroasterApp never
 // needs to know the display specification.
 CroasterCore core(dummyMode, pins);
@@ -31,27 +34,13 @@ CroasterApp app(core, &display, ledPin, ledOnLevel);
 // ---------------------------------------------------------------------------
 void registerCustomCommands()
 {
-    // {"command":{"brightness":80}} -> set backlight, echo the new value
-    app.commands().onJsonCommand("brightness", [](const JsonObject &json) -> String
-                                 {
-        int value = json["brightness"].as<int>();
-        if (value < 0)
-            value = 0;
-        if (value > 100)
-            value = 100;
-        display.setBrightness(value);
-        return "{\"brightness\": " + String(value) + "}"; });
-
-    // {"command":{"darkMode":true}} -> switch theme, echo the new state
-    app.commands().onJsonCommand("darkMode", [](const JsonObject &json) -> String
-                                 {
-        bool dark = json["darkMode"].as<bool>();
-        display.setDarkMode(dark);
-        return "{\"darkMode\": " + String(dark ? "true" : "false") + "}"; });
 }
 
 void setup()
 {
+    // Hardcode this board's id (matches the app's CroasterBoardTypes enum).
+    CroasterDeviceIdentity::setBoardName("esp32s3");
+
     registerCustomCommands();
     app.begin();
 

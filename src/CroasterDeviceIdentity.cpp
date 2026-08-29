@@ -5,6 +5,14 @@
 #include <ESP8266WiFi.h>
 #endif
 
+namespace
+{
+    // Board id reported by boardName(). Each implementation hardcodes its own
+    // value at startup via setBoardName() (e.g. "esp32s3") in its own main.cpp,
+    // so the shared library core stays generic. Defaults to "unknown" until set.
+    String s_boardName = "unknown";
+} // namespace
+
 String CroasterDeviceIdentity::uniqueChipId()
 {
 #if defined(ESP32)
@@ -47,11 +55,10 @@ String CroasterDeviceIdentity::ssidName()
 
 String CroasterDeviceIdentity::boardName()
 {
-#ifdef CROASTER_BOARD_NAME
-    // Defined per implementation (platformio.ini build flag), e.g. "esp32s3",
-    // "esp32c3", "esp8266" — matches the app's CroasterBoardTypes enum.
-    return CROASTER_BOARD_NAME;
-#else
-    return "unknown";
-#endif
+    return s_boardName;
+}
+
+void CroasterDeviceIdentity::setBoardName(const String &name)
+{
+    s_boardName = name;
 }

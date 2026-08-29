@@ -39,10 +39,11 @@ describes.
 - ⚠️ **Gotcha:** implementations consume the library from `../..`; PlatformIO
   snapshots it into `.pio/libdeps/<env>/Croaster/`. **Delete `.pio/libdeps`**
   after editing `src/` library code, or the build silently uses the stale copy.
-- Each implementation defines its board id via the `-DCROASTER_BOARD_NAME=`
-  build flag in its `platformio.ini` (read by
-  `CroasterDeviceIdentity::boardName()`). There are **no board-specific
-  compile-time guards** — each board builds its own folder unconditionally.
+- Each implementation hardcodes its board id via
+  `CroasterDeviceIdentity::setBoardName("...")` in its `main.cpp` (read by
+  `CroasterDeviceIdentity::boardName()`; reported to the app as `board`).
+  There are **no board-specific compile-time guards** — each board builds its
+  own folder unconditionally.
 
 ## Conventions
 - Board config lives in the implementation (`config.h`, `pins.h`,

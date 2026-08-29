@@ -14,6 +14,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   sync with the firmware version
 - **Firmware version bumped to `0.62`** — `src/CroasterConstants.h`,
   `library.json`, `implementation/common/library.json`
+- **Board id hardcoded per implementation** — `boardName()` no longer reads a
+  `-DCROASTER_BOARD_NAME` build flag; each implementation calls
+  `CroasterDeviceIdentity::setBoardName("esp32s3")` in its `main.cpp`
+  (defaults to `unknown` until set)
 
 ---
 

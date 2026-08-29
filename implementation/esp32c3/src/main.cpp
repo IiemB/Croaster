@@ -10,6 +10,9 @@
 // Single entry-point application wrapper (begin()/loop() only).
 #include <CroasterApp.h>
 
+// Board id reported to the app (getDeviceInfo "board") — hardcoded here.
+#include <CroasterDeviceIdentity.h>
+
 // Board wiring: the core and the display are created here so CroasterApp never
 // needs to know the display specification.
 CroasterCore core(dummyMode, pins);
@@ -28,17 +31,13 @@ CroasterApp app(core, &display, ledPin, ledOnLevel);
 // ---------------------------------------------------------------------------
 void registerCustomCommands()
 {
-    // Basic command: {"command":"ping"} -> {"pong":true}
-    app.commands().onCommand("ping", [](const JsonObject &json) -> String
-                             { return "{\"pong\": true}"; });
-
-    // Nested JSON command: {"command":{"mySetting":42}} -> {"mySetting":42}
-    app.commands().onJsonCommand("mySetting", [](const JsonObject &json) -> String
-                                 { return "{\"mySetting\": " + String(json["mySetting"].as<int>()) + "}"; });
 }
 
 void setup()
 {
+    // Hardcode this board's id (matches the app's CroasterBoardTypes enum).
+    CroasterDeviceIdentity::setBoardName("esp32c3");
+
     registerCustomCommands();
     app.begin();
 }

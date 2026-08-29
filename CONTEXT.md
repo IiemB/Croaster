@@ -29,9 +29,10 @@ Flutter app (remote `git@github.com:IiemB/Croaster.git`) and is consumed via
   (e.g. `CroasterDisplaySSD1306` / `CroasterDisplayS3`), and
   `CroasterApp app(core, &display, ledPin, ledOnLevel)`, then calls
   `app.begin()` / `app.loop()`.
-- Board id is a build flag — `-DCROASTER_BOARD_NAME="esp32s3"` etc. — read by
-  `CroasterDeviceIdentity::boardName()` (no compile-time board guards; defaults
-  to `unknown`).
+- Board id is hardcoded per implementation via
+  `CroasterDeviceIdentity::setBoardName("esp32s3")` in its `main.cpp`, read
+  by `CroasterDeviceIdentity::boardName()` (no compile-time board guards;
+  defaults to `unknown` until set).
 - Library features added in 0.52: roast timer (`CroasterCore::roastTimerStart/
   Pause/Reset`), `getDeviceInfo` now reports `board`/`darkMode`/`brightness`
   (display state via `CroasterDisplay::isDarkMode()/getBrightness()`), and a

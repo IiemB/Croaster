@@ -87,7 +87,7 @@ distinguished by their individual **CS** pins. All components run on **3.3V**.
 | `src/config.h` | Dummy mode, thermocouple pins (`pins = {2, 3, 14, 21}`), LED |
 | `src/pins.h` | LCD + touch pin layout (used by `LvglUi` / `LvglTouch`) |
 | `src/ui/` | LVGL UI (`LvglUi.*`), touch (`LvglTouch.*`) and `lv_conf.h` |
-| `platformio.ini` | Env `esp32s3`; board id `-DCROASTER_BOARD_NAME="esp32s3"` |
+| `platformio.ini` | Env `esp32s3`; board id `CroasterDeviceIdentity::setBoardName("esp32s3")` in `src/main.cpp` |
 | `esp32s3-sdkconfig.defaults` | ESP-IDF Kconfig overrides (mbedTLS, NimBLE) |
 
 ---
