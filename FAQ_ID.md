@@ -165,7 +165,7 @@ Definisi board **Makergo ESP32C3 SuperMini** tidak tersedia secara resmi di regi
 
 ### Apa itu `copy_to_ino.sh`?
 
-Ini adalah shell script yang menyalin file sumber dari firmware referensi (`examples/reference/src/`, struktur PlatformIO) plus library (`src/`) ke folder `croaster-arduino/` dengan konvensi penamaan sketch Arduino yang benar. Jalankan sebelum membuka project di Arduino IDE.
+Ini adalah shell script yang menyalin file sumber dari implementasi referensi (`implementation/reference/src/`, struktur PlatformIO) plus library (`src/`) ke folder `croaster-arduino/` dengan konvensi penamaan sketch Arduino yang benar. Jalankan sebelum membuka project di Arduino IDE.
 
 ---
 
@@ -202,7 +202,7 @@ OTA via WiFi (WebSocket) menggunakan aplikasi ICRM didukung di ESP8266, selama A
 
 ### Bagaimana cara menguji Croaster tanpa sensor fisik?
 
-Atur `dummyMode = true` di `CroasterConstants.h`:
+Atur `dummyMode = true` di `implementation/reference/src/config.h`:
 ```cpp
 const bool dummyMode = true;
 ```
@@ -212,21 +212,24 @@ Dalam mode ini, Croaster menghasilkan data suhu simulasi, sehingga Anda dapat me
 
 ### Bagaimana cara menambahkan perintah kustom?
 
-Untuk **perintah dasar (string)**, tambahkan cabang `else if` baru di dalam `handleBasicCommand` di `CroasterCommandHandler.cpp`:
+Perintah kustom didaftarkan di `main.cpp` implementasi Anda — **tanpa perlu
+mengubah library**. Callback mengembalikan string respons (kosong = tanpa respons):
+
+Untuk **perintah dasar (string)**, gunakan `onCommand`:
 ```cpp
-else if (command == "perintahsaya") {
-    // logika Anda di sini
-    responseOut = "{\"status\": \"ok\"}";
-}
+app.commands().onCommand("perintahsaya", [](const JsonObject &json) -> String {
+    return "{\"status\": \"ok\"}";
+});
 ```
 Kirim sebagai: `{"command": "perintahsaya"}`
 
-Untuk **perintah konfigurasi** (format key-value), tambahkan kondisi baru di dalam `handleJsonCommand`:
+Untuk **perintah konfigurasi** (format key-value), gunakan `onJsonCommand`:
 ```cpp
-if (json["kuncisaya"].is<String>()) {
+app.commands().onJsonCommand("kuncisaya", [](const JsonObject &json) -> String {
     String nilai = json["kuncisaya"].as<String>();
     // logika Anda di sini
-}
+    return "";
+});
 ```
 Kirim sebagai: `{"command": {"kuncisaya": "nilaitertentu"}}`
 
@@ -253,7 +256,7 @@ Croaster mengirimkan payload JSON melalui WebSocket dan BLE di setiap interval. 
 ### Layar OLED kosong atau menampilkan karakter tidak jelas.
 
 - Verifikasi bahwa kabel SDA/SCL tidak tertukar.
-- Konfirmasi alamat I2C. SSD1306 biasanya menggunakan `0x3C`. Jika milik Anda menggunakan `0x3D`, perbarui `CroasterDisplaySSD1306.cpp` di `examples/reference/src/`.
+- Konfirmasi alamat I2C. SSD1306 biasanya menggunakan `0x3C`. Jika milik Anda menggunakan `0x3D`, perbarui `CroasterDisplaySSD1306.cpp` di `implementation/reference/src/`.
 - Periksa suplai 3.3V ke layar.
 
 ---

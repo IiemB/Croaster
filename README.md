@@ -105,7 +105,7 @@
 
 Croaster uses a clean, **modular C++ architecture** built with the Arduino framework. Each subsystem is encapsulated in its own class.
 
-The repository is now structured as a **reusable library** (repo root: `src/` + `library.json`/`library.properties`) plus a **reference firmware** in `examples/reference/`. The library is **display- and pin-config-agnostic** — a consuming project supplies its own display implementation and pin layout.
+The repository is now structured as a **reusable library** (repo root: `src/` + `library.json`/`library.properties`) plus a **reference implementation** in `implementation/reference/`. The library is **display- and pin-config-agnostic** — a consuming project supplies its own display implementation and pin layout.
 
 ### Library modules (repo root `src/`)
 
@@ -121,14 +121,17 @@ The repository is now structured as a **reusable library** (repo root: `src/` + 
 | `CroasterWiFiManager` | `src/CroasterWiFiManager.h/.cpp` | WiFiManager captive portal setup and lifecycle |
 | `CroasterDeviceIdentity` | `src/CroasterDeviceIdentity.h/.cpp` | Chip ID, device name, IP address helpers |
 
-### Reference firmware modules (`examples/reference/src/`)
+### Reference implementation modules (`implementation/reference/src/`)
 
-The reference firmware adds the concrete SSD1306 OLED display:
+The reference implementation adds the concrete SSD1306 OLED display plus a
+single `begin()`/`loop()` app wrapper:
 
 | Module | File | Responsibility |
 |:---|:---|:---|
-| `CroasterDisplaySSD1306` | `examples/reference/src/CroasterDisplaySSD1306.h/.cpp` | 128×64 SSD1306 OLED rendering loop, status screens |
-| `CroasterDisplayAnimation` | `examples/reference/src/CroasterDisplayAnimation.h/.cpp` | Fire splash-screen animation |
+| `CroasterApp` | `implementation/reference/src/CroasterApp.h/.cpp` | Single `begin()`/`loop()` entry point wiring all subsystems |
+| `CroasterDisplaySSD1306` | `implementation/reference/src/CroasterDisplaySSD1306.h/.cpp` | 128×64 SSD1306 OLED rendering loop, status screens |
+| `CroasterDisplayAnimation` | `implementation/reference/src/CroasterDisplayAnimation.h/.cpp` | Fire splash-screen animation |
+| `config.h` | `implementation/reference/src/config.h` | Pin layout + dummy-mode configuration (edit here) |
 
 ### Data Flow
 
@@ -160,15 +163,15 @@ MAX6675 Sensors → CroasterCore (read + smooth + RoR)
 
 ### ✅ PlatformIO (recommended for ESP8266 & ESP32C3)
 
-The repository root is a **reusable library**. The reference firmware lives in
-`examples/reference/` — build and upload it from that folder:
+The repository root is a **reusable library**. The reference implementation
+lives in `implementation/reference/` — build and upload it from that folder:
 
 1. Install [PlatformIO](https://platformio.org/) (VS Code extension or CLI)
 2. Clone the repository:
 
    ```bash
    git clone git@github.com:IiemB/Croaster.git
-   cd Croaster/examples/reference
+   cd Croaster/implementation/reference
    ```
 
 3. Review `platformio.ini` and select your target environment
@@ -195,9 +198,24 @@ lib_deps =
     https://github.com/IiemB/Croaster.git
 ```
 
-Then implement the `CroasterDisplay` interface (see
-`examples/reference/src/CroasterDisplaySSD1306.*` for a complete example) and
-pass your board's `CroasterPinConfig` to `CroasterCore`:
+The easiest way to start is to copy the reference implementation
+(`implementation/reference/`) and adapt it. It exposes a single
+`begin()`/`loop()` API via `CroasterApp`, and all board-specific config
+(pins, dummy mode, display) lives in the implementation — not the library:
+
+```cpp
+#include <Arduino.h>
+#include <ArduinoJson.h>
+#include "config.h"        // pins + dummyMode (edit here)
+#include "CroasterApp.h"
+
+CroasterApp app(dummyMode, pins);   // your board's pins (from config.h)
+
+void setup() { app.begin(); }
+void loop()  { app.loop(); }
+```
+
+Or wire it yourself (see `CroasterApp.cpp` for the full wiring):
 
 ```cpp
 #include <CroasterCore.h>
@@ -207,11 +225,10 @@ pass your board's `CroasterPinConfig` to `CroasterCore`:
 #include <CroasterBleManager.h>
 #include <CroasterWiFiManager.h>
 
-// Pin layout for your board
 CroasterPinConfig myPins = { /* sckPin, soPin, csPinBt, csPinEt */ };
 
-CroasterCore croaster(dummyMode, myPins);   // your pin layout
-MyDisplay display(croaster);                // your CroasterDisplay subclass
+CroasterCore croaster(false, myPins);   // your pin layout
+MyDisplay display(croaster);            // your CroasterDisplay subclass
 CroasterCommandHandler commands(croaster, &display);
 CroasterWebSocketManager ws(croaster, commands, &display);
 
@@ -223,10 +240,14 @@ CroasterBleManager ble(croaster, commands, &display);
 - **Display** — implement `CroasterDisplay` (`begin`, `loop`, `rotateScreen`,
   `blinkIndicator`, `displayToggle`, and the OTA-progress methods). Pass
   `nullptr` where the board has no display.
-- **Pins** — build your own `CroasterPinConfig` and pass it to `CroasterCore`.
+- **Pins & dummy mode** — build your own `CroasterPinConfig` and pass it to
+  `CroasterCore`; choose `dummyMode` in the implementation's `config.h`.
 - **BLE** — the library detects BLE support at compile time via
   `CROASTER_HAS_BLE` (1 on ESP32, 0 elsewhere) and only compiles
   `CroasterBleManager` when available.
+- **Custom commands** — add commands without touching the library:
+  `app.commands().onCommand("ping", ...)` for string commands and
+  `app.commands().onJsonCommand("myKey", ...)` for nested JSON commands.
 
 ### ✅ Arduino IDE (alternative, required for Makergo ESP32C3 board)
 

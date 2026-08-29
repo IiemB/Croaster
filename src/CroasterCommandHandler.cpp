@@ -11,6 +11,16 @@
 CroasterCommandHandler::CroasterCommandHandler(CroasterCore &core, CroasterDisplay *display)
     : croaster(core), display(display) {}
 
+void CroasterCommandHandler::onCommand(const String &command, CommandFn fn)
+{
+    customCommands[command] = fn;
+}
+
+void CroasterCommandHandler::onJsonCommand(const String &key, CommandFn fn)
+{
+    customJsonCommands[key] = fn;
+}
+
 void CroasterCommandHandler::begin()
 {
     pinMode(LED_BUILTIN, OUTPUT);
@@ -33,7 +43,7 @@ void CroasterCommandHandler::loop()
         if (blinkCount >= blinkTotal)
         {
             blinking = false;
-            digitalWrite(LED_BUILTIN, LED_OFF);   // turn off when done
+            digitalWrite(LED_BUILTIN, LED_OFF); // turn off when done
             if (display)
                 display->blinkIndicator(false); // turn off when done
         }
@@ -120,6 +130,17 @@ void CroasterCommandHandler::handleBasicCommand(const JsonObject &json, String &
     {
         responseOut = genResponseCommand(command, getExtraData());
     }
+    else
+    {
+        // Custom implementation-defined command (registered via onCommand()).
+        auto it = customCommands.find(command);
+        if (it != customCommands.end())
+        {
+            String resp = it->second(json);
+            if (!resp.isEmpty())
+                responseOut = resp;
+        }
+    }
 }
 
 void CroasterCommandHandler::handleJsonCommand(const JsonObject &json, String &responseOut)
@@ -165,6 +186,17 @@ void CroasterCommandHandler::handleJsonCommand(const JsonObject &json, String &r
             WiFi.begin(ssid.c_str(), pass.c_str());
 
             debugln("# Connecting to " + ssid);
+        }
+    }
+
+    // Custom implementation-defined nested JSON commands (registered via onJsonCommand()).
+    for (auto &entry : customJsonCommands)
+    {
+        if (json.containsKey(entry.first))
+        {
+            String resp = entry.second(json);
+            if (!resp.isEmpty())
+                responseOut = resp;
         }
     }
 }

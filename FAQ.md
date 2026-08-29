@@ -165,7 +165,7 @@ The **Makergo ESP32C3 SuperMini** board definition is not officially available i
 
 ### What is `copy_to_ino.sh`?
 
-This is a shell script that copies the source files from the reference firmware (`examples/reference/src/`, PlatformIO structure) plus the library (`src/`) into the `croaster-arduino/` folder with the correct Arduino sketch naming convention. Run it before opening the project in Arduino IDE.
+This is a shell script that copies the source files from the reference implementation (`implementation/reference/src/`, PlatformIO structure) plus the library (`src/`) into the `croaster-arduino/` folder with the correct Arduino sketch naming convention. Run it before opening the project in Arduino IDE.
 
 ---
 
@@ -202,7 +202,7 @@ OTA via WiFi (WebSocket) using the ICRM app is supported on ESP8266, as long as 
 
 ### How do I test Croaster without physical sensors?
 
-Set `dummyMode = true` in `CroasterConstants.h`:
+Set `dummyMode = true` in `implementation/reference/src/config.h`:
 ```cpp
 const bool dummyMode = true;
 ```
@@ -212,21 +212,24 @@ In this mode, Croaster generates simulated temperature data, so you can test the
 
 ### How do I add a custom command?
 
-For a **basic string command**, add a new `else if` branch inside `handleBasicCommand` in `CroasterCommandHandler.cpp`:
+Custom commands are registered in your implementation's `main.cpp` — **no
+library edits needed**. Callbacks return a response string (empty = no response):
+
+For a **basic string command**, use `onCommand`:
 ```cpp
-else if (command == "mycommand") {
-    // your logic here
-    responseOut = "{\"status\": \"ok\"}";
-}
+app.commands().onCommand("mycommand", [](const JsonObject &json) -> String {
+    return "{\"status\": \"ok\"}";
+});
 ```
 Send it as: `{"command": "mycommand"}`
 
-For a **configuration command** (key-value style), add a new condition inside `handleJsonCommand`:
+For a **configuration command** (key-value style), use `onJsonCommand`:
 ```cpp
-if (json["mykey"].is<String>()) {
+app.commands().onJsonCommand("mykey", [](const JsonObject &json) -> String {
     String myValue = json["mykey"].as<String>();
     // your logic here
-}
+    return "";
+});
 ```
 Send it as: `{"command": {"mykey": "somevalue"}}`
 
@@ -253,7 +256,7 @@ Croaster sends a JSON payload over WebSocket and BLE at each interval. The paylo
 ### The OLED display is blank or shows garbage.
 
 - Verify that the SDA/SCL wires are not swapped.
-- Confirm the I2C address. The SSD1306 usually uses `0x3C`. If yours uses `0x3D`, update `CroasterDisplaySSD1306.cpp` in `examples/reference/src/`.
+- Confirm the I2C address. The SSD1306 usually uses `0x3C`. If yours uses `0x3D`, update `CroasterDisplaySSD1306.cpp` in `implementation/reference/src/`.
 - Check the 3.3V supply to the display.
 
 ---

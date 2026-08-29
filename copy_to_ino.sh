@@ -35,13 +35,13 @@ move_file() {
 # Main script
 echo "Copying files..."
 
-# Process main.cpp (the reference example sketch)
-move_file "./examples/reference/src/main.cpp" "./croaster-arduino/croaster-arduino.ino"
+# Process main.cpp (the reference implementation sketch)
+move_file "./implementation/reference/src/main.cpp" "./croaster-arduino/croaster-arduino.ino"
 
-# Process other files in the reference example src directory, excluding main.cpp
-for file in ./examples/reference/src/*; do
-    if [ "$file" != "./examples/reference/src/main.cpp" ] && [ -f "$file" ]; then
-        dest_path=$(echo "$file" | sed 's|examples/reference/src|croaster-arduino|')
+# Process other files in the reference implementation src directory, excluding main.cpp
+for file in ./implementation/reference/src/*; do
+    if [ "$file" != "./implementation/reference/src/main.cpp" ] && [ -f "$file" ]; then
+        dest_path=$(echo "$file" | sed 's|implementation/reference/src|croaster-arduino|')
         move_file "$file" "$dest_path"
     fi
 done

@@ -46,8 +46,5 @@
 // Firmware version
 constexpr double version = 0.52;
 
-// Dummy mode (development/testing without physical sensors)
-constexpr bool dummyMode = false;
-
 // Smoothing factor of a temperature value
 #define SMOOTHING_FACTOR 5
