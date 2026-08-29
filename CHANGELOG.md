@@ -9,7 +9,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 - **Repository is now a reusable library** (`library.json` / `library.properties` at the repo root) — another project can consume it via `lib_deps = https://github.com/IiemB/Croaster.git`
-- **`examples/` renamed to `implementation/<board>/`** — per-board implementations; the reference implementation lives in `implementation/esp32c3/` (own `platformio.ini`, `esp32c3` env), consuming the library from `../..` exactly like an external project
+- **`examples/` renamed to `implementation/<board>/`** — per-board implementations (`implementation/esp32c3/`, `implementation/esp8266/`), each consuming the library from `../..` exactly like an external project
+- **Shared SSD1306 display in `implementation/common/`** — both the `esp32c3` and `esp8266` implementations reference the same display/ animation (no duplicated data); the ESP8266 (NodeMCU / ESP-12E) implementation was restored as `implementation/esp8266/`
 - **`CroasterDisplay` abstract interface** — the library core is display-agnostic; consuming projects implement their own display (the SSD1306 implementation lives in the reference example as `CroasterDisplaySSD1306`). A `nullptr` display is fully supported (headless boards)
 - **`CroasterPinConfig` struct** — pin layout is decoupled from the core and passed to `CroasterCore`; `defaults()` returns the reference ESP8266/ESP32-C3 wiring
 - **`CroasterApp` single `begin()`/`loop()` entry point** — lives in the library (`src/CroasterApp.h/.cpp`); the sketch is reduced to `app.begin()` / `app.loop()`

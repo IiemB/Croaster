@@ -105,7 +105,7 @@
 
 Croaster menggunakan **arsitektur C++ modular** yang bersih, dibangun dengan framework Arduino. Setiap subsistem dikemas dalam kelasnya sendiri.
 
-Repositori kini disusun sebagai **library yang dapat digunakan ulang** (akar repositori: `src/` + `library.json`/`library.properties`) ditambah **implementasi per board** di `implementation/<board>/` (ESP32-C3 Super Mini berada di `implementation/esp32c3/`). Library ini **agnostik terhadap display dan konfigurasi pin** — proyek pengguna menyediakan implementasi display, tata letak pin, LED, dan konfigurasi dummy mode mereka sendiri.
+Repositori kini disusun sebagai **library yang dapat digunakan ulang** (akar repositori: `src/` + `library.json`/`library.properties`) ditambah **implementasi per board** di `implementation/<board>/` (`implementation/esp32c3/` dan `implementation/esp8266/`). Library ini **agnostik terhadap display dan konfigurasi pin** — setiap implementasi menyediakan display, tata letak pin, LED, dan konfigurasi dummy mode mereka sendiri.
 
 ### Modul library (akar repositori `src/`)
 
@@ -122,18 +122,27 @@ Repositori kini disusun sebagai **library yang dapat digunakan ulang** (akar rep
 | `CroasterDeviceIdentity` | `src/CroasterDeviceIdentity.h/.cpp` | Helper chip ID, nama perangkat, alamat IP |
 | `CroasterApp` | `src/CroasterApp.h/.cpp` | **Titik masuk `begin()`/`loop()` tunggal** — agnostik display; menerima `CroasterCore&` + `CroasterDisplay*` (+ pin/level LED) |
 
-### Modul implementasi ESP32-C3 (`implementation/esp32c3/src/`)
+### Modul implementasi bersama (`implementation/common/src/`)
 
-Implementasi ESP32-C3 menambahkan layar OLED SSD1306 yang konkret dan
-merangkainya ke `CroasterApp` milik library (yang **agnostik terhadap display** —
-ia hanya mengenal antarmuka `CroasterDisplay`):
+Kedua board SSD1306 memakai display konkret yang sama, sehingga berada di satu
+tempat bersama (`implementation/common/` adalah library kecil yang dirujuk
+setiap board):
 
 | Modul | File | Tanggung Jawab |
 |:---|:---|:---|
-| `main.cpp` | `implementation/esp32c3/src/main.cpp` | Membuat core + display, merangkainya ke `CroasterApp`, mendaftarkan perintah kustom |
-| `CroasterDisplaySSD1306` | `implementation/esp32c3/src/CroasterDisplaySSD1306.h/.cpp` | OLED 128×64 SSD1306 (mendefinisikan `SCREEN_WIDTH`/`HEIGHT`/`OLED_RESET`) |
-| `CroasterDisplayAnimation` | `implementation/esp32c3/src/CroasterDisplayAnimation.h/.cpp` | Animasi api di layar splash |
-| `config.h` | `implementation/esp32c3/src/config.h` | Konfigurasi tata letak pin, dummy mode, dan LED (sunting di sini) |
+| `CroasterDisplaySSD1306` | `implementation/common/src/CroasterDisplaySSD1306.h/.cpp` | OLED 128×64 SSD1306 (mendefinisikan `SCREEN_WIDTH`/`HEIGHT`/`OLED_RESET`) |
+| `CroasterDisplayAnimation` | `implementation/common/src/CroasterDisplayAnimation.h/.cpp` | Animasi api di layar splash |
+
+### Implementasi board (`implementation/<board>/`)
+
+| Board | Folder | Pin utama (`config.h`) |
+|:---|:---|:---|
+| ESP32-C3 Super Mini | `implementation/esp32c3/` | SCK=4, SO=5, CS_BT=7, CS_ET=6 |
+| ESP8266 (NodeMCU / ESP-12E) | `implementation/esp8266/` | SCK=D5, SO=D7, CS_BT=D8, CS_ET=D6 |
+
+Setiap folder adalah proyek PlatformIO mandiri (`main.cpp` + `config.h`) yang
+mengonsumsi library Croaster (`../..`) dan display bersama (`../common`), lalu
+merangkainya ke `CroasterApp` milik library yang agnostik display.
 
 ### Alur Data
 
@@ -163,23 +172,27 @@ Sensor MAX6675 → CroasterCore (baca + halus + RoR)
 
 ## 🔧 Cara Build dan Upload
 
-### ✅ PlatformIO (direkomendasikan untuk ESP32-C3)
+### ✅ PlatformIO (direkomendasikan untuk ESP8266 & ESP32C3)
 
-Akar repositori adalah **library yang dapat digunakan ulang**. Implementasi ESP32-C3 berada di `implementation/esp32c3/` — build dan upload dari folder tersebut:
+Akar repositori adalah **library yang dapat digunakan ulang**. Setiap board memiliki folder implementasi sendiri — build dan upload dari folder tersebut:
 
 1. Install [PlatformIO](https://platformio.org/) (ekstensi VS Code atau CLI)
 2. Clone repositori:
 
    ```bash
    git clone git@github.com:IiemB/Croaster.git
-   cd Croaster/implementation/esp32c3
+   cd Croaster/implementation/esp32c3      # atau implementation/esp8266
    ```
 
 3. Periksa `platformio.ini` dan pilih environment target Anda
 4. Upload firmware:
 
    ```bash
+   # ESP32-C3 Super Mini
    pio run -e esp32c3 -t upload
+
+   # ESP8266 (NodeMCU / ESP-12E)
+   pio run -e esp8266 -t upload
    ```
 
 > **Catatan:** ESP32C3 Super Mini menggunakan skema partisi kustom (`custom32c3sm.csv`) untuk memaksimalkan penyimpanan aplikasi. Lihat [references.md](references.md) untuk detail setup.

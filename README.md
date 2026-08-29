@@ -105,7 +105,7 @@
 
 Croaster uses a clean, **modular C++ architecture** built with the Arduino framework. Each subsystem is encapsulated in its own class.
 
-The repository is now structured as a **reusable library** (repo root: `src/` + `library.json`/`library.properties`) plus a per-board **implementation** in `implementation/<board>/` (the ESP32-C3 Super Mini lives in `implementation/esp32c3/`). The library is **display- and pin-config-agnostic** — a consuming project supplies its own display implementation, pin layout, LED and dummy-mode configuration.
+The repository is now structured as a **reusable library** (repo root: `src/` + `library.json`/`library.properties`) plus per-board **implementations** in `implementation/<board>/` (`implementation/esp32c3/` and `implementation/esp8266/`). The library is **display- and pin-config-agnostic** — each implementation supplies its own display, pin layout, LED and dummy-mode configuration.
 
 ### Library modules (repo root `src/`)
 
@@ -122,18 +122,26 @@ The repository is now structured as a **reusable library** (repo root: `src/` + 
 | `CroasterDeviceIdentity` | `src/CroasterDeviceIdentity.h/.cpp` | Chip ID, device name, IP address helpers |
 | `CroasterApp` | `src/CroasterApp.h/.cpp` | **Single `begin()`/`loop()` entry point** — display-agnostic; takes `CroasterCore&` + `CroasterDisplay*` (+ LED pin/level) |
 
-### ESP32-C3 implementation modules (`implementation/esp32c3/src/`)
+### Shared implementation modules (`implementation/common/src/`)
 
-The ESP32-C3 implementation adds the concrete SSD1306 OLED display and wires it
-into the library's `CroasterApp` (which is display-agnostic — it only knows the
-`CroasterDisplay` interface):
+Both SSD1306 boards use the same concrete display, so it lives in one shared
+place (`implementation/common/` is a small library each board references):
 
 | Module | File | Responsibility |
 |:---|:---|:---|
-| `main.cpp` | `implementation/esp32c3/src/main.cpp` | Creates core + display, wires them into `CroasterApp`, registers custom commands |
-| `CroasterDisplaySSD1306` | `implementation/esp32c3/src/CroasterDisplaySSD1306.h/.cpp` | 128×64 SSD1306 OLED (defines `SCREEN_WIDTH`/`HEIGHT`/`OLED_RESET`) |
-| `CroasterDisplayAnimation` | `implementation/esp32c3/src/CroasterDisplayAnimation.h/.cpp` | Fire splash-screen animation |
-| `config.h` | `implementation/esp32c3/src/config.h` | Pin layout, dummy mode and LED config (edit here) |
+| `CroasterDisplaySSD1306` | `implementation/common/src/CroasterDisplaySSD1306.h/.cpp` | 128×64 SSD1306 OLED (defines `SCREEN_WIDTH`/`HEIGHT`/`OLED_RESET`) |
+| `CroasterDisplayAnimation` | `implementation/common/src/CroasterDisplayAnimation.h/.cpp` | Fire splash-screen animation |
+
+### Board implementations (`implementation/<board>/`)
+
+| Board | Folder | Main pins (`config.h`) |
+|:---|:---|:---|
+| ESP32-C3 Super Mini | `implementation/esp32c3/` | SCK=4, SO=5, CS_BT=7, CS_ET=6 |
+| ESP8266 (NodeMCU / ESP-12E) | `implementation/esp8266/` | SCK=D5, SO=D7, CS_BT=D8, CS_ET=D6 |
+
+Each folder is a standalone PlatformIO project (`main.cpp` + `config.h`) that
+consumes the Croaster library (`../..`) and the shared display (`../common`),
+then wires them into the library's display-agnostic `CroasterApp`.
 
 ### Data Flow
 
@@ -163,24 +171,28 @@ MAX6675 Sensors → CroasterCore (read + smooth + RoR)
 
 ## 🔧 How to Build and Upload
 
-### ✅ PlatformIO (recommended for the ESP32-C3)
+### ✅ PlatformIO (recommended for ESP8266 & ESP32C3)
 
-The repository root is a **reusable library**. The ESP32-C3 implementation
-lives in `implementation/esp32c3/` — build and upload it from that folder:
+The repository root is a **reusable library**. Each board has its own
+implementation folder — build and upload from there:
 
 1. Install [PlatformIO](https://platformio.org/) (VS Code extension or CLI)
 2. Clone the repository:
 
    ```bash
    git clone git@github.com:IiemB/Croaster.git
-   cd Croaster/implementation/esp32c3
+   cd Croaster/implementation/esp32c3      # or implementation/esp8266
    ```
 
 3. Review `platformio.ini` and select your target environment
 4. Upload the firmware:
 
    ```bash
+   # ESP32-C3 Super Mini
    pio run -e esp32c3 -t upload
+
+   # ESP8266 (NodeMCU / ESP-12E)
+   pio run -e esp8266 -t upload
    ```
 
 > **Note:** ESP32C3 Super Mini uses a custom partition scheme (`custom32c3sm.csv`) to maximize app storage. See [references.md](references.md) for setup details.

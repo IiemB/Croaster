@@ -46,6 +46,13 @@ for file in ./implementation/esp32c3/src/*; do
     fi
 done
 
+# Process the shared SSD1306 display files (implementation/common)
+for file in ./implementation/common/src/*; do
+    if [ -f "$file" ]; then
+        move_file "$file" "./croaster-arduino/$(basename "$file")"
+    fi
+done
+
 # Copy the library headers/sources used by the sketch into the Arduino sketch
 # folder (Arduino IDE needs every source in the sketch folder).
 for file in ./src/*; do

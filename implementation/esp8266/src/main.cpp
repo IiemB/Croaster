@@ -18,13 +18,8 @@ CroasterApp app(core, &display, ledPin, ledOnLevel);
 
 // ---------------------------------------------------------------------------
 // Optional: register custom commands WITHOUT touching the Croaster library.
-//
 //   onCommand("name", fn)      -> basic string command:  {"command":"name"}
 //   onJsonCommand("key", fn)   -> nested JSON command:   {"command":{"key":...}}
-//
-// Each callback receives the parsed JSON object and returns a response string
-// (empty = no response is sent back). genResponseCommand() can wrap a response
-// in the standard {"command","response"} format.
 // ---------------------------------------------------------------------------
 void registerCustomCommands()
 {
