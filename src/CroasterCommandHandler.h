@@ -28,7 +28,7 @@ private:
     unsigned long blinkDelay = 250;
     bool ledState = false;
 
-    int8_t ledPin;     ///< Built-in LED pin (-1 = no LED).
+    int8_t ledPin;      ///< Built-in LED pin (-1 = no LED).
     uint8_t ledOnLevel; ///< Active level for the LED (LOW or HIGH).
 
     std::map<String, CommandFn> customCommands;     ///< Custom basic commands.

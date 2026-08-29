@@ -12,7 +12,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **`examples/` renamed to `implementation/<board>/`** — per-board implementations; the reference implementation lives in `implementation/esp32c3/` (own `platformio.ini`, `esp32c3` env), consuming the library from `../..` exactly like an external project
 - **`CroasterDisplay` abstract interface** — the library core is display-agnostic; consuming projects implement their own display (the SSD1306 implementation lives in the reference example as `CroasterDisplaySSD1306`). A `nullptr` display is fully supported (headless boards)
 - **`CroasterPinConfig` struct** — pin layout is decoupled from the core and passed to `CroasterCore`; `defaults()` returns the reference ESP8266/ESP32-C3 wiring
-- **`CroasterApp` single `begin()`/`loop()` entry point** in the implementation — the sketch is reduced to `app.begin()` / `app.loop()`
+- **`CroasterApp` single `begin()`/`loop()` entry point** — lives in the library (`src/CroasterApp.h/.cpp`); the sketch is reduced to `app.begin()` / `app.loop()`
 - **`CroasterApp` is display-agnostic** — it takes `CroasterCore&` + `CroasterDisplay*` (+ LED pin/level); the display type is defined in the implementation (`main.cpp`)
 - **Custom command registration** — `CroasterCommandHandler::onCommand()` / `onJsonCommand()` let an implementation add commands without touching the library
 - **Compile-time BLE detection** via `CROASTER_HAS_BLE` (1 on ESP32, 0 elsewhere) in `CroasterConstants.h` — `CroasterBleManager` is only compiled when the board has BLE
@@ -21,7 +21,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 - All classes renamed with the `Croaster` prefix: `BleManager` → `CroasterBleManager`, `CommandHandler` → `CroasterCommandHandler`, `WebSocketManager` → `CroasterWebSocketManager`, `OtaHandler` → `CroasterOtaHandler`, `WiFiManagerUtil` → `CroasterWiFiManager` (class with static methods), `DeviceIdentity` → `CroasterDeviceIdentity`, `DisplayManager` → `CroasterDisplay` (interface) / `CroasterDisplaySSD1306` (reference impl), `DisplayAnimation` → `CroasterDisplayAnimation`
 - `Constants.h` → `CroasterConstants.h`, `PinConfig.h` → `CroasterPinConfig.h`
-- `LED_ON`/`LED_OFF` now default in `CroasterConstants.h` (guarded so boards can override via build flags); removed the redundant `-D LED_ON` build flag
+- `LED_ON`/`LED_OFF` macros removed from `CroasterConstants.h`; `CroasterCommandHandler` now takes `ledPin`/`ledOnLevel` per-instance (supplied by the implementation); removed the redundant `-D LED_ON` build flag
+- `CroasterApp` moved from the implementation into the library core (`src/CroasterApp.h/.cpp`); registered in `library.json`/`library.properties`
 - Pin and dummy-mode configuration moved to the implementation (`implementation/esp32c3/src/config.h`); the `dummyMode` global was removed from `CroasterConstants.h`
 - Display constants (`SCREEN_WIDTH`/`SCREEN_HEIGHT`/`OLED_RESET`) moved to `CroasterDisplaySSD1306.h`; LED pin/polarity moved to the implementation's `config.h` (`ledPin`/`ledOnLevel`) — `CroasterConstants.h` no longer defines display/LED config
 - `CroasterWiFiManager::restart()/erase()` replace the old `restartESP()/eraseESP()` helpers

@@ -120,17 +120,17 @@ The repository is now structured as a **reusable library** (repo root: `src/` + 
 | `CroasterOtaHandler` | `src/CroasterOtaHandler.h/.cpp` | Binary OTA update handling over WebSocket and BLE |
 | `CroasterWiFiManager` | `src/CroasterWiFiManager.h/.cpp` | WiFiManager captive portal setup and lifecycle |
 | `CroasterDeviceIdentity` | `src/CroasterDeviceIdentity.h/.cpp` | Chip ID, device name, IP address helpers |
+| `CroasterApp` | `src/CroasterApp.h/.cpp` | **Single `begin()`/`loop()` entry point** — display-agnostic; takes `CroasterCore&` + `CroasterDisplay*` (+ LED pin/level) |
 
 ### ESP32-C3 implementation modules (`implementation/esp32c3/src/`)
 
-The ESP32-C3 implementation adds the concrete SSD1306 OLED display plus a
-single `begin()`/`loop()` app wrapper. `CroasterApp` is **display-agnostic** —
-it only knows the `CroasterDisplay` interface; the display type is chosen here:
+The ESP32-C3 implementation adds the concrete SSD1306 OLED display and wires it
+into the library's `CroasterApp` (which is display-agnostic — it only knows the
+`CroasterDisplay` interface):
 
 | Module | File | Responsibility |
 |:---|:---|:---|
 | `main.cpp` | `implementation/esp32c3/src/main.cpp` | Creates core + display, wires them into `CroasterApp`, registers custom commands |
-| `CroasterApp` | `implementation/esp32c3/src/CroasterApp.h/.cpp` | Single `begin()`/`loop()` entry point; takes `CroasterCore&` + `CroasterDisplay*` |
 | `CroasterDisplaySSD1306` | `implementation/esp32c3/src/CroasterDisplaySSD1306.h/.cpp` | 128×64 SSD1306 OLED (defines `SCREEN_WIDTH`/`HEIGHT`/`OLED_RESET`) |
 | `CroasterDisplayAnimation` | `implementation/esp32c3/src/CroasterDisplayAnimation.h/.cpp` | Fire splash-screen animation |
 | `config.h` | `implementation/esp32c3/src/config.h` | Pin layout, dummy mode and LED config (edit here) |

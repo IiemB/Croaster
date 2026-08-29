@@ -120,17 +120,17 @@ Repositori kini disusun sebagai **library yang dapat digunakan ulang** (akar rep
 | `CroasterOtaHandler` | `src/CroasterOtaHandler.h/.cpp` | Penanganan update OTA biner via WebSocket dan BLE |
 | `CroasterWiFiManager` | `src/CroasterWiFiManager.h/.cpp` | Setup dan lifecycle captive portal WiFiManager |
 | `CroasterDeviceIdentity` | `src/CroasterDeviceIdentity.h/.cpp` | Helper chip ID, nama perangkat, alamat IP |
+| `CroasterApp` | `src/CroasterApp.h/.cpp` | **Titik masuk `begin()`/`loop()` tunggal** — agnostik display; menerima `CroasterCore&` + `CroasterDisplay*` (+ pin/level LED) |
 
 ### Modul implementasi ESP32-C3 (`implementation/esp32c3/src/`)
 
-Implementasi ESP32-C3 menambahkan layar OLED SSD1306 yang konkret plus
-pembungkus aplikasi `begin()`/`loop()` tunggal. `CroasterApp` **agnostik terhadap
-display** — ia hanya mengenal antarmuka `CroasterDisplay`; tipe display dipilih di sini:
+Implementasi ESP32-C3 menambahkan layar OLED SSD1306 yang konkret dan
+merangkainya ke `CroasterApp` milik library (yang **agnostik terhadap display** —
+ia hanya mengenal antarmuka `CroasterDisplay`):
 
 | Modul | File | Tanggung Jawab |
 |:---|:---|:---|
 | `main.cpp` | `implementation/esp32c3/src/main.cpp` | Membuat core + display, merangkainya ke `CroasterApp`, mendaftarkan perintah kustom |
-| `CroasterApp` | `implementation/esp32c3/src/CroasterApp.h/.cpp` | Titik masuk `begin()`/`loop()` tunggal; menerima `CroasterCore&` + `CroasterDisplay*` |
 | `CroasterDisplaySSD1306` | `implementation/esp32c3/src/CroasterDisplaySSD1306.h/.cpp` | OLED 128×64 SSD1306 (mendefinisikan `SCREEN_WIDTH`/`HEIGHT`/`OLED_RESET`) |
 | `CroasterDisplayAnimation` | `implementation/esp32c3/src/CroasterDisplayAnimation.h/.cpp` | Animasi api di layar splash |
 | `config.h` | `implementation/esp32c3/src/config.h` | Konfigurasi tata letak pin, dummy mode, dan LED (sunting di sini) |

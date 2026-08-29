@@ -1,4 +1,5 @@
 #pragma once
+#include <Arduino.h>
 #include <CroasterConstants.h>
 #include <CroasterCore.h>
 #include <CroasterPinConfig.h>
@@ -62,7 +63,7 @@ public:
     CroasterDisplay *display() { return _display; }
 
 private:
-    CroasterCore &croaster;   ///< Reference to the caller-owned core.
+    CroasterCore &croaster;    ///< Reference to the caller-owned core.
     CroasterDisplay *_display; ///< Implementation-owned display (may be nullptr).
     CroasterCommandHandler commandHandler;
 #if CROASTER_HAS_BLE
