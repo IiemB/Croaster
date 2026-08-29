@@ -31,6 +31,17 @@ private:
 
     bool useDummyData;
 
+    // Roast timer state (start / pause / reset).
+    bool roastTimerRunning = false;      ///< Whether the roast timer is counting.
+    unsigned long roastTimerStartMs = 0; ///< millis() when the roast timer was (re)started.
+    unsigned long roastTimerAccumMs = 0; ///< Accumulated running time before the last pause.
+
+    /**
+     * @brief Returns the elapsed roast time in milliseconds.
+     * @return Elapsed time in milliseconds.
+     */
+    unsigned long roastTimerElapsedMs() const;
+
     /**
      * @brief Converts a temperature value from Celsius to the configured unit.
      * @param tempCelsius The temperature in Celsius.
@@ -68,7 +79,9 @@ private:
     double roundTo2(double value);
 
 public:
-    double timer = 0, rorEt = 0, rorBt = 0, tempEt = 0, tempBt = 0;
+    double timer = 0;      ///< Device uptime in seconds (unaffected by the roast timer).
+    double roastTimer = 0; ///< Roast elapsed time in seconds (start/pause/reset).
+    double rorEt = 0, rorBt = 0, tempEt = 0, tempBt = 0;
 
     /**
      * @brief Constructs a CroasterCore instance.
@@ -116,6 +129,27 @@ public:
     void toggleDummyData();
 
     /**
+     * @brief Starts (or resumes) the roast timer.
+     */
+    void roastTimerStart();
+
+    /**
+     * @brief Pauses the roast timer.
+     */
+    void roastTimerPause();
+
+    /**
+     * @brief Resets the roast timer to zero (stopped, ready for a new roast).
+     */
+    void roastTimerReset();
+
+    /**
+     * @brief Checks whether the roast timer is currently running.
+     * @return True if running, false if paused.
+     */
+    bool roastTimerIsRunning() const;
+
+    /**
      * @brief Changes the correction value for BT.
      *
      * @param value The new correction value to be set.
@@ -144,7 +178,9 @@ public:
 
     /**
      * @brief Retrieves the device information as a string.
+     * @param darkMode Current UI theme (true = dark).
+     * @param brightness Current backlight brightness (0-100).
      * @return A string containing the device information.
      */
-    String getDeviceInfo();
+    String getDeviceInfo(bool darkMode = true, int brightness = 100);
 };

@@ -10,6 +10,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 - **Repository is now a reusable library** (`library.json` at the repo root) — another project can consume it via `lib_deps = https://github.com/IiemB/Croaster.git`
 - **`examples/` renamed to `implementation/<board>/`** — per-board implementations (`implementation/esp32c3/`, `implementation/esp8266/`), each consuming the library from `../..` exactly like an external project
+- **`implementation/esp32s3/`** — ESP32-S3 (ES3C28P) 2.8" ILI9341 LCD board
+  (LVGL 9 UI + FT6336G touch), ported from the `ES3C28P` branch into the
+  per-board structure (`CroasterDisplayS3` wrapping the LVGL UI in `src/ui/`;
+  `esp32s3-sdkconfig.defaults` for mbedTLS/NimBLE Kconfig fixes)
+- **Roast timer** in the library core — `CroasterCore::roastTimerStart()/roastTimerPause()/roastTimerReset()` + `roastTimer` (seconds) & `roastTimerIsRunning()`; surfaced by the S3 UI's single START/STOP/RESET button
+- **Board + display-state reporting** — `CroasterDeviceIdentity::boardName()` now returns a per-implementation id set via the `-DCROASTER_BOARD_NAME=` build flag (`esp32s3`/`esp32c3`/`esp8266`/`unknown`, no compile-time board guards); `getDeviceInfo` now includes `board`, `darkMode` and `brightness` (via new `CroasterDisplay::isDarkMode()/getBrightness()`); `CroasterApp::ble()` accessor
+- **`build_all.sh`** — builds every board implementation and collects the
+  firmware into the gitignored `builds/` folder; board-specific
+  `CROASTER_ES3C28P` compile-time guards removed from the implementation
+  sources (each board builds its own folder unconditionally); `AGENTS.md` and
+  `CONTEXT.md` added for the firmware repo
 - **Shared SSD1306 display in `implementation/common/`** — both the `esp32c3` and `esp8266` implementations reference the same display/ animation (no duplicated data); the ESP8266 (NodeMCU / ESP-12E) implementation was restored as `implementation/esp8266/`
 - **`CroasterDisplay` abstract interface** — the library core is display-agnostic; consuming projects implement their own display (the SSD1306 implementation lives in the reference example as `CroasterDisplaySSD1306`). A `nullptr` display is fully supported (headless boards)
 - **`CroasterPinConfig` struct** — pin layout is decoupled from the core and passed to `CroasterCore`; each implementation provides its own pins in `config.h`

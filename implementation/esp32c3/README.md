@@ -13,8 +13,8 @@ display-agnostic `CroasterApp` (`src/main.cpp`).
 
 - **MCU:** ESP32-C3 (RISC-V), **WiFi + BLE**
 - **Display:** 128×64 SSD1306 OLED (I2C) — from `implementation/common`
-- **Partition scheme:** custom `custom32c3sm.csv` (at the repo root) — a 1.9 MB
-  app slot **with an OTA slot**, set via `board_build.partitions = ../../custom32c3sm.csv`
+- **Partition scheme:** custom `custom32c3sm.csv` (in this folder) — a 1.9 MB
+  app slot **with an OTA slot**, set via `board_build.partitions = custom32c3sm.csv`
 
 ---
 

@@ -41,4 +41,13 @@ public:
      * @return A String containing the SSID name.
      */
     static String ssidName();
+
+    /**
+     * @brief Identifies the board this firmware is running on.
+     * @return A machine-friendly board id (e.g. "esp32c3", "esp32s3",
+     *         "esp8266") matching the app's CroasterBoardTypes enum. Each
+     *         implementation defines it via the CROASTER_BOARD_NAME build
+     *         flag; defaults to "unknown" when not defined.
+     */
+    static String boardName();
 };

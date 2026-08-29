@@ -130,7 +130,9 @@ void CroasterCommandHandler::handleBasicCommand(const JsonObject &json, String &
     }
     else if (command == "getDeviceInfo")
     {
-        responseOut = genResponseCommand(command, croaster.getDeviceInfo());
+        bool darkMode = (display != nullptr) ? display->isDarkMode() : true;
+        int brightness = (display != nullptr) ? display->getBrightness() : 100;
+        responseOut = genResponseCommand(command, croaster.getDeviceInfo(darkMode, brightness));
     }
     else if (command == "getExtra")
     {

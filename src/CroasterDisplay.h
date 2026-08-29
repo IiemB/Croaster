@@ -50,6 +50,20 @@ public:
      */
     virtual void displayToggle() = 0;
 
+    // --- State reporting ---
+
+    /**
+     * @brief Returns whether the dark theme is active.
+     * @return true if dark theme, false if light theme. Defaults to true.
+     */
+    virtual bool isDarkMode() const { return true; }
+
+    /**
+     * @brief Returns the current backlight brightness (0-100 percent).
+     * @return Brightness 0-100. Defaults to 100.
+     */
+    virtual int getBrightness() const { return 100; }
+
     // --- OTA progress ---
 
     /**

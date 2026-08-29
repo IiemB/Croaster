@@ -44,3 +44,14 @@ String CroasterDeviceIdentity::ssidName()
 {
     return WiFi.isConnected() ? WiFi.SSID() : "";
 }
+
+String CroasterDeviceIdentity::boardName()
+{
+#ifdef CROASTER_BOARD_NAME
+    // Defined per implementation (platformio.ini build flag), e.g. "esp32s3",
+    // "esp32c3", "esp8266" — matches the app's CroasterBoardTypes enum.
+    return CROASTER_BOARD_NAME;
+#else
+    return "unknown";
+#endif
+}

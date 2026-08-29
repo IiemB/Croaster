@@ -62,6 +62,13 @@ public:
      */
     CroasterDisplay *display() { return _display; }
 
+#if CROASTER_HAS_BLE
+    /**
+     * @brief Access to the BLE manager (only available on boards with BLE).
+     */
+    CroasterBleManager &ble() { return bleManager; }
+#endif
+
 private:
     CroasterCore &croaster;    ///< Reference to the caller-owned core.
     CroasterDisplay *_display; ///< Implementation-owned display (may be nullptr).

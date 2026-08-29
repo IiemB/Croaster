@@ -42,6 +42,7 @@ void CroasterCore::readSensors()
 
     lastSensorRead = now;
     timer = lastSensorRead / 1000.0;
+    roastTimer = roastTimerElapsedMs() / 1000.0; // roast elapsed time (seconds)
 
     if (useDummyData)
     {
@@ -197,6 +198,49 @@ void CroasterCore::toggleDummyData()
     resetHistory("useDummyData");
 }
 
+unsigned long CroasterCore::roastTimerElapsedMs() const
+{
+    return roastTimerAccumMs + (roastTimerRunning ? (millis() - roastTimerStartMs) : 0);
+}
+
+void CroasterCore::roastTimerStart()
+{
+    if (roastTimerRunning)
+        return;
+
+    roastTimerRunning = true;
+    roastTimerStartMs = millis();
+
+    debugln("# Roast timer started");
+}
+
+void CroasterCore::roastTimerPause()
+{
+    if (!roastTimerRunning)
+        return;
+
+    roastTimerAccumMs += millis() - roastTimerStartMs;
+    roastTimerRunning = false;
+
+    debugln("# Roast timer paused");
+}
+
+void CroasterCore::roastTimerReset()
+{
+    roastTimerAccumMs = 0;
+    roastTimerRunning = false; // reset to zero, stopped — ready for a new roast
+    roastTimerStartMs = 0;
+
+    resetHistory("roastTimer");
+
+    debugln("# Roast timer reset");
+}
+
+bool CroasterCore::roastTimerIsRunning() const
+{
+    return roastTimerRunning;
+}
+
 void CroasterCore::changeCorrectionBt(double value)
 {
     if (correctionBt == value)
@@ -283,7 +327,7 @@ String CroasterCore::getJsonData(int id)
     return jsonOutput;
 }
 
-String CroasterCore::getDeviceInfo()
+String CroasterCore::getDeviceInfo(bool darkMode, int brightness)
 {
     String ipAddress = CroasterDeviceIdentity::ipAddress();
 
@@ -301,7 +345,10 @@ String CroasterCore::getDeviceInfo()
 
     doc["name"] = ssidName();
 
+    doc["board"] = CroasterDeviceIdentity::boardName();
     doc["timer"] = timer;
+    doc["darkMode"] = darkMode;
+    doc["brightness"] = brightness;
 
     String jsonOutput;
 
