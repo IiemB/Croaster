@@ -28,7 +28,7 @@
 #define debugln(x) Serial.println(x)
 
 // Firmware version
-constexpr double version = 0.52;
+constexpr double version = 0.62;
 
 // Smoothing factor of a temperature value
 #define SMOOTHING_FACTOR 5

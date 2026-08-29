@@ -42,6 +42,9 @@ Flutter app (remote `git@github.com:IiemB/Croaster.git`) and is consumed via
   single-project `ES3C28P` branch into `implementation/esp32s3/`
   (`git show ES3C28P:<path>` is the source of the UI).
 - Parent repo `ICRM` is on `dev` and consumes this submodule.
+- Firmware version bumped to `0.62`; `build_all.sh` now emits
+  `builds/Croaster_<board>_<version>.bin` (version read from
+  `src/CroasterConstants.h`).
 - (Fill in: current HEAD / clean-or-pending after each commit.)
 
 ## Next steps

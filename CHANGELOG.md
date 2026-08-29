@@ -5,7 +5,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [0.52] — 2026-08-29 (Current)
+## [0.62] — 2026-08-29 (Current)
+
+### Changed
+- **`build_all.sh` output naming** — firmware is now collected as
+  `builds/Croaster_<board>_<version>.bin` (e.g. `Croaster_esp32s3_0.62.bin`);
+  the version is read from `src/CroasterConstants.h` so the filename stays in
+  sync with the firmware version
+- **Firmware version bumped to `0.62`** — `src/CroasterConstants.h`,
+  `library.json`, `implementation/common/library.json`
+
+---
+
+## [0.52] — 2026-08-29
 
 ### Added
 - **Repository is now a reusable library** (`library.json` at the repo root) — another project can consume it via `lib_deps = https://github.com/IiemB/Croaster.git`

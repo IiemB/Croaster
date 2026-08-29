@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # ============================================================================
 # build_all.sh — build every Croaster board implementation and collect the
-# resulting firmware into ./builds/ (gitignored).
+# resulting firmware into ./builds/ (gitignored) as
+# Croaster_<board>_<version>.bin (e.g. Croaster_esp32s3_0.62.bin).
 #
 #   ./build_all.sh            # build all boards
 #   ./build_all.sh esp32s3    # build one board (any subdir of implementation/)
@@ -14,6 +15,14 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PIO="${PIO:-$HOME/.platformio/penv/bin/pio}"
 OUT="$ROOT/builds"
+
+# Firmware version — read from the library core so the output filename stays
+# in sync with src/CroasterConstants.h ("constexpr double version = X.Y;").
+VERSION="$(sed -n 's/^constexpr double version = \([0-9.]*\);/\1/p' "$ROOT/src/CroasterConstants.h")"
+if [ -z "$VERSION" ]; then
+    echo "error: could not read version from src/CroasterConstants.h" >&2
+    exit 1
+fi
 
 if [ ! -x "$PIO" ]; then
     echo "error: PlatformIO not found at '$PIO' (set PIO=/path/to/pio)" >&2
@@ -46,12 +55,11 @@ for b in "${BOARDS[@]}"; do
 
     for fw in "$dir"/.pio/build/*/firmware.bin; do
         [ -e "$fw" ] || continue
-        env="$(basename "$(dirname "$fw")")"
-        dest="$OUT/$b-$env.bin"
+        dest="$OUT/Croaster_${b}_${VERSION}.bin"
         cp "$fw" "$dest"
         bytes="$(wc -c < "$fw" | tr -d ' ')"
         kb="$(awk "BEGIN{printf \"%.1f\", $bytes/1024}")"
-        printf "  -> %-24s %8s KB  %s\n" "$b-$env" "$kb" "$dest"
+        printf "  -> %-32s %8s KB  %s\n" "Croaster_${b}_${VERSION}" "$kb" "$dest"
     done
 done
 

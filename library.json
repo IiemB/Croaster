@@ -1,6 +1,6 @@
 {
   "name": "Croaster",
-  "version": "0.52.0",
+  "version": "0.62.0",
   "description": "Open-source coffee roaster monitor firmware core for ESP8266 / ESP32. Reads two MAX6675 thermocouples, computes RoR, and exposes live data over WebSocket and BLE with OTA and WiFiManager. Display- and pin-config-agnostic: bring your own display and pins.",
   "keywords": [
     "roaster",
