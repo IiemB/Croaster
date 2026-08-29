@@ -150,18 +150,18 @@ This applies a `+1.5°` offset to BT and a `-0.5°` offset to ET. The correction
 ### Which build method should I use?
 
 **PlatformIO is the only supported workflow** (Arduino IDE is not used). Each
-board has its own implementation folder:
+board has its own folder:
 
 | Board | Folder | Command |
 |:---|:---|:---|
-| ESP8266 (NodeMCU / ESP-12E) | `implementation/esp8266/` | `pio run -e esp8266 -t upload` |
-| ESP32-C3 Super Mini | `implementation/esp32c3/` | `pio run -e esp32c3 -t upload` |
+| ESP8266 (NodeMCU / ESP-12E) | `boards/esp8266/` | `pio run -e esp8266 -t upload` |
+| ESP32-C3 Super Mini | `boards/esp32c3/` | `pio run -e esp32c3 -t upload` |
 
 ---
 
 ### What is the `custom32c3sm.csv` file?
 
-It is a **custom partition table** for the ESP32C3 Super Mini. This partition layout allocates more storage for the application (`1900544` bytes) while still reserving space for OTA updates. Without it, OTA updates cannot coexist with a large firmware binary. It lives at the repo root and is referenced by `implementation/esp32c3/platformio.ini` (`board_build.partitions = ../../custom32c3sm.csv`).
+It is a **custom partition table** for the ESP32C3 Super Mini. This partition layout allocates more storage for the application (`1900544` bytes) while still reserving space for OTA updates. Without it, OTA updates cannot coexist with a large firmware binary. It lives in `boards/esp32c3/` and is referenced by `boards/esp32c3/platformio.ini` (`board_build.partitions = custom32c3sm.csv`).
 
 ---
 
@@ -192,7 +192,7 @@ OTA via WiFi (WebSocket) using the ICRM app is supported on ESP8266, as long as 
 
 ### How do I test Croaster without physical sensors?
 
-Set `dummyMode = true` in `implementation/esp32c3/src/config.h`:
+Set `dummyMode = true` in `boards/esp32c3/src/config.h`:
 ```cpp
 const bool dummyMode = true;
 ```
@@ -246,7 +246,7 @@ Croaster sends a JSON payload over WebSocket and BLE at each interval. The paylo
 ### The OLED display is blank or shows garbage.
 
 - Verify that the SDA/SCL wires are not swapped.
-- Confirm the I2C address. The SSD1306 usually uses `0x3C`. If yours uses `0x3D`, update `CroasterDisplaySSD1306.cpp` in `implementation/esp32c3/src/`.
+- Confirm the I2C address. The SSD1306 usually uses `0x3C`. If yours uses `0x3D`, update `CroasterDisplaySSD1306.cpp` in `boards/esp32c3/src/`.
 - Check the 3.3V supply to the display.
 
 ---

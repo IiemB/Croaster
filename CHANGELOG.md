@@ -12,12 +12,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `builds/Croaster_<board>_<version>.bin` (e.g. `Croaster_esp32s3_0.62.bin`);
   the version is read from `src/CroasterConstants.h` so the filename stays in
   sync with the firmware version
-- **Firmware version bumped to `0.62`** — `src/CroasterConstants.h`,
-  `library.json`, `implementation/common/library.json`
+- **Firmware version bumped to `0.62`** — `croaster/src/CroasterConstants.h`,
+  `croaster/library.json`, `boards/common/library.json`
 - **Board id hardcoded per implementation** — `boardName()` no longer reads a
   `-DCROASTER_BOARD_NAME` build flag; each implementation calls
   `CroasterDeviceIdentity::setBoardName("esp32s3")` in its `main.cpp`
   (defaults to `unknown` until set)
+- **Release/debug build split** — each board env is pinned to
+  `build_type = release` (so `build_all.sh` always produces release firmware)
+  and gains a `<board>-debug` variant (`extends`) used by the new
+  `./upload.sh <board>` script to build + upload debug firmware to a connected
+  board
+- **Repo restructure** — the library moved to `croaster/` (`library.json`,
+  `src/`, `test/`) and per-board projects to `boards/<board>/` (was
+  `implementation/<board>/`); boards now consume the library via
+  `lib_deps = ../../croaster`
 
 ---
 

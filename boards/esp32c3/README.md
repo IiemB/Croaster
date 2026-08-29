@@ -1,9 +1,9 @@
 # Croaster — ESP32-C3 Super Mini Implementation
 
 This folder is a standalone **PlatformIO** project for the **ESP32-C3 Super Mini**
-board. It consumes the Croaster library from the repo root (`../..`) plus the
-shared SSD1306 display (`../common`), and wires them into the library's
-display-agnostic `CroasterApp` (`src/main.cpp`).
+board. It consumes the Croaster library from `croaster/` (`../../croaster`)
+plus the shared SSD1306 display (`../common`), and wires them into the
+library's display-agnostic `CroasterApp` (`src/main.cpp`).
 
 ![ESP32-C3 Super Mini](../../images/ESP32C3-Super-Mini.png)
 
@@ -12,7 +12,7 @@ display-agnostic `CroasterApp` (`src/main.cpp`).
 ## 📋 Board
 
 - **MCU:** ESP32-C3 (RISC-V), **WiFi + BLE**
-- **Display:** 128×64 SSD1306 OLED (I2C) — from `implementation/common`
+- **Display:** 128×64 SSD1306 OLED (I2C) — from `boards/common`
 - **Partition scheme:** custom `custom32c3sm.csv` (in this folder) — a 1.9 MB
   app slot **with an OTA slot**, set via `board_build.partitions = custom32c3sm.csv`
 
@@ -21,7 +21,7 @@ display-agnostic `CroasterApp` (`src/main.cpp`).
 ## 🔧 Build & Upload
 
 ```bash
-cd implementation/esp32c3
+cd boards/esp32c3
 pio run -e esp32c3 -t upload
 ```
 

@@ -5,10 +5,13 @@
 # Croaster_<board>_<version>.bin (e.g. Croaster_esp32s3_0.62.bin).
 #
 #   ./build_all.sh            # build all boards
-#   ./build_all.sh esp32s3    # build one board (any subdir of implementation/)
+#   ./build_all.sh esp32s3    # build one board (any subdir of boards/)
 #
 # Requires PlatformIO. It is not on PATH on macOS by default, so the script
 # uses ~/.platformio/penv/bin/pio first; override with PIO=/path/to/pio.
+#
+# Always builds RELEASE firmware (each board's release env). For a debug
+# build + upload of a connected board, use ./upload.sh <board>.
 # ============================================================================
 set -euo pipefail
 
@@ -17,10 +20,10 @@ PIO="${PIO:-$HOME/.platformio/penv/bin/pio}"
 OUT="$ROOT/builds"
 
 # Firmware version — read from the library core so the output filename stays
-# in sync with src/CroasterConstants.h ("constexpr double version = X.Y;").
-VERSION="$(sed -n 's/^constexpr double version = \([0-9.]*\);/\1/p' "$ROOT/src/CroasterConstants.h")"
+# in sync with croaster/src/CroasterConstants.h ("constexpr double version = X.Y;").
+VERSION="$(sed -n 's/^constexpr double version = \([0-9.]*\);\1/p' "$ROOT/croaster/src/CroasterConstants.h")"
 if [ -z "$VERSION" ]; then
-    echo "error: could not read version from src/CroasterConstants.h" >&2
+    echo "error: could not read version from croaster/src/CroasterConstants.h" >&2
     exit 1
 fi
 
@@ -29,10 +32,10 @@ if [ ! -x "$PIO" ]; then
     exit 1
 fi
 
-# Boards to build: CLI args, or auto-discover implementation/*/platformio.ini.
+# Boards to build: CLI args, or auto-discover boards/*/platformio.ini.
 BOARDS=("$@")
 if [ "${#BOARDS[@]}" -eq 0 ]; then
-    for ini in "$ROOT"/implementation/*/platformio.ini; do
+    for ini in "$ROOT"/boards/*/platformio.ini; do
         [ -e "$ini" ] || continue
         b="$(basename "$(dirname "$ini")")"
         [ "$b" = "common" ] && continue # shared display lib, not a board
@@ -44,16 +47,20 @@ rm -rf "$OUT"
 mkdir -p "$OUT"
 
 for b in "${BOARDS[@]}"; do
-    dir="$ROOT/implementation/$b"
+    dir="$ROOT/boards/$b"
     if [ ! -d "$dir" ]; then
-        echo "skip: no implementation/$b"
+        echo "skip: no boards/$b"
         continue
     fi
 
-    echo "=== Building $b ==="
-    (cd "$dir" && "$PIO" run)
+    echo "=== Building $b (release) ==="
+    # -e "$b" builds ONLY the release env (env name == board name). The
+    # -debug variants are for ./upload.sh and must never ship in builds/.
+    (cd "$dir" && "$PIO" run -e "$b")
 
-    for fw in "$dir"/.pio/build/*/firmware.bin; do
+    # Copy only the release env's firmware; the <board>-debug variants live in
+    # .pio/build/<board>-debug/ and must never ship in builds/.
+    for fw in "$dir"/.pio/build/"$b"/firmware.bin; do
         [ -e "$fw" ] || continue
         dest="$OUT/Croaster_${b}_${VERSION}.bin"
         cp "$fw" "$dest"

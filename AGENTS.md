@@ -21,33 +21,39 @@ the code, READMEs, or CHANGELOG already say; commit it with the change it
 describes.
 
 ## Repository layout
-- `src/` — the **Croaster library core** (display/pin-agnostic). Consumed by
-  every implementation via `lib_deps = ../..`. Board specifics never go here.
-- `implementation/<board>/` — a standalone PlatformIO project per board
-  (`esp32c3`, `esp8266`, `esp32s3`). Each owns its `platformio.ini`,
-  `src/main.cpp` + `src/config.h` (pins/dummy/LED), board-specific display
-  code, and a per-board README. `implementation/common/` holds the shared
-  SSD1306 display used by the non-LVGL boards.
+- `croaster/` — the **Croaster library core** (display/pin-agnostic):
+  `croaster/src/` + `croaster/library.json`. Consumed by every board via
+  `lib_deps = ../../croaster`. Board specifics never go here.
+- `boards/<board>/` — a standalone PlatformIO project per board (`esp32c3`,
+  `esp8266`, `esp32s3`). Each owns its `platformio.ini`, `src/main.cpp` +
+  `src/config.h` (pins/dummy/LED), board-specific display code, and a per-board
+  README. `boards/common/` holds the shared SSD1306 display used by the
+  non-LVGL boards.
 - `builds/` — gitignored; firmware output of `build_all.sh`.
 
 ## Build & release
-- `./build_all.sh [board...]` — builds every implementation (or the listed
-  ones) and copies each `firmware.bin` into `builds/`. Per-board manual build:
-  `cd implementation/<board> && pio run -e <env> -t upload`.
+- `./build_all.sh [board...]` — builds every board (or the listed ones) and
+  copies each `firmware.bin` into `builds/`. Per-board manual build:
+  `cd boards/<board> && pio run -e <env> -t upload`.
+- `./upload.sh <board> [port]` — build + upload a **DEBUG** build of one board
+  to the connected device (`pio run -e <board>-debug -t upload`). Release
+  firmware comes only from `build_all.sh`: each board env is pinned to
+  `build_type = release`, and the `<board>-debug` env `extends` it.
 - PlatformIO is **not on PATH** on macOS — the script uses
   `~/.platformio/penv/bin/pio`; set `PIO=...` to override.
-- ⚠️ **Gotcha:** implementations consume the library from `../..`; PlatformIO
+- ⚠️ **Gotcha:** boards consume the library from `../../croaster`; PlatformIO
   snapshots it into `.pio/libdeps/<env>/Croaster/`. **Delete `.pio/libdeps`**
-  after editing `src/` library code, or the build silently uses the stale copy.
-- Each implementation hardcodes its board id via
-  `CroasterDeviceIdentity::setBoardName("...")` in its `main.cpp` (read by
+  after editing `croaster/src/` library code, or the build silently uses the
+  stale copy.
+- Each board hardcodes its id via `CroasterDeviceIdentity::setBoardName("...")`
+  in its `main.cpp` (read by
   `CroasterDeviceIdentity::boardName()`; reported to the app as `board`).
   There are **no board-specific compile-time guards** — each board builds its
   own folder unconditionally.
 
 ## Conventions
-- Board config lives in the implementation (`config.h`, `pins.h`,
-  `platformio.ini`, README) — never in the library.
+- Board config lives in the board (`config.h`, `pins.h`, `platformio.ini`,
+  README) — never in the library.
 - 4-space indent, Allman braces, ~120 col width (matches the library sources).
 - No Arduino IDE — PlatformIO is the only workflow.
 - Board ids are lowercase: `esp32s3` / `esp32c3` / `esp8266` / `unknown`

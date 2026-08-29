@@ -1,9 +1,9 @@
 # Croaster — ESP8266 (NodeMCU / ESP-12E) Implementation
 
 This folder is a standalone **PlatformIO** project for the **NodeMCU / ESP-12E**
-board. It consumes the Croaster library from the repo root (`../..`) plus the
-shared SSD1306 display (`../common`), and wires them into the library's
-display-agnostic `CroasterApp` (`src/main.cpp`).
+board. It consumes the Croaster library from `croaster/` (`../../croaster`)
+plus the shared SSD1306 display (`../common`), and wires them into the
+library's display-agnostic `CroasterApp` (`src/main.cpp`).
 
 ![NodeMCU ESP8266](../../images/NodeMCU-ESP8266.png)
 
@@ -12,7 +12,7 @@ display-agnostic `CroasterApp` (`src/main.cpp`).
 ## 📋 Board
 
 - **MCU:** ESP8266, **WiFi only** (no BLE)
-- **Display:** 128×64 SSD1306 OLED (I2C) — from `implementation/common`
+- **Display:** 128×64 SSD1306 OLED (I2C) — from `boards/common`
 - **Partition scheme:** the default NodeMCU layout (includes an OTA slot)
 
 ---
@@ -20,7 +20,7 @@ display-agnostic `CroasterApp` (`src/main.cpp`).
 ## 🔧 Build & Upload
 
 ```bash
-cd implementation/esp8266
+cd boards/esp8266
 pio run -e esp8266 -t upload
 ```
 

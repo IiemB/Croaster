@@ -1,8 +1,9 @@
 # Croaster — ESP32-S3 Implementation (board: ES3C28P)
 
 This folder is a standalone **PlatformIO** project for the **ES3C28P** board
-(ESP32-S3 2.8" ILI9341 LCD). It consumes the Croaster library from the repo
-root (`../..`) and implements the **LVGL** UI on the built-in IPS LCD, wired
+(ESP32-S3 2.8" ILI9341 LCD). It consumes the Croaster library from
+`croaster/` (`../../croaster`) and implements the **LVGL** UI on the built-in
+IPS LCD, wired
 into the library's display-agnostic `CroasterApp` (`src/main.cpp`).
 
 ---
@@ -20,7 +21,7 @@ into the library's display-agnostic `CroasterApp` (`src/main.cpp`).
 ## 🔧 Build & Upload
 
 ```bash
-cd implementation/esp32s3
+cd boards/esp32s3
 pio run -e esp32s3 -t upload
 ```
 

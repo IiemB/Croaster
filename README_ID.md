@@ -64,14 +64,14 @@
 
 | Komponen | Keterangan |
 |:---|:---|
-| 1× Mikrokontroler berbasis ESP (WiFi dan/atau BLE) | Mikrokontroler utama — lihat `implementation/<board>/README.md` untuk board yang didukung |
+| 1× Mikrokontroler berbasis ESP (WiFi dan/atau BLE) | Mikrokontroler utama — lihat `boards/<board>/README.md` untuk board yang didukung |
 | 1× [Layar OLED 128×64 (SSD1306, I2C)](images/OLED-Display.png) | Tampilan suhu real-time |
 | 2× [Modul termokopel MAX6675](images/MAX6675.png) | ADC termokopel K-type berbasis SPI |
 | 2× [Probe termokopel K-type](images/Type-K-thermocouple.png) | Probe suhu (BT & ET) |
 
 > Semua komponen beroperasi pada **3.3V**. Pastikan catu daya Anda dapat menangani total konsumsi arus dari kedua sensor dan layar.
 
-> 🔌 **Diagram pengkabelan bersifat per board** — lihat `implementation/<board>/README.md`.
+> 🔌 **Diagram pengkabelan bersifat per board** — lihat `boards/<board>/README.md`.
 
 ---
 
@@ -79,33 +79,33 @@
 
 Croaster menggunakan **arsitektur C++ modular** yang bersih, dibangun dengan framework Arduino. Setiap subsistem dikemas dalam kelasnya sendiri.
 
-Repositori disusun sebagai **library yang dapat digunakan ulang** (akar repositori: `src/` + `library.json`) ditambah **implementasi per board** di `implementation/<board>/`. Library ini **agnostik terhadap display dan konfigurasi pin** — setiap implementasi menyediakan display, tata letak pin, LED, dan konfigurasi dummy mode mereka sendiri.
+Repositori disusun sebagai **library yang dapat digunakan ulang** (`croaster/`: `croaster/src/` + `croaster/library.json`) ditambah **proyek per board** di `boards/<board>/`. Library ini **agnostik terhadap display dan konfigurasi pin** — setiap board menyediakan display, tata letak pin, LED, dan konfigurasi dummy mode mereka sendiri.
 
-### Modul library (akar repositori `src/`)
+### Modul library (`croaster/src/`)
 
 | Modul | File | Tanggung Jawab |
 |:---|:---|:---|
-| `CroasterCore` | `src/CroasterCore.h/.cpp` | Pembacaan sensor, kalkulasi RoR, penghalusan suhu, state data |
-| `CroasterDisplay` | `src/CroasterDisplay.h` | **Antarmuka display abstrak** — diimplementasikan oleh proyek pengguna |
-| `CroasterPinConfig` | `src/CroasterPinConfig.h` | Tata letak pin termokopel (diteruskan ke `CroasterCore`) |
-| `CroasterCommandHandler` | `src/CroasterCommandHandler.h/.cpp` | Parsing dan dispatching perintah JSON (BLE & WebSocket) |
-| `CroasterWebSocketManager` | `src/CroasterWebSocketManager.h/.cpp` | Server WebSocket, broadcast data, trigger OTA |
-| `CroasterBleManager` | `src/CroasterBleManager.h/.cpp` | Server BLE, notify karakteristik, penerimaan perintah *(hanya dikompilasi bila board punya BLE)* |
-| `CroasterOtaHandler` | `src/CroasterOtaHandler.h/.cpp` | Penanganan update OTA biner via WebSocket dan BLE |
-| `CroasterWiFiManager` | `src/CroasterWiFiManager.h/.cpp` | Setup dan lifecycle captive portal WiFiManager |
-| `CroasterDeviceIdentity` | `src/CroasterDeviceIdentity.h/.cpp` | Helper chip ID, nama perangkat, alamat IP |
-| `CroasterApp` | `src/CroasterApp.h/.cpp` | **Titik masuk `begin()`/`loop()` tunggal** — agnostik display; menerima `CroasterCore&` + `CroasterDisplay*` (+ pin/level LED) |
+| `CroasterCore` | `croaster/src/CroasterCore.h/.cpp` | Pembacaan sensor, kalkulasi RoR, penghalusan suhu, state data |
+| `CroasterDisplay` | `croaster/src/CroasterDisplay.h` | **Antarmuka display abstrak** — diimplementasikan oleh proyek pengguna |
+| `CroasterPinConfig` | `croaster/src/CroasterPinConfig.h` | Tata letak pin termokopel (diteruskan ke `CroasterCore`) |
+| `CroasterCommandHandler` | `croaster/src/CroasterCommandHandler.h/.cpp` | Parsing dan dispatching perintah JSON (BLE & WebSocket) |
+| `CroasterWebSocketManager` | `croaster/src/CroasterWebSocketManager.h/.cpp` | Server WebSocket, broadcast data, trigger OTA |
+| `CroasterBleManager` | `croaster/src/CroasterBleManager.h/.cpp` | Server BLE, notify karakteristik, penerimaan perintah *(hanya dikompilasi bila board punya BLE)* |
+| `CroasterOtaHandler` | `croaster/src/CroasterOtaHandler.h/.cpp` | Penanganan update OTA biner via WebSocket dan BLE |
+| `CroasterWiFiManager` | `croaster/src/CroasterWiFiManager.h/.cpp` | Setup dan lifecycle captive portal WiFiManager |
+| `CroasterDeviceIdentity` | `croaster/src/CroasterDeviceIdentity.h/.cpp` | Helper chip ID, nama perangkat, alamat IP |
+| `CroasterApp` | `croaster/src/CroasterApp.h/.cpp` | **Titik masuk `begin()`/`loop()` tunggal** — agnostik display; menerima `CroasterCore&` + `CroasterDisplay*` (+ pin/level LED) |
 
-### Modul implementasi (`implementation/`)
+### Proyek board (`boards/`)
 
-Komponen bersama dan proyek per board berada di bawah `implementation/`:
+Komponen bersama dan proyek per board berada di bawah `boards/`:
 
 | Path | Kegunaan |
 |:---|:---|
-| `implementation/common/` | Display SSD1306 + animasi bersama (`CroasterDisplaySSD1306`, `CroasterDisplayAnimation`) untuk board berbasis OLED |
-| `implementation/<board>/` | Proyek per board: `platformio.ini`, `main.cpp`, `config.h`, plus `README.md` yang mendokumentasikan board tersebut (pengkabelan, build flags, partisi) |
+| `boards/common/` | Display SSD1306 + animasi bersama (`CroasterDisplaySSD1306`, `CroasterDisplayAnimation`) untuk board berbasis OLED |
+| `boards/<board>/` | Proyek per board: `platformio.ini`, `main.cpp`, `config.h`, plus `README.md` yang mendokumentasikan board tersebut (pengkabelan, build flags, partisi) |
 
-Setiap folder board adalah proyek PlatformIO mandiri (`main.cpp` + `config.h`) yang mengonsumsi library Croaster (`../..`) dan komponen bersama (`../common`), lalu merangkainya ke `CroasterApp` milik library yang agnostik display.
+Setiap folder board adalah proyek PlatformIO mandiri (`main.cpp` + `config.h`) yang mengonsumsi library Croaster (`../../croaster`) dan komponen bersama (`../common`), lalu merangkainya ke `CroasterApp` milik library yang agnostik display.
 
 ### Alur Data
 
@@ -137,14 +137,14 @@ Sensor MAX6675 → CroasterCore (baca + halus + RoR)
 
 > PlatformIO adalah satu-satunya alur kerja yang didukung (Arduino IDE tidak digunakan).
 
-Akar repositori adalah **library yang dapat digunakan ulang**. Setiap board yang didukung memiliki folder implementasi sendiri — pilih dan build/upload dari folder tersebut:
+Library berada di `croaster/`. Setiap board yang didukung memiliki folder sendiri di bawah `boards/` — pilih dan build/upload dari folder tersebut:
 
 1. Install [PlatformIO](https://platformio.org/) (ekstensi VS Code atau CLI)
-2. Clone repositori dan masuk ke folder implementasi board Anda:
+2. Clone repositori dan masuk ke folder board Anda:
 
    ```bash
    git clone git@github.com:IiemB/Croaster.git
-   cd Croaster/implementation/<board>
+   cd Croaster/boards/<board>
    ```
 
 3. Periksa `platformio.ini` dan pilih environment target Anda
@@ -161,7 +161,7 @@ flags khususnya (mis. tabel partisi kustom).
 
 ## 📦 Menggunakan Croaster sebagai library di proyek Anda
 
-Akar repositori adalah library PlatformIO standar. Tambahkan ke `platformio.ini` proyek lain:
+`croaster/` adalah library PlatformIO standar (berisi `library.json` sendiri). Tambahkan ke `platformio.ini` proyek lain:
 
 ```ini
 [env:board_anda]
@@ -169,7 +169,7 @@ lib_deps =
     https://github.com/IiemB/Croaster.git
 ```
 
-Cara termudah adalah menyalin sebuah implementasi (`implementation/<board>/`) lalu menyesuaikannya. Implementasi ini mengekspos API `begin()`/`loop()` tunggal lewat `CroasterApp`, dan semua konfigurasi khusus board (pin, dummy mode, LED, display) berada di sisi implementasi — bukan di library:
+Cara termudah adalah menyalin sebuah board (`boards/<board>/`) lalu menyesuaikannya. Board ini mengekspos API `begin()`/`loop()` tunggal lewat `CroasterApp`, dan semua konfigurasi khusus board (pin, dummy mode, LED, display) berada di sisi board — bukan di library:
 
 ```cpp
 #include <Arduino.h>

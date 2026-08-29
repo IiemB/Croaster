@@ -149,18 +149,18 @@ Ini menerapkan offset `+1.5°` pada BT dan offset `-0.5°` pada ET. Koreksi dite
 
 ### Metode build mana yang sebaiknya saya gunakan?
 
-**PlatformIO adalah satu-satunya alur kerja yang didukung** (Arduino IDE tidak digunakan). Setiap board memiliki folder implementasi sendiri:
+**PlatformIO adalah satu-satunya alur kerja yang didukung** (Arduino IDE tidak digunakan). Setiap board memiliki folder sendiri:
 
 | Board | Folder | Perintah |
 |:---|:---|:---|
-| ESP8266 (NodeMCU / ESP-12E) | `implementation/esp8266/` | `pio run -e esp8266 -t upload` |
-| ESP32-C3 Super Mini | `implementation/esp32c3/` | `pio run -e esp32c3 -t upload` |
+| ESP8266 (NodeMCU / ESP-12E) | `boards/esp8266/` | `pio run -e esp8266 -t upload` |
+| ESP32-C3 Super Mini | `boards/esp32c3/` | `pio run -e esp32c3 -t upload` |
 
 ---
 
 ### Apa itu file `custom32c3sm.csv`?
 
-Ini adalah **tabel partisi kustom** untuk ESP32C3 Super Mini. Tata letak partisi ini mengalokasikan lebih banyak penyimpanan untuk aplikasi (`1900544` byte) sekaligus menyisihkan ruang untuk update OTA. Tanpanya, update OTA tidak dapat berjalan berdampingan dengan binary firmware yang besar. File ini berada di akar repositori dan dirujuk oleh `implementation/esp32c3/platformio.ini` (`board_build.partitions = ../../custom32c3sm.csv`).
+Ini adalah **tabel partisi kustom** untuk ESP32C3 Super Mini. Tata letak partisi ini mengalokasikan lebih banyak penyimpanan untuk aplikasi (`1900544` byte) sekaligus menyisihkan ruang untuk update OTA. Tanpanya, update OTA tidak dapat berjalan berdampingan dengan binary firmware yang besar. File ini berada di `boards/esp32c3/` dan dirujuk oleh `boards/esp32c3/platformio.ini` (`board_build.partitions = custom32c3sm.csv`).
 
 ---
 
@@ -191,7 +191,7 @@ OTA via WiFi (WebSocket) menggunakan aplikasi ICRM didukung di ESP8266, selama A
 
 ### Bagaimana cara menguji Croaster tanpa sensor fisik?
 
-Atur `dummyMode = true` di `implementation/esp32c3/src/config.h`:
+Atur `dummyMode = true` di `boards/esp32c3/src/config.h`:
 ```cpp
 const bool dummyMode = true;
 ```
@@ -245,7 +245,7 @@ Croaster mengirimkan payload JSON melalui WebSocket dan BLE di setiap interval. 
 ### Layar OLED kosong atau menampilkan karakter tidak jelas.
 
 - Verifikasi bahwa kabel SDA/SCL tidak tertukar.
-- Konfirmasi alamat I2C. SSD1306 biasanya menggunakan `0x3C`. Jika milik Anda menggunakan `0x3D`, perbarui `CroasterDisplaySSD1306.cpp` di `implementation/esp32c3/src/`.
+- Konfirmasi alamat I2C. SSD1306 biasanya menggunakan `0x3C`. Jika milik Anda menggunakan `0x3D`, perbarui `CroasterDisplaySSD1306.cpp` di `boards/esp32c3/src/`.
 - Periksa suplai 3.3V ke layar.
 
 ---

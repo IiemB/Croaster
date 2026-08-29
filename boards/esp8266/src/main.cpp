@@ -4,7 +4,7 @@
 // Implementation configuration (pins, dummy mode, LED) — edit config.h.
 #include "config.h"
 
-// Shared SSD1306 display (implementation/common) used by this board.
+// Shared SSD1306 display (boards/common) used by this board.
 #include <CroasterDisplaySSD1306.h>
 
 // Single entry-point application wrapper (begin()/loop() only).
@@ -21,13 +21,8 @@ CroasterApp app(core, &display, ledPin, ledOnLevel);
 
 // ---------------------------------------------------------------------------
 // Optional: register custom commands WITHOUT touching the Croaster library.
-//
 //   onCommand("name", fn)      -> basic string command:  {"command":"name"}
 //   onJsonCommand("key", fn)   -> nested JSON command:   {"command":{"key":...}}
-//
-// Each callback receives the parsed JSON object and returns a response string
-// (empty = no response is sent back). genResponseCommand() can wrap a response
-// in the standard {"command","response"} format.
 // ---------------------------------------------------------------------------
 void registerCustomCommands()
 {
@@ -36,7 +31,7 @@ void registerCustomCommands()
 void setup()
 {
     // Hardcode this board's id (matches the app's CroasterBoardTypes enum).
-    CroasterDeviceIdentity::setBoardName("esp32c3");
+    CroasterDeviceIdentity::setBoardName("esp8266");
 
     registerCustomCommands();
     app.begin();

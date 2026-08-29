@@ -64,14 +64,14 @@
 
 | Component | Description |
 |:---|:---|
-| 1× ESP-based microcontroller (WiFi and/or BLE) | Main microcontroller — see `implementation/<board>/README.md` for the supported boards |
+| 1× ESP-based microcontroller (WiFi and/or BLE) | Main microcontroller — see `boards/<board>/README.md` for the supported boards |
 | 1× [128×64 OLED display (SSD1306, I2C)](images/OLED-Display.png) | Real-time temperature display |
 | 2× [MAX6675 thermocouple modules](images/MAX6675.png) | SPI-based K-type thermocouple ADC |
 | 2× [K-type thermocouple probes](images/Type-K-thermocouple.png) | Temperature probes (BT & ET) |
 
 > All components run on **3.3V**. Ensure your power supply can handle the combined current draw of both sensors and the display.
 
-> 🔌 **Wiring diagrams are per board** — see `implementation/<board>/README.md`.
+> 🔌 **Wiring diagrams are per board** — see `boards/<board>/README.md`.
 
 ---
 
@@ -79,33 +79,33 @@
 
 Croaster uses a clean, **modular C++ architecture** built with the Arduino framework. Each subsystem is encapsulated in its own class.
 
-The repository is structured as a **reusable library** (repo root: `src/` + `library.json`) plus per-board **implementations** in `implementation/<board>/`. The library is **display- and pin-config-agnostic** — each implementation supplies its own display, pin layout, LED and dummy-mode configuration.
+The repository is structured as a **reusable library** (`croaster/`: `croaster/src/` + `croaster/library.json`) plus per-board **projects** in `boards/<board>/`. The library is **display- and pin-config-agnostic** — each board supplies its own display, pin layout, LED and dummy-mode configuration.
 
-### Library modules (repo root `src/`)
+### Library modules (`croaster/src/`)
 
 | Module | File | Responsibility |
 |:---|:---|:---|
-| `CroasterCore` | `src/CroasterCore.h/.cpp` | Sensor reading, RoR calculation, temperature smoothing, data state |
-| `CroasterDisplay` | `src/CroasterDisplay.h` | **Abstract display interface** — implemented by the consuming project |
-| `CroasterPinConfig` | `src/CroasterPinConfig.h` | Thermocouple pin layout (passed to `CroasterCore`) |
-| `CroasterCommandHandler` | `src/CroasterCommandHandler.h/.cpp` | JSON command parsing and dispatching (BLE & WebSocket) |
-| `CroasterWebSocketManager` | `src/CroasterWebSocketManager.h/.cpp` | WebSocket server, data broadcast, OTA trigger |
-| `CroasterBleManager` | `src/CroasterBleManager.h/.cpp` | BLE server, characteristic notify, command receive *(only compiled when the board has BLE)* |
-| `CroasterOtaHandler` | `src/CroasterOtaHandler.h/.cpp` | Binary OTA update handling over WebSocket and BLE |
-| `CroasterWiFiManager` | `src/CroasterWiFiManager.h/.cpp` | WiFiManager captive portal setup and lifecycle |
-| `CroasterDeviceIdentity` | `src/CroasterDeviceIdentity.h/.cpp` | Chip ID, device name, IP address helpers |
-| `CroasterApp` | `src/CroasterApp.h/.cpp` | **Single `begin()`/`loop()` entry point** — display-agnostic; takes `CroasterCore&` + `CroasterDisplay*` (+ LED pin/level) |
+| `CroasterCore` | `croaster/src/CroasterCore.h/.cpp` | Sensor reading, RoR calculation, temperature smoothing, data state |
+| `CroasterDisplay` | `croaster/src/CroasterDisplay.h` | **Abstract display interface** — implemented by the consuming project |
+| `CroasterPinConfig` | `croaster/src/CroasterPinConfig.h` | Thermocouple pin layout (passed to `CroasterCore`) |
+| `CroasterCommandHandler` | `croaster/src/CroasterCommandHandler.h/.cpp` | JSON command parsing and dispatching (BLE & WebSocket) |
+| `CroasterWebSocketManager` | `croaster/src/CroasterWebSocketManager.h/.cpp` | WebSocket server, data broadcast, OTA trigger |
+| `CroasterBleManager` | `croaster/src/CroasterBleManager.h/.cpp` | BLE server, characteristic notify, command receive *(only compiled when the board has BLE)* |
+| `CroasterOtaHandler` | `croaster/src/CroasterOtaHandler.h/.cpp` | Binary OTA update handling over WebSocket and BLE |
+| `CroasterWiFiManager` | `croaster/src/CroasterWiFiManager.h/.cpp` | WiFiManager captive portal setup and lifecycle |
+| `CroasterDeviceIdentity` | `croaster/src/CroasterDeviceIdentity.h/.cpp` | Chip ID, device name, IP address helpers |
+| `CroasterApp` | `croaster/src/CroasterApp.h/.cpp` | **Single `begin()`/`loop()` entry point** — display-agnostic; takes `CroasterCore&` + `CroasterDisplay*` (+ LED pin/level) |
 
-### Implementation modules (`implementation/`)
+### Board projects (`boards/`)
 
-Shared components and per-board projects live under `implementation/`:
+Shared components and per-board projects live under `boards/`:
 
 | Path | Purpose |
 |:---|:---|
-| `implementation/common/` | Shared SSD1306 display + animation (`CroasterDisplaySSD1306`, `CroasterDisplayAnimation`) used by the OLED-based boards |
-| `implementation/<board>/` | Per-board project: `platformio.ini`, `main.cpp`, `config.h`, plus a `README.md` documenting that board (wiring, build flags, partitions) |
+| `boards/common/` | Shared SSD1306 display + animation (`CroasterDisplaySSD1306`, `CroasterDisplayAnimation`) used by the OLED-based boards |
+| `boards/<board>/` | Per-board project: `platformio.ini`, `main.cpp`, `config.h`, plus a `README.md` documenting that board (wiring, build flags, partitions) |
 
-Each board folder is a standalone PlatformIO project (`main.cpp` + `config.h`) that consumes the Croaster library (`../..`) and any shared components (`../common`), then wires them into the library's display-agnostic `CroasterApp`.
+Each board folder is a standalone PlatformIO project (`main.cpp` + `config.h`) that consumes the Croaster library (`../../croaster`) and any shared components (`../common`), then wires them into the library's display-agnostic `CroasterApp`.
 
 ### Data Flow
 
@@ -137,15 +137,15 @@ MAX6675 Sensors → CroasterCore (read + smooth + RoR)
 
 > PlatformIO is the only supported workflow (Arduino IDE is not used).
 
-The repository root is a **reusable library**. Each supported board has its own
-implementation folder — pick it and build/upload from there:
+The library lives in `croaster/`. Each supported board has its own folder under
+`boards/` — pick it and build/upload from there:
 
 1. Install [PlatformIO](https://platformio.org/) (VS Code extension or CLI)
-2. Clone the repository and enter your board's implementation folder:
+2. Clone the repository and enter your board's folder:
 
    ```bash
    git clone git@github.com:IiemB/Croaster.git
-   cd Croaster/implementation/<board>
+   cd Croaster/boards/<board>
    ```
 
 3. Review `platformio.ini` and select your target environment
@@ -162,8 +162,8 @@ build flags (e.g. custom partition tables).
 
 ## 📦 Using Croaster as a library in your own project
 
-The repository root is a standard PlatformIO library. Add it to another
-project's `platformio.ini`:
+`croaster/` is a standard PlatformIO library (it ships its own `library.json`).
+Add it to another project's `platformio.ini`:
 
 ```ini
 [env:your_board]
@@ -171,8 +171,8 @@ lib_deps =
     https://github.com/IiemB/Croaster.git
 ```
 
-The easiest way to start is to copy an implementation
-(`implementation/<board>/`) and adapt it. It exposes a single `begin()`/`loop()`
+The easiest way to start is to copy a board (`boards/<board>/`) and adapt it.
+It exposes a single `begin()`/`loop()`
 API via `CroasterApp`, and all board-specific config (pins, dummy mode, LED,
 display) lives in the implementation — not the library:
 
