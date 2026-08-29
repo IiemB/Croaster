@@ -84,6 +84,11 @@ if [ -z "$PORT" ]; then
     fi
 fi
 
+# The <board>-debug env is a throwaway; drop its stale .pio/libdeps snapshot
+# so a config change never triggers PlatformIO's "Removing unused dependencies"
+# (which can hang on leftover plain-path specs such as ../.. / ../common).
+rm -rf "$dir"/.pio/libdeps/"$BOARD-debug"
+
 echo "=== Uploading $BOARD (debug build) ==="
 ARGS=(run -e "$BOARD-debug" -t upload)
 if [ -n "$PORT" ]; then

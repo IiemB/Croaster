@@ -200,7 +200,7 @@ void CroasterCommandHandler::handleJsonCommand(const JsonObject &json, String &r
     // Custom implementation-defined nested JSON commands (registered via onJsonCommand()).
     for (auto &entry : customJsonCommands)
     {
-        if (json.containsKey(entry.first))
+        if (json[entry.first].is<JsonVariant>())
         {
             String resp = entry.second(json);
             if (!resp.isEmpty())
