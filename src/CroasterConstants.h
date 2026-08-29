@@ -20,31 +20,19 @@
 #define CROASTER_HAS_WIFI 0
 #endif
 
-// OLED Display Size (used by display implementations, not by the core)
-#define SCREEN_WIDTH 128
-#define SCREEN_HEIGHT 64
-
 // BLE Service and Characteristic UUIDs
 #define SERVICE_UUID "1cc9b045-a6e9-4bd5-b874-07d4f2d57843"
 #define DATA_UUID "d56d0059-ad65-43f3-b971-431d48f89a69"
 
-// OLED Reset Pin (not used)
-#define OLED_RESET -1
-
 // Debug macro
 #define debugln(x) Serial.println(x)
-
-// Built-in LED polarity (active level).
-// Override via build flags if the board's LED is active-high, e.g. -DLED_ON=HIGH.
-#ifndef LED_ON
-#define LED_ON LOW
-#endif
-#ifndef LED_OFF
-#define LED_OFF HIGH
-#endif
 
 // Firmware version
 constexpr double version = 0.52;
 
 // Smoothing factor of a temperature value
 #define SMOOTHING_FACTOR 5
+
+// NOTE: display and LED hardware specifics are NOT defined here. The
+// implementation owns them: display size/reset (e.g. in CroasterDisplaySSD1306.h)
+// and built-in LED pin/polarity (e.g. in the implementation's config.h).

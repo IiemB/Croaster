@@ -105,7 +105,7 @@
 
 Croaster uses a clean, **modular C++ architecture** built with the Arduino framework. Each subsystem is encapsulated in its own class.
 
-The repository is now structured as a **reusable library** (repo root: `src/` + `library.json`/`library.properties`) plus a **reference implementation** in `implementation/reference/`. The library is **display- and pin-config-agnostic** — a consuming project supplies its own display implementation and pin layout.
+The repository is now structured as a **reusable library** (repo root: `src/` + `library.json`/`library.properties`) plus a per-board **implementation** in `implementation/<board>/` (the ESP32-C3 Super Mini lives in `implementation/esp32c3/`). The library is **display- and pin-config-agnostic** — a consuming project supplies its own display implementation, pin layout, LED and dummy-mode configuration.
 
 ### Library modules (repo root `src/`)
 
@@ -121,17 +121,19 @@ The repository is now structured as a **reusable library** (repo root: `src/` + 
 | `CroasterWiFiManager` | `src/CroasterWiFiManager.h/.cpp` | WiFiManager captive portal setup and lifecycle |
 | `CroasterDeviceIdentity` | `src/CroasterDeviceIdentity.h/.cpp` | Chip ID, device name, IP address helpers |
 
-### Reference implementation modules (`implementation/reference/src/`)
+### ESP32-C3 implementation modules (`implementation/esp32c3/src/`)
 
-The reference implementation adds the concrete SSD1306 OLED display plus a
-single `begin()`/`loop()` app wrapper:
+The ESP32-C3 implementation adds the concrete SSD1306 OLED display plus a
+single `begin()`/`loop()` app wrapper. `CroasterApp` is **display-agnostic** —
+it only knows the `CroasterDisplay` interface; the display type is chosen here:
 
 | Module | File | Responsibility |
 |:---|:---|:---|
-| `CroasterApp` | `implementation/reference/src/CroasterApp.h/.cpp` | Single `begin()`/`loop()` entry point wiring all subsystems |
-| `CroasterDisplaySSD1306` | `implementation/reference/src/CroasterDisplaySSD1306.h/.cpp` | 128×64 SSD1306 OLED rendering loop, status screens |
-| `CroasterDisplayAnimation` | `implementation/reference/src/CroasterDisplayAnimation.h/.cpp` | Fire splash-screen animation |
-| `config.h` | `implementation/reference/src/config.h` | Pin layout + dummy-mode configuration (edit here) |
+| `main.cpp` | `implementation/esp32c3/src/main.cpp` | Creates core + display, wires them into `CroasterApp`, registers custom commands |
+| `CroasterApp` | `implementation/esp32c3/src/CroasterApp.h/.cpp` | Single `begin()`/`loop()` entry point; takes `CroasterCore&` + `CroasterDisplay*` |
+| `CroasterDisplaySSD1306` | `implementation/esp32c3/src/CroasterDisplaySSD1306.h/.cpp` | 128×64 SSD1306 OLED (defines `SCREEN_WIDTH`/`HEIGHT`/`OLED_RESET`) |
+| `CroasterDisplayAnimation` | `implementation/esp32c3/src/CroasterDisplayAnimation.h/.cpp` | Fire splash-screen animation |
+| `config.h` | `implementation/esp32c3/src/config.h` | Pin layout, dummy mode and LED config (edit here) |
 
 ### Data Flow
 
@@ -161,27 +163,23 @@ MAX6675 Sensors → CroasterCore (read + smooth + RoR)
 
 ## 🔧 How to Build and Upload
 
-### ✅ PlatformIO (recommended for ESP8266 & ESP32C3)
+### ✅ PlatformIO (recommended for the ESP32-C3)
 
-The repository root is a **reusable library**. The reference implementation
-lives in `implementation/reference/` — build and upload it from that folder:
+The repository root is a **reusable library**. The ESP32-C3 implementation
+lives in `implementation/esp32c3/` — build and upload it from that folder:
 
 1. Install [PlatformIO](https://platformio.org/) (VS Code extension or CLI)
 2. Clone the repository:
 
    ```bash
    git clone git@github.com:IiemB/Croaster.git
-   cd Croaster/implementation/reference
+   cd Croaster/implementation/esp32c3
    ```
 
 3. Review `platformio.ini` and select your target environment
 4. Upload the firmware:
 
    ```bash
-   # For ESP8266
-   pio run -e esp8266 -t upload
-
-   # For ESP32C3
    pio run -e esp32c3 -t upload
    ```
 
@@ -198,18 +196,21 @@ lib_deps =
     https://github.com/IiemB/Croaster.git
 ```
 
-The easiest way to start is to copy the reference implementation
-(`implementation/reference/`) and adapt it. It exposes a single
-`begin()`/`loop()` API via `CroasterApp`, and all board-specific config
-(pins, dummy mode, display) lives in the implementation — not the library:
+The easiest way to start is to copy an implementation (e.g.
+`implementation/esp32c3/`) and adapt it. It exposes a single `begin()`/`loop()`
+API via `CroasterApp`, and all board-specific config (pins, dummy mode, LED,
+display) lives in the implementation — not the library:
 
 ```cpp
 #include <Arduino.h>
 #include <ArduinoJson.h>
-#include "config.h"        // pins + dummyMode (edit here)
+#include "config.h"                 // pins, dummyMode, ledPin/ledOnLevel (edit here)
+#include "CroasterDisplaySSD1306.h" // or your own CroasterDisplay subclass
 #include "CroasterApp.h"
 
-CroasterApp app(dummyMode, pins);   // your board's pins (from config.h)
+CroasterCore core(dummyMode, pins);
+CroasterDisplaySSD1306 display(core);     // display defined in the implementation
+CroasterApp app(core, &display, ledPin, ledOnLevel);
 
 void setup() { app.begin(); }
 void loop()  { app.loop(); }
@@ -240,8 +241,9 @@ CroasterBleManager ble(croaster, commands, &display);
 - **Display** — implement `CroasterDisplay` (`begin`, `loop`, `rotateScreen`,
   `blinkIndicator`, `displayToggle`, and the OTA-progress methods). Pass
   `nullptr` where the board has no display.
-- **Pins & dummy mode** — build your own `CroasterPinConfig` and pass it to
-  `CroasterCore`; choose `dummyMode` in the implementation's `config.h`.
+- **Pins, dummy mode & LED** — build your own `CroasterPinConfig` and pass it
+  to `CroasterCore`; choose `dummyMode`, `ledPin`/`ledOnLevel` in the
+  implementation's `config.h`.
 - **BLE** — the library detects BLE support at compile time via
   `CROASTER_HAS_BLE` (1 on ESP32, 0 elsewhere) and only compiles
   `CroasterBleManager` when available.

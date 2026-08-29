@@ -8,8 +8,9 @@
 #include <ESP8266WiFi.h>
 #endif
 
-CroasterCommandHandler::CroasterCommandHandler(CroasterCore &core, CroasterDisplay *display)
-    : croaster(core), display(display) {}
+CroasterCommandHandler::CroasterCommandHandler(CroasterCore &core, CroasterDisplay *display,
+                                               int8_t ledPin, uint8_t ledOnLevel)
+    : croaster(core), display(display), ledPin(ledPin), ledOnLevel(ledOnLevel) {}
 
 void CroasterCommandHandler::onCommand(const String &command, CommandFn fn)
 {
@@ -23,8 +24,11 @@ void CroasterCommandHandler::onJsonCommand(const String &key, CommandFn fn)
 
 void CroasterCommandHandler::begin()
 {
-    pinMode(LED_BUILTIN, OUTPUT);
-    digitalWrite(LED_BUILTIN, LED_OFF);
+    if (ledPin >= 0)
+    {
+        pinMode(ledPin, OUTPUT);
+        digitalWrite(ledPin, (ledOnLevel == HIGH) ? LOW : HIGH);
+    }
 }
 
 void CroasterCommandHandler::loop()
@@ -34,7 +38,8 @@ void CroasterCommandHandler::loop()
     if (blinking && now - lastBlinkTime >= blinkDelay)
     {
         ledState = !ledState;
-        digitalWrite(LED_BUILTIN, ledState ? LED_ON : LED_OFF);
+        if (ledPin >= 0)
+            digitalWrite(ledPin, ledState ? ledOnLevel : ((ledOnLevel == HIGH) ? LOW : HIGH));
         if (display)
             display->blinkIndicator(ledState);
         lastBlinkTime = now;
@@ -43,7 +48,8 @@ void CroasterCommandHandler::loop()
         if (blinkCount >= blinkTotal)
         {
             blinking = false;
-            digitalWrite(LED_BUILTIN, LED_OFF); // turn off when done
+            if (ledPin >= 0)
+                digitalWrite(ledPin, (ledOnLevel == HIGH) ? LOW : HIGH); // turn off when done
             if (display)
                 display->blinkIndicator(false); // turn off when done
         }

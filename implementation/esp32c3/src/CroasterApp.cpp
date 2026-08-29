@@ -1,14 +1,15 @@
 #include "CroasterApp.h"
 #include <CroasterWiFiManager.h>
 
-CroasterApp::CroasterApp(bool dummyMode, CroasterPinConfig pins)
-    : croaster(dummyMode, pins),
-      display(croaster),
-      commandHandler(croaster, &display),
+CroasterApp::CroasterApp(CroasterCore &core, CroasterDisplay *display,
+                         int8_t ledPin, uint8_t ledOnLevel)
+    : croaster(core),
+      _display(display),
+      commandHandler(croaster, display, ledPin, ledOnLevel),
 #if CROASTER_HAS_BLE
-      bleManager(croaster, commandHandler, &display),
+      bleManager(croaster, commandHandler, display),
 #endif
-      wsManager(croaster, commandHandler, &display)
+      wsManager(croaster, commandHandler, display)
 {
 }
 
@@ -27,7 +28,8 @@ void CroasterApp::begin()
 
     wsManager.begin();
 
-    display.begin();
+    if (_display)
+        _display->begin();
 }
 
 void CroasterApp::loop()
@@ -38,7 +40,8 @@ void CroasterApp::loop()
 
     wsManager.loop();
 
-    display.loop();
+    if (_display)
+        _display->loop();
 
 #if CROASTER_HAS_BLE
     bleManager.loop();

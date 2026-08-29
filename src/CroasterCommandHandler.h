@@ -28,6 +28,9 @@ private:
     unsigned long blinkDelay = 250;
     bool ledState = false;
 
+    int8_t ledPin;     ///< Built-in LED pin (-1 = no LED).
+    uint8_t ledOnLevel; ///< Active level for the LED (LOW or HIGH).
+
     std::map<String, CommandFn> customCommands;     ///< Custom basic commands.
     std::map<String, CommandFn> customJsonCommands; ///< Custom nested JSON commands.
 
@@ -70,8 +73,11 @@ public:
      * @brief Constructs a CroasterCommandHandler instance.
      * @param core Reference to the CroasterCore instance.
      * @param display Optional display for the LED blink indicator (may be nullptr).
+     * @param ledPin Built-in LED pin (defaults to LED_BUILTIN; pass -1 to disable).
+     * @param ledOnLevel Active level for the LED (LOW = active-low, HIGH = active-high).
      */
-    CroasterCommandHandler(CroasterCore &core, CroasterDisplay *display = nullptr);
+    CroasterCommandHandler(CroasterCore &core, CroasterDisplay *display = nullptr,
+                           int8_t ledPin = LED_BUILTIN, uint8_t ledOnLevel = LOW);
 
     /**
      * @brief Initializes the CroasterCommandHandler.

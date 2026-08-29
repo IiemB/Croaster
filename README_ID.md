@@ -105,7 +105,7 @@
 
 Croaster menggunakan **arsitektur C++ modular** yang bersih, dibangun dengan framework Arduino. Setiap subsistem dikemas dalam kelasnya sendiri.
 
-Repositori kini disusun sebagai **library yang dapat digunakan ulang** (akar repositori: `src/` + `library.json`/`library.properties`) ditambah **implementasi referensi** di `implementation/reference/`. Library ini **agnostik terhadap display dan konfigurasi pin** — proyek pengguna menyediakan implementasi display dan tata letak pin mereka sendiri.
+Repositori kini disusun sebagai **library yang dapat digunakan ulang** (akar repositori: `src/` + `library.json`/`library.properties`) ditambah **implementasi per board** di `implementation/<board>/` (ESP32-C3 Super Mini berada di `implementation/esp32c3/`). Library ini **agnostik terhadap display dan konfigurasi pin** — proyek pengguna menyediakan implementasi display, tata letak pin, LED, dan konfigurasi dummy mode mereka sendiri.
 
 ### Modul library (akar repositori `src/`)
 
@@ -121,17 +121,19 @@ Repositori kini disusun sebagai **library yang dapat digunakan ulang** (akar rep
 | `CroasterWiFiManager` | `src/CroasterWiFiManager.h/.cpp` | Setup dan lifecycle captive portal WiFiManager |
 | `CroasterDeviceIdentity` | `src/CroasterDeviceIdentity.h/.cpp` | Helper chip ID, nama perangkat, alamat IP |
 
-### Modul implementasi referensi (`implementation/reference/src/`)
+### Modul implementasi ESP32-C3 (`implementation/esp32c3/src/`)
 
-Implementasi referensi menambahkan layar OLED SSD1306 yang konkret plus
-pembungkus aplikasi `begin()`/`loop()` tunggal:
+Implementasi ESP32-C3 menambahkan layar OLED SSD1306 yang konkret plus
+pembungkus aplikasi `begin()`/`loop()` tunggal. `CroasterApp` **agnostik terhadap
+display** — ia hanya mengenal antarmuka `CroasterDisplay`; tipe display dipilih di sini:
 
 | Modul | File | Tanggung Jawab |
 |:---|:---|:---|
-| `CroasterApp` | `implementation/reference/src/CroasterApp.h/.cpp` | Titik masuk `begin()`/`loop()` tunggal yang merangkai semua subsistem |
-| `CroasterDisplaySSD1306` | `implementation/reference/src/CroasterDisplaySSD1306.h/.cpp` | Loop rendering OLED 128×64 SSD1306, layar status |
-| `CroasterDisplayAnimation` | `implementation/reference/src/CroasterDisplayAnimation.h/.cpp` | Animasi api di layar splash |
-| `config.h` | `implementation/reference/src/config.h` | Konfigurasi tata letak pin + dummy mode (sunting di sini) |
+| `main.cpp` | `implementation/esp32c3/src/main.cpp` | Membuat core + display, merangkainya ke `CroasterApp`, mendaftarkan perintah kustom |
+| `CroasterApp` | `implementation/esp32c3/src/CroasterApp.h/.cpp` | Titik masuk `begin()`/`loop()` tunggal; menerima `CroasterCore&` + `CroasterDisplay*` |
+| `CroasterDisplaySSD1306` | `implementation/esp32c3/src/CroasterDisplaySSD1306.h/.cpp` | OLED 128×64 SSD1306 (mendefinisikan `SCREEN_WIDTH`/`HEIGHT`/`OLED_RESET`) |
+| `CroasterDisplayAnimation` | `implementation/esp32c3/src/CroasterDisplayAnimation.h/.cpp` | Animasi api di layar splash |
+| `config.h` | `implementation/esp32c3/src/config.h` | Konfigurasi tata letak pin, dummy mode, dan LED (sunting di sini) |
 
 ### Alur Data
 
@@ -161,26 +163,22 @@ Sensor MAX6675 → CroasterCore (baca + halus + RoR)
 
 ## 🔧 Cara Build dan Upload
 
-### ✅ PlatformIO (direkomendasikan untuk ESP8266 & ESP32C3)
+### ✅ PlatformIO (direkomendasikan untuk ESP32-C3)
 
-Akar repositori adalah **library yang dapat digunakan ulang**. Implementasi referensi berada di `implementation/reference/` — build dan upload dari folder tersebut:
+Akar repositori adalah **library yang dapat digunakan ulang**. Implementasi ESP32-C3 berada di `implementation/esp32c3/` — build dan upload dari folder tersebut:
 
 1. Install [PlatformIO](https://platformio.org/) (ekstensi VS Code atau CLI)
 2. Clone repositori:
 
    ```bash
    git clone git@github.com:IiemB/Croaster.git
-   cd Croaster/implementation/reference
+   cd Croaster/implementation/esp32c3
    ```
 
 3. Periksa `platformio.ini` dan pilih environment target Anda
 4. Upload firmware:
 
    ```bash
-   # Untuk ESP8266
-   pio run -e esp8266 -t upload
-
-   # Untuk ESP32C3
    pio run -e esp32c3 -t upload
    ```
 
@@ -196,15 +194,18 @@ lib_deps =
     https://github.com/IiemB/Croaster.git
 ```
 
-Cara termudah adalah menyalin implementasi referensi (`implementation/reference/`) lalu menyesuaikannya. Implementasi ini mengekspos API `begin()`/`loop()` tunggal lewat `CroasterApp`, dan semua konfigurasi khusus board (pin, dummy mode, display) berada di sisi implementasi — bukan di library:
+Cara termudah adalah menyalin sebuah implementasi (mis. `implementation/esp32c3/`) lalu menyesuaikannya. Implementasi ini mengekspos API `begin()`/`loop()` tunggal lewat `CroasterApp`, dan semua konfigurasi khusus board (pin, dummy mode, LED, display) berada di sisi implementasi — bukan di library:
 
 ```cpp
 #include <Arduino.h>
 #include <ArduinoJson.h>
-#include "config.h"        // pins + dummyMode (sunting di sini)
+#include "config.h"                 // pins, dummyMode, ledPin/ledOnLevel (sunting di sini)
+#include "CroasterDisplaySSD1306.h" // atau subclass CroasterDisplay Anda
 #include "CroasterApp.h"
 
-CroasterApp app(dummyMode, pins);   // pin board Anda (dari config.h)
+CroasterCore core(dummyMode, pins);
+CroasterDisplaySSD1306 display(core);     // display didefinisikan di implementasi
+CroasterApp app(core, &display, ledPin, ledOnLevel);
 
 void setup() { app.begin(); }
 void loop()  { app.loop(); }
@@ -235,8 +236,9 @@ CroasterBleManager ble(croaster, commands, &display);
 - **Display** — implementasikan `CroasterDisplay` (`begin`, `loop`, `rotateScreen`,
   `blinkIndicator`, `displayToggle`, dan metode progres OTA). Teruskan `nullptr`
   bila board tidak memiliki display.
-- **Pin & dummy mode** — buat `CroasterPinConfig` Anda sendiri dan teruskan ke
-  `CroasterCore`; pilih `dummyMode` di `config.h` implementasi.
+- **Pin, dummy mode & LED** — buat `CroasterPinConfig` Anda sendiri dan teruskan
+  ke `CroasterCore`; pilih `dummyMode`, `ledPin`/`ledOnLevel` di `config.h`
+  implementasi.
 - **BLE** — library mendeteksi dukungan BLE saat kompilasi melalui
   `CROASTER_HAS_BLE` (1 di ESP32, 0 di tempat lain) dan hanya mengompilasi
   `CroasterBleManager` bila tersedia.

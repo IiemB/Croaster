@@ -35,13 +35,13 @@ move_file() {
 # Main script
 echo "Copying files..."
 
-# Process main.cpp (the reference implementation sketch)
-move_file "./implementation/reference/src/main.cpp" "./croaster-arduino/croaster-arduino.ino"
+# Process main.cpp (the ESP32-C3 implementation sketch)
+move_file "./implementation/esp32c3/src/main.cpp" "./croaster-arduino/croaster-arduino.ino"
 
-# Process other files in the reference implementation src directory, excluding main.cpp
-for file in ./implementation/reference/src/*; do
-    if [ "$file" != "./implementation/reference/src/main.cpp" ] && [ -f "$file" ]; then
-        dest_path=$(echo "$file" | sed 's|implementation/reference/src|croaster-arduino|')
+# Process other files in the implementation src directory, excluding main.cpp
+for file in ./implementation/esp32c3/src/*; do
+    if [ "$file" != "./implementation/esp32c3/src/main.cpp" ] && [ -f "$file" ]; then
+        dest_path=$(echo "$file" | sed 's|implementation/esp32c3/src|croaster-arduino|')
         move_file "$file" "$dest_path"
     fi
 done

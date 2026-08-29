@@ -165,7 +165,7 @@ Definisi board **Makergo ESP32C3 SuperMini** tidak tersedia secara resmi di regi
 
 ### Apa itu `copy_to_ino.sh`?
 
-Ini adalah shell script yang menyalin file sumber dari implementasi referensi (`implementation/reference/src/`, struktur PlatformIO) plus library (`src/`) ke folder `croaster-arduino/` dengan konvensi penamaan sketch Arduino yang benar. Jalankan sebelum membuka project di Arduino IDE.
+Ini adalah shell script yang menyalin file sumber dari implementasi ESP32-C3 (`implementation/esp32c3/src/`, struktur PlatformIO) plus library (`src/`) ke folder `croaster-arduino/` dengan konvensi penamaan sketch Arduino yang benar. Jalankan sebelum membuka project di Arduino IDE.
 
 ---
 
@@ -202,7 +202,7 @@ OTA via WiFi (WebSocket) menggunakan aplikasi ICRM didukung di ESP8266, selama A
 
 ### Bagaimana cara menguji Croaster tanpa sensor fisik?
 
-Atur `dummyMode = true` di `implementation/reference/src/config.h`:
+Atur `dummyMode = true` di `implementation/esp32c3/src/config.h`:
 ```cpp
 const bool dummyMode = true;
 ```
@@ -256,7 +256,7 @@ Croaster mengirimkan payload JSON melalui WebSocket dan BLE di setiap interval. 
 ### Layar OLED kosong atau menampilkan karakter tidak jelas.
 
 - Verifikasi bahwa kabel SDA/SCL tidak tertukar.
-- Konfirmasi alamat I2C. SSD1306 biasanya menggunakan `0x3C`. Jika milik Anda menggunakan `0x3D`, perbarui `CroasterDisplaySSD1306.cpp` di `implementation/reference/src/`.
+- Konfirmasi alamat I2C. SSD1306 biasanya menggunakan `0x3C`. Jika milik Anda menggunakan `0x3D`, perbarui `CroasterDisplaySSD1306.cpp` di `implementation/esp32c3/src/`.
 - Periksa suplai 3.3V ke layar.
 
 ---

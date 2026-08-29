@@ -1,17 +1,20 @@
 #pragma once
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-#include <CroasterConstants.h>
 #include <CroasterDisplay.h>
+
+// This display's hardware specifics (defined in the implementation, not the library).
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET -1
 
 /**
  * @class CroasterDisplaySSD1306
  * @brief Concrete 128x64 SSD1306 OLED display implementation (I2C).
  *
- * This is the reference implementation of the CroasterDisplay interface for
- * the ESP8266 (NodeMCU) and ESP32-C3 Super Mini boards. It lives in the
- * example, not in the library — a consuming project with a different screen
- * provides its own CroasterDisplay subclass instead.
+ * This is the display implementation for the ESP32-C3 Super Mini. It lives in
+ * the implementation, not in the library — a consuming project with a different
+ * screen provides its own CroasterDisplay subclass instead.
  */
 class CroasterDisplaySSD1306 : public CroasterDisplay
 {

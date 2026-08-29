@@ -165,7 +165,7 @@ The **Makergo ESP32C3 SuperMini** board definition is not officially available i
 
 ### What is `copy_to_ino.sh`?
 
-This is a shell script that copies the source files from the reference implementation (`implementation/reference/src/`, PlatformIO structure) plus the library (`src/`) into the `croaster-arduino/` folder with the correct Arduino sketch naming convention. Run it before opening the project in Arduino IDE.
+This is a shell script that copies the source files from the ESP32-C3 implementation (`implementation/esp32c3/src/`, PlatformIO structure) plus the library (`src/`) into the `croaster-arduino/` folder with the correct Arduino sketch naming convention. Run it before opening the project in Arduino IDE.
 
 ---
 
@@ -202,7 +202,7 @@ OTA via WiFi (WebSocket) using the ICRM app is supported on ESP8266, as long as 
 
 ### How do I test Croaster without physical sensors?
 
-Set `dummyMode = true` in `implementation/reference/src/config.h`:
+Set `dummyMode = true` in `implementation/esp32c3/src/config.h`:
 ```cpp
 const bool dummyMode = true;
 ```
@@ -256,7 +256,7 @@ Croaster sends a JSON payload over WebSocket and BLE at each interval. The paylo
 ### The OLED display is blank or shows garbage.
 
 - Verify that the SDA/SCL wires are not swapped.
-- Confirm the I2C address. The SSD1306 usually uses `0x3C`. If yours uses `0x3D`, update `CroasterDisplaySSD1306.cpp` in `implementation/reference/src/`.
+- Confirm the I2C address. The SSD1306 usually uses `0x3C`. If yours uses `0x3D`, update `CroasterDisplaySSD1306.cpp` in `implementation/esp32c3/src/`.
 - Check the 3.3V supply to the display.
 
 ---
