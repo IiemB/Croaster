@@ -61,6 +61,13 @@ private:
 
     bool clientConnected = false; ///< Indicates if a BLE client is connected.
 
+    // Deferred JSON command handling: BLE callbacks run on the Bluedroid BTC
+    // task (~3KB stack); parsing with ArduinoJson there overflows it (crashes
+    // as an unrelated "xQueueGenericSend" assert). The callback only stores
+    // the payload + flag; loop() does the parsing on the Arduino loop task.
+    volatile bool hasPendingWrite = false; ///< True when a BLE write awaits processing in loop().
+    String pendingWriteData;               ///< Raw BLE write payload, consumed by loop().
+
     /**
      * @brief Broadcasts data to connected BLE clients.
      */

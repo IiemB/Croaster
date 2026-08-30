@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # ============================================================================
-# upload.sh — build + upload ONE board's firmware in DEBUG mode to a connected
-# device (USB). Release firmware is only produced by build_all.sh.
+# upload_monitor.sh — build + upload ONE board's firmware in DEBUG mode to a
+# connected device (USB), then open the serial monitor. Release firmware is
+# only produced by build_all.sh.
 #
-#   ./upload.sh                      # interactive: choose board, then port
-#   ./upload.sh esp32s3              # board given, still choose the port
-#   ./upload.sh esp32s3 /dev/ttyUSB0 # fully specified, non-interactive
+#   ./upload_monitor.sh                      # interactive: choose board, then port
+#   ./upload_monitor.sh esp32s3              # board given, still choose the port
+#   ./upload_monitor.sh esp32s3 /dev/ttyUSB0 # fully specified, non-interactive
 #
 # Uses each board's [env:<board>-debug] (extends the release env with
 # build_type = debug). Requires PlatformIO — same PIO override as
@@ -90,7 +91,7 @@ fi
 rm -rf "$dir"/.pio/libdeps/"$BOARD-debug"
 
 echo "=== Uploading $BOARD (debug build) ==="
-ARGS=(run -e "$BOARD-debug" -t upload)
+ARGS=(run -e "$BOARD-debug" -t upload -t monitor)
 if [ -n "$PORT" ]; then
     ARGS+=(--upload-port "$PORT")
     echo "    port: $PORT"

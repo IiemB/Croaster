@@ -35,10 +35,11 @@ describes.
 - `./build_all.sh [board...]` — builds every board (or the listed ones) and
   copies each `firmware.bin` into `builds/`. Per-board manual build:
   `cd boards/<board> && pio run -e <env> -t upload`.
-- `./upload.sh <board> [port]` — build + upload a **DEBUG** build of one board
-  to the connected device (`pio run -e <board>-debug -t upload`). Release
-  firmware comes only from `build_all.sh`: each board env is pinned to
-  `build_type = release`, and the `<board>-debug` env `extends` it.
+- `./upload_monitor.sh <board> [port]` — build + upload a **DEBUG** build of
+  one board to the connected device, then open the serial monitor
+  (`pio run -e <board>-debug -t upload -t monitor`). Release firmware comes
+  only from `build_all.sh`: each board env is pinned to `build_type = release`,
+  and the `<board>-debug` env `extends` it.
 - PlatformIO is **not on PATH** on macOS — the script uses
   `~/.platformio/penv/bin/pio`; set `PIO=...` to override.
 - Boards consume the library via **`symlink://`** lib_deps

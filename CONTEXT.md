@@ -34,9 +34,9 @@ Flutter app (remote `git@github.com:IiemB/Croaster.git`) and is consumed via
   by `CroasterDeviceIdentity::boardName()` (no compile-time board guards;
   defaults to `unknown` until set).
 - Builds: `build_all.sh` builds only the **release** env of each board
-  (`build_type = release`; `pio run -e <board>`); `./upload.sh <board>`
+  (`build_type = release`; `pio run -e <board>`); `./upload_monitor.sh <board>`
   builds + uploads the **debug** variant (`<board>-debug`, `extends` the
-  release env) to the connected board.
+  release env) to the connected board, then opens the serial monitor.
 - Library features added in 0.52: roast timer (`CroasterCore::roastTimerStart/
   Pause/Reset`), `getDeviceInfo` now reports `board`/`darkMode`/`brightness`
   (display state via `CroasterDisplay::isDarkMode()/getBrightness()`), and a

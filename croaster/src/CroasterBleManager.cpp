@@ -74,21 +74,12 @@ public:
             return;
         }
 
-        String response;
-
-        if (parent->commandHandler->handle(raw, response))
-        {
-            if (!response.isEmpty())
-            {
-                pCharacteristic->setValue(response.c_str());
-                pCharacteristic->notify();
-            }
-
-            debugln("# [CMD-BLE] " + raw);
-
-            if (!response.isEmpty())
-                debugln("# [CMD-BLE-RESP] " + response);
-        }
+        // Defer JSON command handling to loop(). This callback runs on the
+        // Bluedroid BTC task (~3KB stack); parsing with ArduinoJson here
+        // overflows it and crashes as an unrelated "xQueueGenericSend" assert
+        // (esp-idf bluedroid bug that only shows on debug builds / single-core).
+        parent->pendingWriteData = raw;
+        parent->hasPendingWrite = true;
     }
 };
 
@@ -126,6 +117,31 @@ void CroasterBleManager::begin()
 
 void CroasterBleManager::loop()
 {
+    // Handle a deferred BLE write (see onWrite): run the JSON command handler
+    // on the Arduino loop task, which has a large stack, never on the
+    // Bluedroid BTC task.
+    if (hasPendingWrite)
+    {
+        hasPendingWrite = false;
+
+        String raw = pendingWriteData;
+        String response;
+
+        if (commandHandler->handle(raw, response))
+        {
+            if (!response.isEmpty())
+            {
+                pDataCharacteristic->setValue(response.c_str());
+                pDataCharacteristic->notify();
+            }
+
+            debugln("# [CMD-BLE] " + raw);
+
+            if (!response.isEmpty())
+                debugln("# [CMD-BLE-RESP] " + response);
+        }
+    }
+
     broadcastData();
 
     otaHandler.handleState();

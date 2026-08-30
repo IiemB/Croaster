@@ -21,7 +21,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Release/debug build split** — each board env is pinned to
   `build_type = release` (so `build_all.sh` always produces release firmware)
   and gains a `<board>-debug` variant (`extends`) used by the new
-  `./upload.sh <board>` script to build + upload debug firmware to a connected
+  `./upload_monitor.sh <board>` script to build + upload debug firmware to a connected
   board
 - **Repo restructure** — the library moved to `croaster/` (`library.json`,
   `src/`, `test/`) and per-board projects to `boards/<board>/` (was

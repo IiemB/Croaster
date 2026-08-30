@@ -11,7 +11,7 @@
 # uses ~/.platformio/penv/bin/pio first; override with PIO=/path/to/pio.
 #
 # Always builds RELEASE firmware (each board's release env). For a debug
-# build + upload of a connected board, use ./upload.sh <board>.
+# build + upload of a connected board, use ./upload_monitor.sh <board>.
 # ============================================================================
 set -euo pipefail
 
@@ -55,7 +55,7 @@ for b in "${BOARDS[@]}"; do
 
     echo "=== Building $b (release) ==="
     # -e "$b" builds ONLY the release env (env name == board name). The
-    # -debug variants are for ./upload.sh and must never ship in builds/.
+    # -debug variants are for ./upload_monitor.sh and must never ship in builds/.
     (cd "$dir" && "$PIO" run -e "$b")
 
     # Copy only the release env's firmware; the <board>-debug variants live in
