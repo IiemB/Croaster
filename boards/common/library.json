@@ -1,0 +1,9 @@
+{
+  "name": "CroasterDisplaySSD1306",
+  "version": "0.62.0",
+  "description": "Shared 128x64 SSD1306 OLED display implementation (I2C) used by Croaster board implementations (esp32c3, esp8266). Lives in the implementation tree, not the Croaster core library.",
+  "keywords": ["croaster", "ssd1306", "oled", "display", "i2c"],
+  "frameworks": "arduino",
+  "platforms": ["espressif32", "espressif8266"],
+  "headers": ["CroasterDisplaySSD1306.h", "CroasterDisplayAnimation.h"]
+}

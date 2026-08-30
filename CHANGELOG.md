@@ -5,7 +5,71 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [0.51] — 2026-06-01 (Current)
+## [0.62] — 2026-08-29 (Current)
+
+### Changed
+- **`build_all.sh` output naming** — firmware is now collected as
+  `builds/Croaster_<board>_<version>.bin` (e.g. `Croaster_esp32s3_0.62.bin`);
+  the version is read from `src/CroasterConstants.h` so the filename stays in
+  sync with the firmware version
+- **Firmware version bumped to `0.62`** — `croaster/src/CroasterConstants.h`,
+  `croaster/library.json`, `boards/common/library.json`
+- **Board id hardcoded per implementation** — `boardName()` no longer reads a
+  `-DCROASTER_BOARD_NAME` build flag; each implementation calls
+  `CroasterDeviceIdentity::setBoardName("esp32s3")` in its `main.cpp`
+  (defaults to `unknown` until set)
+- **Release/debug build split** — each board env is pinned to
+  `build_type = release` (so `build_all.sh` always produces release firmware)
+  and gains a `<board>-debug` variant (`extends`) used by the new
+  `./upload_monitor.sh <board>` script to build + upload debug firmware to a connected
+  board
+- **Repo restructure** — the library moved to `croaster/` (`library.json`,
+  `src/`, `test/`) and per-board projects to `boards/<board>/` (was
+  `implementation/<board>/`); boards now consume the library via
+  `lib_deps = ../../croaster`
+
+---
+
+## [0.52] — 2026-08-29
+
+### Added
+- **Repository is now a reusable library** (`library.json` at the repo root) — another project can consume it via `lib_deps = https://github.com/IiemB/Croaster.git`
+- **`examples/` renamed to `implementation/<board>/`** — per-board implementations (`implementation/esp32c3/`, `implementation/esp8266/`), each consuming the library from `../..` exactly like an external project
+- **`implementation/esp32s3/`** — ESP32-S3 (ES3C28P) 2.8" ILI9341 LCD board
+  (LVGL 9 UI + FT6336G touch), ported from the `ES3C28P` branch into the
+  per-board structure (`CroasterDisplayS3` wrapping the LVGL UI in `src/ui/`;
+  `esp32s3-sdkconfig.defaults` for mbedTLS/NimBLE Kconfig fixes)
+- **Roast timer** in the library core — `CroasterCore::roastTimerStart()/roastTimerPause()/roastTimerReset()` + `roastTimer` (seconds) & `roastTimerIsRunning()`; surfaced by the S3 UI's single START/STOP/RESET button
+- **Board + display-state reporting** — `CroasterDeviceIdentity::boardName()` now returns a per-implementation id set via the `-DCROASTER_BOARD_NAME=` build flag (`esp32s3`/`esp32c3`/`esp8266`/`unknown`, no compile-time board guards); `getDeviceInfo` now includes `board`, `darkMode` and `brightness` (via new `CroasterDisplay::isDarkMode()/getBrightness()`); `CroasterApp::ble()` accessor
+- **`build_all.sh`** — builds every board implementation and collects the
+  firmware into the gitignored `builds/` folder; board-specific
+  `CROASTER_ES3C28P` compile-time guards removed from the implementation
+  sources (each board builds its own folder unconditionally); `AGENTS.md` and
+  `CONTEXT.md` added for the firmware repo
+- **Shared SSD1306 display in `implementation/common/`** — both the `esp32c3` and `esp8266` implementations reference the same display/ animation (no duplicated data); the ESP8266 (NodeMCU / ESP-12E) implementation was restored as `implementation/esp8266/`
+- **`CroasterDisplay` abstract interface** — the library core is display-agnostic; consuming projects implement their own display (the SSD1306 implementation lives in the reference example as `CroasterDisplaySSD1306`). A `nullptr` display is fully supported (headless boards)
+- **`CroasterPinConfig` struct** — pin layout is decoupled from the core and passed to `CroasterCore`; each implementation provides its own pins in `config.h`
+- **`CroasterApp` single `begin()`/`loop()` entry point** — lives in the library (`src/CroasterApp.h/.cpp`); the sketch is reduced to `app.begin()` / `app.loop()`
+- **`CroasterApp` is display-agnostic** — it takes `CroasterCore&` + `CroasterDisplay*` (+ LED pin/level); the display type is defined in the implementation (`main.cpp`)
+- **Custom command registration** — `CroasterCommandHandler::onCommand()` / `onJsonCommand()` let an implementation add commands without touching the library
+- **Compile-time BLE detection** via `CROASTER_HAS_BLE` (1 on ESP32, 0 elsewhere) in `CroasterConstants.h` — `CroasterBleManager` is only compiled when the board has BLE
+- `SmoothThermocoupleFix.cpp` added to the library (fixes the MAX6675_Thermocouple v2.0.2 link error for all build types)
+
+### Changed
+- All classes renamed with the `Croaster` prefix: `BleManager` → `CroasterBleManager`, `CommandHandler` → `CroasterCommandHandler`, `WebSocketManager` → `CroasterWebSocketManager`, `OtaHandler` → `CroasterOtaHandler`, `WiFiManagerUtil` → `CroasterWiFiManager` (class with static methods), `DeviceIdentity` → `CroasterDeviceIdentity`, `DisplayManager` → `CroasterDisplay` (interface) / `CroasterDisplaySSD1306` (reference impl), `DisplayAnimation` → `CroasterDisplayAnimation`
+- `Constants.h` → `CroasterConstants.h`, `PinConfig.h` → `CroasterPinConfig.h`
+- `LED_ON`/`LED_OFF` macros removed from `CroasterConstants.h`; `CroasterCommandHandler` now takes `ledPin`/`ledOnLevel` per-instance (supplied by the implementation); removed the redundant `-D LED_ON` build flag
+- `CroasterApp` moved from the implementation into the library core (`src/CroasterApp.h/.cpp`); registered in `library.json`
+- **Arduino IDE support removed** — PlatformIO is the only workflow; deleted `copy_to_ino.sh`, `library.properties`, `setup_custom_partition_macos.sh` and `references.md`
+- Removed `CroasterPinConfig::defaults()` — `CroasterCore` now requires an explicit `CroasterPinConfig` (no library pin defaults)
+- **Board-specific docs moved to per-board READMEs** (`implementation/<board>/README.md`); the root `README.md`/`README_ID.md` are now board-agnostic (wiring, partitions, board names live in each implementation's README); removed `lib_extra_dirs` from the implementation `platformio.ini` files
+- Pin and dummy-mode configuration moved to the implementation (`implementation/esp32c3/src/config.h`); the `dummyMode` global was removed from `CroasterConstants.h`
+- Display constants (`SCREEN_WIDTH`/`SCREEN_HEIGHT`/`OLED_RESET`) moved to `CroasterDisplaySSD1306.h`; LED pin/polarity moved to the implementation's `config.h` (`ledPin`/`ledOnLevel`) — `CroasterConstants.h` no longer defines display/LED config
+- `CroasterWiFiManager::restart()/erase()` replace the old `restartESP()/eraseESP()` helpers
+
+---
+
+## [0.51] — 2026-06-01
 
 ### Changed
 - Refactored OTA handling to return a JSON progress string directly while simplifying internal state management
