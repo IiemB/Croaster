@@ -6,8 +6,8 @@
 #include "CroasterDeviceIdentity.h"
 
 CroasterCore::CroasterCore(bool dummyMode, CroasterPinConfig pins)
-    : useDummyData(dummyMode)
-    , _pins(pins) {
+    : _pins(pins)
+    , useDummyData(dummyMode) {
     thermocoupleBT =
         new SmoothThermocouple(new MAX6675_Thermocouple(_pins.sckPin, _pins.csPinBt, _pins.soPin), SMOOTHING_FACTOR);
     thermocoupleET =

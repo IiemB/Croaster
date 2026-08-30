@@ -208,7 +208,7 @@ String CroasterCommandHandler::genRandomString(int length) {
 
     String result;
 
-    for (size_t i = 0; i < length; i++) {
+    for (int i = 0; i < length; i++) {
         result += charset[random(0, sizeof(charset) - 1)];
     }
 
