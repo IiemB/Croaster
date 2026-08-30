@@ -1,17 +1,20 @@
 #include "CroasterCore.h"
-#include "CroasterDeviceIdentity.h"
-#include "CroasterConstants.h"
+
 #include <ArduinoJson.h>
 
+#include "CroasterConstants.h"
+#include "CroasterDeviceIdentity.h"
+
 CroasterCore::CroasterCore(bool dummyMode, CroasterPinConfig pins)
-    : useDummyData(dummyMode), _pins(pins)
-{
-    thermocoupleBT = new SmoothThermocouple(new MAX6675_Thermocouple(_pins.sckPin, _pins.csPinBt, _pins.soPin), SMOOTHING_FACTOR);
-    thermocoupleET = new SmoothThermocouple(new MAX6675_Thermocouple(_pins.sckPin, _pins.csPinEt, _pins.soPin), SMOOTHING_FACTOR);
+    : useDummyData(dummyMode)
+    , _pins(pins) {
+    thermocoupleBT =
+        new SmoothThermocouple(new MAX6675_Thermocouple(_pins.sckPin, _pins.csPinBt, _pins.soPin), SMOOTHING_FACTOR);
+    thermocoupleET =
+        new SmoothThermocouple(new MAX6675_Thermocouple(_pins.sckPin, _pins.csPinEt, _pins.soPin), SMOOTHING_FACTOR);
 }
 
-double CroasterCore::convertTemperature(double tempCelsius)
-{
+double CroasterCore::convertTemperature(double tempCelsius) {
     if (isnan(tempCelsius))
         return NAN;
     if (tempUnit == "F")
@@ -21,20 +24,17 @@ double CroasterCore::convertTemperature(double tempCelsius)
     return tempCelsius;
 }
 
-double CroasterCore::readCelcius(Thermocouple *thermocouple)
-{
+double CroasterCore::readCelcius(Thermocouple* thermocouple) {
     double value = thermocouple->readCelsius();
 
-    if (value > 0.0)
-    {
+    if (value > 0.0) {
         return value;
     }
 
     return NAN;
 }
 
-void CroasterCore::readSensors()
-{
+void CroasterCore::readSensors() {
     unsigned long now = millis();
 
     if (now - lastSensorRead < 250)
@@ -44,8 +44,7 @@ void CroasterCore::readSensors()
     timer = lastSensorRead / 1000.0;
     roastTimer = roastTimerElapsedMs() / 1000.0; // roast elapsed time (seconds)
 
-    if (useDummyData)
-    {
+    if (useDummyData) {
         tempBt = random(30, 40) + correctionBt;
         tempEt = random(30, 40) + correctionEt;
 
@@ -55,27 +54,20 @@ void CroasterCore::readSensors()
     double bt = readCelcius(thermocoupleBT);
     double et = readCelcius(thermocoupleET);
 
-    if (isnan(bt))
-    {
+    if (isnan(bt)) {
         tempBt = NAN; // Indicate invalid reading
-    }
-    else
-    {
+    } else {
         tempBt = convertTemperature(bt) + correctionBt;
     }
 
-    if (isnan(et))
-    {
+    if (isnan(et)) {
         tempEt = NAN; // Indicate invalid reading
-    }
-    else
-    {
+    } else {
         tempEt = convertTemperature(et) + correctionEt;
     }
 }
 
-void CroasterCore::updateROR()
-{
+void CroasterCore::updateROR() {
     unsigned long now = millis();
 
     if (now - lastRORUpdate < 1000)
@@ -83,10 +75,8 @@ void CroasterCore::updateROR()
 
     lastRORUpdate = now;
 
-    if (!historyInitialized)
-    {
-        for (int i = 0; i < 60; i++)
-        {
+    if (!historyInitialized) {
+        for (int i = 0; i < 60; i++) {
             etHistory[i] = isnan(tempEt) ? 0 : tempEt; // Use 0 if NAN to initialize
             btHistory[i] = isnan(tempBt) ? 0 : tempBt; // Use 0 if NAN to initialize
             timeHistory[i] = timer;
@@ -98,8 +88,7 @@ void CroasterCore::updateROR()
     }
 
     // Shift history
-    for (int i = 0; i < 59; i++)
-    {
+    for (int i = 0; i < 59; i++) {
         etHistory[i] = etHistory[i + 1];
         btHistory[i] = btHistory[i + 1];
         timeHistory[i] = timeHistory[i + 1];
@@ -110,75 +99,61 @@ void CroasterCore::updateROR()
     double deltaTimer = timeHistory[59] - timeHistory[0];
 
     // Update ET history and RoR if valid
-    if (!isnan(tempEt))
-    {
+    if (!isnan(tempEt)) {
         etHistory[59] = tempEt;
         double deltaET = etHistory[59] - etHistory[0];
 
         bool validDelta = deltaET > 0 && deltaTimer > 0;
 
         rorEt = validDelta ? (deltaET / deltaTimer) * 60 : 0;
-    }
-    else
-    {
+    } else {
         etHistory[59] = etHistory[58]; // Retain last valid value
         rorEt = 0;                     // Reset RoR for invalid reading
     }
 
     // Update BT history and RoR if valid
-    if (!isnan(tempBt))
-    {
+    if (!isnan(tempBt)) {
         btHistory[59] = tempBt;
         double deltaBT = btHistory[59] - btHistory[0];
 
         bool validDelta = deltaBT > 0 && deltaTimer > 0;
 
         rorBt = validDelta ? (deltaBT / deltaTimer) * 60 : 0;
-    }
-    else
-    {
+    } else {
         btHistory[59] = btHistory[58]; // Retain last valid value
         rorBt = 0;                     // Reset RoR for invalid reading
     }
 }
 
-void CroasterCore::loop()
-{
+void CroasterCore::loop() {
     readSensors();
     updateROR();
 }
 
-String CroasterCore::temperatureUnit()
-{
+String CroasterCore::temperatureUnit() {
     return tempUnit;
 }
 
-void CroasterCore::changeTemperatureUnit(String unit)
-{
-    if (tempUnit == unit)
-    {
+void CroasterCore::changeTemperatureUnit(String unit) {
+    if (tempUnit == unit) {
         debugln("# tempUnit not changed because it same with current value");
 
         return;
     }
 
-    if (unit == "C" || unit == "F" || unit == "K")
-    {
+    if (unit == "C" || unit == "F" || unit == "K") {
         tempUnit = unit;
 
         resetHistory("tempUnit");
     }
 }
 
-unsigned long CroasterCore::intervalSendData()
-{
+unsigned long CroasterCore::intervalSendData() {
     return intervalSend;
 }
 
-void CroasterCore::changeIntervalSendData(unsigned long interval)
-{
-    if (intervalSend == interval)
-    {
+void CroasterCore::changeIntervalSendData(unsigned long interval) {
+    if (intervalSend == interval) {
         debugln("# intervalSend not changed because it same with current value");
 
         return;
@@ -189,8 +164,7 @@ void CroasterCore::changeIntervalSendData(unsigned long interval)
     resetHistory("intervalSend");
 }
 
-void CroasterCore::toggleDummyData()
-{
+void CroasterCore::toggleDummyData() {
     useDummyData = !useDummyData;
 
     debugln("# useDummyData changed to " + String(useDummyData));
@@ -198,13 +172,11 @@ void CroasterCore::toggleDummyData()
     resetHistory("useDummyData");
 }
 
-unsigned long CroasterCore::roastTimerElapsedMs() const
-{
+unsigned long CroasterCore::roastTimerElapsedMs() const {
     return roastTimerAccumMs + (roastTimerRunning ? (millis() - roastTimerStartMs) : 0);
 }
 
-void CroasterCore::roastTimerStart()
-{
+void CroasterCore::roastTimerStart() {
     if (roastTimerRunning)
         return;
 
@@ -214,8 +186,7 @@ void CroasterCore::roastTimerStart()
     debugln("# Roast timer started");
 }
 
-void CroasterCore::roastTimerPause()
-{
+void CroasterCore::roastTimerPause() {
     if (!roastTimerRunning)
         return;
 
@@ -225,8 +196,7 @@ void CroasterCore::roastTimerPause()
     debugln("# Roast timer paused");
 }
 
-void CroasterCore::roastTimerReset()
-{
+void CroasterCore::roastTimerReset() {
     roastTimerAccumMs = 0;
     roastTimerRunning = false; // reset to zero, stopped — ready for a new roast
     roastTimerStartMs = 0;
@@ -236,15 +206,12 @@ void CroasterCore::roastTimerReset()
     debugln("# Roast timer reset");
 }
 
-bool CroasterCore::roastTimerIsRunning() const
-{
+bool CroasterCore::roastTimerIsRunning() const {
     return roastTimerRunning;
 }
 
-void CroasterCore::changeCorrectionBt(double value)
-{
-    if (correctionBt == value)
-    {
+void CroasterCore::changeCorrectionBt(double value) {
+    if (correctionBt == value) {
         debugln("# correctionBt not changed because it same with current value");
 
         return;
@@ -255,10 +222,8 @@ void CroasterCore::changeCorrectionBt(double value)
     resetHistory("correctionBt");
 }
 
-void CroasterCore::changeCorrectionEt(double value)
-{
-    if (correctionEt == value)
-    {
+void CroasterCore::changeCorrectionEt(double value) {
+    if (correctionEt == value) {
         debugln("# correctionEt not changed because it same with current value");
 
         return;
@@ -269,10 +234,8 @@ void CroasterCore::changeCorrectionEt(double value)
     resetHistory("correctionEt");
 }
 
-void CroasterCore::resetHistory(String item)
-{
-    for (int i = 0; i < 60; i++)
-    {
+void CroasterCore::resetHistory(String item) {
+    for (int i = 0; i < 60; i++) {
         etHistory[i] = isnan(tempEt) ? 0 : tempEt; // Use 0 if NAN
         btHistory[i] = isnan(tempBt) ? 0 : tempBt; // Use 0 if NAN
         timeHistory[i] = timer;
@@ -283,18 +246,15 @@ void CroasterCore::resetHistory(String item)
     debugln("# Histories reset due to " + item + " change.");
 }
 
-double CroasterCore::roundTo2(double value)
-{
+double CroasterCore::roundTo2(double value) {
     return round(value * 100.0) / 100.0;
 }
 
-String CroasterCore::ssidName()
-{
+String CroasterCore::ssidName() {
     return CroasterDeviceIdentity::deviceName("[", "] Croaster V" + String(version));
 }
 
-String CroasterCore::getJsonData(int id)
-{
+String CroasterCore::getJsonData(int id) {
     JsonDocument doc;
 
     doc["id"] = id;
@@ -304,13 +264,11 @@ String CroasterCore::getJsonData(int id)
 
     data["interval"] = intervalSend;
     data["timer"] = timer;
-    if (!isnan(tempBt))
-    {
+    if (!isnan(tempBt)) {
         data["BT"] = roundTo2(tempBt);
         data["DBT"] = roundTo2(rorBt);
     }
-    if (!isnan(tempEt))
-    {
+    if (!isnan(tempEt)) {
         data["ET"] = roundTo2(tempEt);
         data["DET"] = roundTo2(rorEt);
     }
@@ -327,8 +285,7 @@ String CroasterCore::getJsonData(int id)
     return jsonOutput;
 }
 
-String CroasterCore::getDeviceInfo(bool darkMode, int brightness)
-{
+String CroasterCore::getDeviceInfo(bool darkMode, int brightness) {
     String ipAddress = CroasterDeviceIdentity::ipAddress();
 
     String ssid = CroasterDeviceIdentity::ssidName();

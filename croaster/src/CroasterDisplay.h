@@ -1,5 +1,6 @@
 #pragma once
 #include <Arduino.h>
+
 #include "CroasterCore.h"
 
 /**
@@ -14,10 +15,10 @@
  * TFT or LVGL screen provides its own subclass. See the `reference` example for
  * a complete SSD1306 implementation (CroasterDisplaySSD1306).
  */
-class CroasterDisplay
-{
+class CroasterDisplay {
 public:
-    explicit CroasterDisplay(CroasterCore &core) : _core(&core) {}
+    explicit CroasterDisplay(CroasterCore& core)
+        : _core(&core) {}
     virtual ~CroasterDisplay() = default;
 
     // --- Lifecycle ---
@@ -56,13 +57,17 @@ public:
      * @brief Returns whether the dark theme is active.
      * @return true if dark theme, false if light theme. Defaults to true.
      */
-    virtual bool isDarkMode() const { return true; }
+    virtual bool isDarkMode() const {
+        return true;
+    }
 
     /**
      * @brief Returns the current backlight brightness (0-100 percent).
      * @return Brightness 0-100. Defaults to 100.
      */
-    virtual int getBrightness() const { return 100; }
+    virtual int getBrightness() const {
+        return 100;
+    }
 
     // --- OTA progress ---
 
@@ -85,5 +90,5 @@ public:
     virtual bool isFirmwareUpdating() const = 0;
 
 protected:
-    CroasterCore *_core; ///< Access to live sensor data (tempBt/tempEt/rorBt/rorEt).
+    CroasterCore* _core; ///< Access to live sensor data (tempBt/tempEt/rorBt/rorEt).
 };

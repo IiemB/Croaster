@@ -42,28 +42,23 @@ Flutter app (remote `git@github.com:IiemB/Croaster.git`) and is consumed via
   (display state via `CroasterDisplay::isDarkMode()/getBrightness()`), and a
   BLE-guarded `CroasterApp::ble()` accessor.
 
-## Git state (2026-08-29)
-- Branch `decoupling`; the ESP32-S3 LVGL implementation was ported from the old
-  single-project `ES3C28P` branch into `boards/esp32s3/`
+## Git state (2026-08-30)
+- Branch `dev` (HEAD `3f52109`, tracks `origin/dev`); the `boards/` + `croaster/`
+  restructure, per-board `setBoardName()`, and the 0.62 bump are committed
+  (merged from `decoupling` via PR #31). Working tree **clean** after this batch.
+- The ESP32-S3 LVGL implementation was ported from the old single-project
+  `ES3C28P` branch into `boards/esp32s3/`
   (`git show ES3C28P:<path>` is the source of the UI).
-- Parent repo `ICRM` is on `dev` and consumes this submodule.
-- Firmware version bumped to `0.62`; `build_all.sh` now emits
-  `builds/Croaster_<board>_<version>.bin` (version read from
-  `croaster/src/CroasterConstants.h`).
-- HEAD = `53684d3` (board id hardcoded per implementation via
-  `setBoardName()`), pushed to `origin/decoupling` (upstream tracking set).
-- ⚠️ **Folder restructure pending (uncommitted):** library moved to
-  `croaster/` (`library.json`, `src/`, `test/`); boards moved to
-  `boards/<board>/` (was `implementation/<board>/`); boards now consume the
-  library via `lib_deps = ../../croaster`. Scripts + docs updated. **Not yet
-  staged/committed; `build_all.sh` intentionally not re-run yet.**
+- `build_all.sh` emits `builds/Croaster_<board>_<version>.bin` (version read
+  from `croaster/src/CroasterConstants.h`).
+- This batch adds `format.sh` + `.clang-format` (all sources reformatted) and
+  the esp32s3 `darkMode` / `brightness` custom commands.
 - ⚠️ **Downstream:** the ICRM app consumes this repo via
-  `lib_deps = https://github.com/IiemB/Croaster.git`, which needs
-  `library.json` at the repo root — update it to the `croaster/` subfolder
-  (or add a root `library.json`) after this lands.
+  `lib_deps = https://github.com/IiemB/Croaster.git`, which needs `library.json`
+  at the repo root — update it to the `croaster/` subfolder (or add a root
+  `library.json`).
 
 ## Next steps
-- Commit the folder restructure (`git add -A` → git detects the renames).
 - Update the ICRM app's `lib_deps` for the `croaster/` subfolder.
 - Flash + verify the esp32s3 build on real hardware (touch, chart swipe,
   dark mode, OTA over BLE/WebSocket).

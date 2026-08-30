@@ -9,15 +9,15 @@
 // ============================================================================
 
 #if defined(ESP32)
-#define CROASTER_HAS_BLE 1
+#    define CROASTER_HAS_BLE 1
 #else
-#define CROASTER_HAS_BLE 0
+#    define CROASTER_HAS_BLE 0
 #endif
 
 #if defined(ESP32) || defined(ESP8266)
-#define CROASTER_HAS_WIFI 1
+#    define CROASTER_HAS_WIFI 1
 #else
-#define CROASTER_HAS_WIFI 0
+#    define CROASTER_HAS_WIFI 0
 #endif
 
 // BLE Service and Characteristic UUIDs

@@ -1,12 +1,12 @@
 #pragma once
 #include <Arduino.h>
+#include <CroasterBleManager.h>
+#include <CroasterCommandHandler.h>
 #include <CroasterConstants.h>
 #include <CroasterCore.h>
-#include <CroasterPinConfig.h>
 #include <CroasterDisplay.h>
-#include <CroasterCommandHandler.h>
+#include <CroasterPinConfig.h>
 #include <CroasterWebSocketManager.h>
-#include <CroasterBleManager.h>
 
 /**
  * @class CroasterApp
@@ -24,8 +24,7 @@
  *   void setup() { app.begin(); }
  *   void loop()  { app.loop(); }
  */
-class CroasterApp
-{
+class CroasterApp {
 public:
     /**
      * @brief Constructs the app.
@@ -34,8 +33,7 @@ public:
      * @param ledPin Built-in LED pin (defaults to LED_BUILTIN; -1 disables the LED).
      * @param ledOnLevel Active level for the LED (LOW = active-low, HIGH = active-high).
      */
-    CroasterApp(CroasterCore &core, CroasterDisplay *display,
-                int8_t ledPin = LED_BUILTIN, uint8_t ledOnLevel = LOW);
+    CroasterApp(CroasterCore& core, CroasterDisplay* display, int8_t ledPin = LED_BUILTIN, uint8_t ledOnLevel = LOW);
 
     /**
      * @brief Initializes WiFi, display, command handler and communication managers.
@@ -50,28 +48,36 @@ public:
     /**
      * @brief Access to the command handler (e.g. to register custom commands).
      */
-    CroasterCommandHandler &commands() { return commandHandler; }
+    CroasterCommandHandler& commands() {
+        return commandHandler;
+    }
 
     /**
      * @brief Access to the core (sensor data, settings).
      */
-    CroasterCore &core() { return croaster; }
+    CroasterCore& core() {
+        return croaster;
+    }
 
     /**
      * @brief Access to the display (may be nullptr).
      */
-    CroasterDisplay *display() { return _display; }
+    CroasterDisplay* display() {
+        return _display;
+    }
 
 #if CROASTER_HAS_BLE
     /**
      * @brief Access to the BLE manager (only available on boards with BLE).
      */
-    CroasterBleManager &ble() { return bleManager; }
+    CroasterBleManager& ble() {
+        return bleManager;
+    }
 #endif
 
 private:
-    CroasterCore &croaster;    ///< Reference to the caller-owned core.
-    CroasterDisplay *_display; ///< Implementation-owned display (may be nullptr).
+    CroasterCore& croaster;    ///< Reference to the caller-owned core.
+    CroasterDisplay* _display; ///< Implementation-owned display (may be nullptr).
     CroasterCommandHandler commandHandler;
 #if CROASTER_HAS_BLE
     CroasterBleManager bleManager;

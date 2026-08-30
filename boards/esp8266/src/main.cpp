@@ -24,20 +24,16 @@ CroasterApp app(core, &display, ledPin, ledOnLevel);
 //   onCommand("name", fn)      -> basic string command:  {"command":"name"}
 //   onJsonCommand("key", fn)   -> nested JSON command:   {"command":{"key":...}}
 // ---------------------------------------------------------------------------
-void registerCustomCommands()
-{
-}
+void registerCustomCommands() {}
 
-void setup()
-{
+void setup() {
     // Hardcode this board's id (matches the app's CroasterBoardTypes enum).
-    CroasterDeviceIdentity::setBoardName("esp8266");
+    CroasterDeviceIdentity::setBoardName("ESP8266");
 
     registerCustomCommands();
     app.begin();
 }
 
-void loop()
-{
+void loop() {
     app.loop();
 }

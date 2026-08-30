@@ -1,20 +1,20 @@
 #include "CroasterApp.h"
+
 #include <CroasterWiFiManager.h>
 
-CroasterApp::CroasterApp(CroasterCore &core, CroasterDisplay *display,
-                         int8_t ledPin, uint8_t ledOnLevel)
-    : croaster(core),
-      _display(display),
-      commandHandler(croaster, display, ledPin, ledOnLevel),
+CroasterApp::CroasterApp(CroasterCore& core, CroasterDisplay* display, int8_t ledPin, uint8_t ledOnLevel)
+    : croaster(core)
+    , _display(display)
+    , commandHandler(croaster, display, ledPin, ledOnLevel)
+    ,
 #if CROASTER_HAS_BLE
-      bleManager(croaster, commandHandler, display),
+    bleManager(croaster, commandHandler, display)
+    ,
 #endif
-      wsManager(croaster, commandHandler, display)
-{
+    wsManager(croaster, commandHandler, display) {
 }
 
-void CroasterApp::begin()
-{
+void CroasterApp::begin() {
     Serial.begin(115200);
 
     // WiFi (WiFiManager captive portal)
@@ -32,8 +32,7 @@ void CroasterApp::begin()
         _display->begin();
 }
 
-void CroasterApp::loop()
-{
+void CroasterApp::loop() {
     CroasterWiFiManager::process();
 
     croaster.loop();

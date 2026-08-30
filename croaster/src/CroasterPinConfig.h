@@ -10,8 +10,7 @@
  * CroasterCore constructor. There is no library default — pins are always
  * explicit.
  */
-struct CroasterPinConfig
-{
+struct CroasterPinConfig {
     int8_t sckPin;  ///< MAX6675 SPI clock (SCK)
     int8_t soPin;   ///< MAX6675 SPI MISO (SO)
     int8_t csPinBt; ///< MAX6675 chip-select for the bean (BT) thermocouple

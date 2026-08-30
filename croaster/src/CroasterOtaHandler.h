@@ -1,20 +1,20 @@
 #pragma once
 
 #include <Arduino.h>
+
 #include "CroasterConstants.h"
 #include "CroasterWiFiManager.h"
 #if defined(ESP32)
-#include <Update.h>
+#    include <Update.h>
 #elif defined(ESP8266)
-#include <Updater.h>
+#    include <Updater.h>
 #endif
 
 /**
  * @class CroasterOtaHandler
  * @brief Handles Over-The-Air (OTA) firmware updates via WebSocket and BLE.
  */
-class CroasterOtaHandler
-{
+class CroasterOtaHandler {
 public:
     /**
      * @brief Constructor for CroasterOtaHandler.
@@ -33,7 +33,7 @@ public:
      * @param len Length of the binary data.
      * @return A JSON string indicating the status of the OTA process and progress information.
      */
-    String handleBinary(uint8_t *data, size_t len);
+    String handleBinary(uint8_t* data, size_t len);
 
     /**
      * @brief Checks if the OTA process is currently receiving data.
@@ -63,8 +63,7 @@ private:
      * @enum State
      * @brief Represents the current state of the OTA process.
      */
-    enum class State
-    {
+    enum class State {
         Idle,      ///< No OTA process is active.
         Receiving, ///< OTA packets are being received.
         Failed,    ///< An error occurred during the OTA process.

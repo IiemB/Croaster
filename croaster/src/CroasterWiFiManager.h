@@ -5,14 +5,13 @@
  * @class CroasterWiFiManager
  * @brief Encapsulates the WiFiManager captive-portal setup and lifecycle.
  */
-class CroasterWiFiManager
-{
+class CroasterWiFiManager {
 public:
     /**
      * @brief Sets up WiFiManager with the specified access point name.
      * @param apName The name of the access point.
      */
-    static void setup(const String &apName);
+    static void setup(const String& apName);
 
     /**
      * @brief Processes WiFiManager tasks, including connection management.
@@ -34,5 +33,5 @@ private:
      * @brief Callback triggered when the WiFiManager enters configuration mode.
      * @param myWiFiManager Pointer to the WiFiManager instance.
      */
-    static void configModeCallback(WiFiManager *myWiFiManager);
+    static void configModeCallback(WiFiManager* myWiFiManager);
 };

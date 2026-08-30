@@ -1,42 +1,41 @@
 #include "CroasterCommandHandler.h"
-#include "CroasterWiFiManager.h"
+
 #include <ArduinoJson.h>
+
 #include "CroasterConstants.h"
+#include "CroasterWiFiManager.h"
 #if defined(ESP32)
-#include <WiFi.h>
+#    include <WiFi.h>
 #elif defined(ESP8266)
-#include <ESP8266WiFi.h>
+#    include <ESP8266WiFi.h>
 #endif
 
-CroasterCommandHandler::CroasterCommandHandler(CroasterCore &core, CroasterDisplay *display,
-                                               int8_t ledPin, uint8_t ledOnLevel)
-    : croaster(core), display(display), ledPin(ledPin), ledOnLevel(ledOnLevel) {}
+CroasterCommandHandler::CroasterCommandHandler(CroasterCore& core, CroasterDisplay* display, int8_t ledPin,
+                                               uint8_t ledOnLevel)
+    : croaster(core)
+    , display(display)
+    , ledPin(ledPin)
+    , ledOnLevel(ledOnLevel) {}
 
-void CroasterCommandHandler::onCommand(const String &command, CommandFn fn)
-{
+void CroasterCommandHandler::onCommand(const String& command, CommandFn fn) {
     customCommands[command] = fn;
 }
 
-void CroasterCommandHandler::onJsonCommand(const String &key, CommandFn fn)
-{
+void CroasterCommandHandler::onJsonCommand(const String& key, CommandFn fn) {
     customJsonCommands[key] = fn;
 }
 
-void CroasterCommandHandler::begin()
-{
-    if (ledPin >= 0)
-    {
+void CroasterCommandHandler::begin() {
+    if (ledPin >= 0) {
         pinMode(ledPin, OUTPUT);
         digitalWrite(ledPin, (ledOnLevel == HIGH) ? LOW : HIGH);
     }
 }
 
-void CroasterCommandHandler::loop()
-{
+void CroasterCommandHandler::loop() {
     unsigned long now = millis();
 
-    if (blinking && now - lastBlinkTime >= blinkDelay)
-    {
+    if (blinking && now - lastBlinkTime >= blinkDelay) {
         ledState = !ledState;
         if (ledPin >= 0)
             digitalWrite(ledPin, ledState ? ledOnLevel : ((ledOnLevel == HIGH) ? LOW : HIGH));
@@ -45,8 +44,7 @@ void CroasterCommandHandler::loop()
         lastBlinkTime = now;
         blinkCount++;
 
-        if (blinkCount >= blinkTotal)
-        {
+        if (blinkCount >= blinkTotal) {
             blinking = false;
             if (ledPin >= 0)
                 digitalWrite(ledPin, (ledOnLevel == HIGH) ? LOW : HIGH); // turn off when done
@@ -56,20 +54,17 @@ void CroasterCommandHandler::loop()
     }
 }
 
-bool CroasterCommandHandler::handle(const String &json, String &responseOut)
-{
+bool CroasterCommandHandler::handle(const String& json, String& responseOut) {
     JsonDocument doc;
 
-    if (deserializeJson(doc, json))
-    {
+    if (deserializeJson(doc, json)) {
         debugln("# Invalid JSON command : " + json);
         return false;
     }
 
     responseOut = "";
 
-    if (doc["command"].is<String>())
-    {
+    if (doc["command"].is<String>()) {
         JsonObject json = doc.as<JsonObject>();
 
         handleBasicCommand(json, responseOut);
@@ -77,8 +72,7 @@ bool CroasterCommandHandler::handle(const String &json, String &responseOut)
         return true;
     }
 
-    if (doc["command"].is<JsonObject>())
-    {
+    if (doc["command"].is<JsonObject>()) {
         JsonObject obj = doc["command"];
 
         handleJsonCommand(obj, responseOut);
@@ -89,61 +83,40 @@ bool CroasterCommandHandler::handle(const String &json, String &responseOut)
     return false;
 }
 
-void CroasterCommandHandler::handleBasicCommand(const JsonObject &json, String &responseOut)
-{
+void CroasterCommandHandler::handleBasicCommand(const JsonObject& json, String& responseOut) {
     if (!json["command"].is<String>())
         return;
 
     String command = json["command"].as<String>();
 
-    if (command == "getArtisanData")
-    {
+    if (command == "getArtisanData") {
         int id = json["id"].as<int>();
 
         responseOut = croaster.getJsonData(id);
-    }
-    else if (command == "restartesp")
-    {
+    } else if (command == "restartesp") {
         ESP.restart();
-    }
-    else if (command == "erase")
-    {
+    } else if (command == "erase") {
         CroasterWiFiManager::erase();
-    }
-    else if (command == "dummyToggle")
-    {
+    } else if (command == "dummyToggle") {
         croaster.toggleDummyData();
-    }
-    else if (command == "rotateScreen")
-    {
+    } else if (command == "rotateScreen") {
         if (display)
             display->rotateScreen();
-    }
-    else if (command == "blink")
-    {
+    } else if (command == "blink") {
         blinkBuiltinLED();
-    }
-    else if (command == "displayToggle")
-    {
+    } else if (command == "displayToggle") {
         if (display)
             display->displayToggle();
-    }
-    else if (command == "getDeviceInfo")
-    {
+    } else if (command == "getDeviceInfo") {
         bool darkMode = (display != nullptr) ? display->isDarkMode() : true;
         int brightness = (display != nullptr) ? display->getBrightness() : 100;
         responseOut = genResponseCommand(command, croaster.getDeviceInfo(darkMode, brightness));
-    }
-    else if (command == "getExtra")
-    {
+    } else if (command == "getExtra") {
         responseOut = genResponseCommand(command, getExtraData());
-    }
-    else
-    {
+    } else {
         // Custom implementation-defined command (registered via onCommand()).
         auto it = customCommands.find(command);
-        if (it != customCommands.end())
-        {
+        if (it != customCommands.end()) {
             String resp = it->second(json);
             if (!resp.isEmpty())
                 responseOut = resp;
@@ -151,43 +124,36 @@ void CroasterCommandHandler::handleBasicCommand(const JsonObject &json, String &
     }
 }
 
-void CroasterCommandHandler::handleJsonCommand(const JsonObject &json, String &responseOut)
-{
-    if (json["tempUnit"].is<String>())
-    {
+void CroasterCommandHandler::handleJsonCommand(const JsonObject& json, String& responseOut) {
+    if (json["tempUnit"].is<String>()) {
         String tempUnit = json["tempUnit"].as<String>();
 
         croaster.changeTemperatureUnit(tempUnit);
     }
 
-    if (json["interval"].is<int>())
-    {
+    if (json["interval"].is<int>()) {
         int interval = json["interval"].as<int>();
 
         if (interval >= 1)
             croaster.changeIntervalSendData(interval);
     }
 
-    if (json["correctionBt"].is<double>())
-    {
+    if (json["correctionBt"].is<double>()) {
         double correctionBt = json["correctionBt"].as<double>();
 
         croaster.changeCorrectionBt(correctionBt);
     }
 
-    if (json["correctionEt"].is<double>())
-    {
+    if (json["correctionEt"].is<double>()) {
         double correctionEt = json["correctionEt"].as<double>();
 
         croaster.changeCorrectionEt(correctionEt);
     }
 
-    if (json["wifiConnect"].is<JsonObject>())
-    {
+    if (json["wifiConnect"].is<JsonObject>()) {
         JsonObject obj = json["wifiConnect"];
 
-        if (obj["ssid"].is<String>() && obj["pass"].is<String>())
-        {
+        if (obj["ssid"].is<String>() && obj["pass"].is<String>()) {
             String ssid = obj["ssid"].as<String>();
             String pass = obj["pass"].as<String>();
 
@@ -198,10 +164,8 @@ void CroasterCommandHandler::handleJsonCommand(const JsonObject &json, String &r
     }
 
     // Custom implementation-defined nested JSON commands (registered via onJsonCommand()).
-    for (auto &entry : customJsonCommands)
-    {
-        if (json[entry.first].is<JsonVariant>())
-        {
+    for (auto& entry : customJsonCommands) {
+        if (json[entry.first].is<JsonVariant>()) {
             String resp = entry.second(json);
             if (!resp.isEmpty())
                 responseOut = resp;
@@ -209,8 +173,7 @@ void CroasterCommandHandler::handleJsonCommand(const JsonObject &json, String &r
     }
 }
 
-void CroasterCommandHandler::blinkBuiltinLED(uint8_t times, unsigned long blinkDelay)
-{
+void CroasterCommandHandler::blinkBuiltinLED(uint8_t times, unsigned long blinkDelay) {
     blinkTotal = times * 2; // on/off = 2 toggles per blink
     blinkCount = 0;
     lastBlinkTime = millis();
@@ -220,16 +183,14 @@ void CroasterCommandHandler::blinkBuiltinLED(uint8_t times, unsigned long blinkD
     blinking = true;
 }
 
-String CroasterCommandHandler::genResponseCommand(const String command, const String response)
-{
+String CroasterCommandHandler::genResponseCommand(const String command, const String response) {
     JsonDocument doc;
 
     JsonDocument responseDoc;
 
     doc["command"] = command;
 
-    if (!response.isEmpty() && !deserializeJson(responseDoc, response))
-    {
+    if (!response.isEmpty() && !deserializeJson(responseDoc, response)) {
         doc["response"] = responseDoc;
     }
 
@@ -240,24 +201,21 @@ String CroasterCommandHandler::genResponseCommand(const String command, const St
     return jsonOutput;
 }
 
-String CroasterCommandHandler::genRandomString(int length)
-{
+String CroasterCommandHandler::genRandomString(int length) {
     const char charset[] = "0123456789"
                            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
                            "abcdefghijklmnopqrstuvwxyz";
 
     String result;
 
-    for (size_t i = 0; i < length; i++)
-    {
+    for (size_t i = 0; i < length; i++) {
         result += charset[random(0, sizeof(charset) - 1)];
     }
 
     return result;
 }
 
-String CroasterCommandHandler::getExtraData()
-{
+String CroasterCommandHandler::getExtraData() {
     /*
    NOTE
    You can add more fields to the JSON document that will be readed by ICRM app,

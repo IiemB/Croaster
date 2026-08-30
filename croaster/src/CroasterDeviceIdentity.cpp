@@ -1,20 +1,18 @@
 #include "CroasterDeviceIdentity.h"
 #if defined(ESP32)
-#include <WiFi.h>
+#    include <WiFi.h>
 #elif defined(ESP8266)
-#include <ESP8266WiFi.h>
+#    include <ESP8266WiFi.h>
 #endif
 
-namespace
-{
-    // Board id reported by boardName(). Each implementation hardcodes its own
-    // value at startup via setBoardName() (e.g. "esp32s3") in its own main.cpp,
-    // so the shared library core stays generic. Defaults to "unknown" until set.
-    String s_boardName = "unknown";
+namespace {
+// Board id reported by boardName(). Each implementation hardcodes its own
+// value at startup via setBoardName() (e.g. "esp32s3") in its own main.cpp,
+// so the shared library core stays generic. Defaults to "unknown" until set.
+String s_boardName = "unknown";
 } // namespace
 
-String CroasterDeviceIdentity::uniqueChipId()
-{
+String CroasterDeviceIdentity::uniqueChipId() {
 #if defined(ESP32)
     uint64_t chipId = ESP.getEfuseMac();
     char idStr[13];
@@ -29,8 +27,7 @@ String CroasterDeviceIdentity::uniqueChipId()
 #endif
 }
 
-String CroasterDeviceIdentity::shortChipId(uint8_t length)
-{
+String CroasterDeviceIdentity::shortChipId(uint8_t length) {
     String fullId = uniqueChipId();
     if (length >= fullId.length())
         return fullId;
@@ -38,27 +35,22 @@ String CroasterDeviceIdentity::shortChipId(uint8_t length)
     return fullId.substring(0, length);
 }
 
-String CroasterDeviceIdentity::deviceName(String prefix, String suffix, uint8_t length)
-{
+String CroasterDeviceIdentity::deviceName(String prefix, String suffix, uint8_t length) {
     return prefix + shortChipId(length) + suffix;
 }
 
-String CroasterDeviceIdentity::ipAddress()
-{
+String CroasterDeviceIdentity::ipAddress() {
     return WiFi.isConnected() ? WiFi.localIP().toString() : "";
 }
 
-String CroasterDeviceIdentity::ssidName()
-{
+String CroasterDeviceIdentity::ssidName() {
     return WiFi.isConnected() ? WiFi.SSID() : "";
 }
 
-String CroasterDeviceIdentity::boardName()
-{
+String CroasterDeviceIdentity::boardName() {
     return s_boardName;
 }
 
-void CroasterDeviceIdentity::setBoardName(const String &name)
-{
+void CroasterDeviceIdentity::setBoardName(const String& name) {
     s_boardName = name;
 }

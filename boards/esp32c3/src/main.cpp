@@ -29,20 +29,16 @@ CroasterApp app(core, &display, ledPin, ledOnLevel);
 // (empty = no response is sent back). genResponseCommand() can wrap a response
 // in the standard {"command","response"} format.
 // ---------------------------------------------------------------------------
-void registerCustomCommands()
-{
-}
+void registerCustomCommands() {}
 
-void setup()
-{
+void setup() {
     // Hardcode this board's id (matches the app's CroasterBoardTypes enum).
-    CroasterDeviceIdentity::setBoardName("esp32c3");
+    CroasterDeviceIdentity::setBoardName("ESP32-C3");
 
     registerCustomCommands();
     app.begin();
 }
 
-void loop()
-{
+void loop() {
     app.loop();
 }

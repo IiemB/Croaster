@@ -5,8 +5,7 @@
  * @class CroasterDeviceIdentity
  * @brief Chip ID, device name and network identity helpers.
  */
-class CroasterDeviceIdentity
-{
+class CroasterDeviceIdentity {
 public:
     /**
      * @brief Retrieves the unique chip ID of the device.
@@ -56,5 +55,5 @@ public:
      * @param name A machine-friendly board id (e.g. "esp32s3"), hardcoded by
      *             each implementation in its own main.cpp (no build flag).
      */
-    static void setBoardName(const String &name);
+    static void setBoardName(const String& name);
 };

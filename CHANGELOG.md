@@ -5,6 +5,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## Unreleased
+
+### Added
+- **`format.sh`** — run clang-format over the C/C++ sources in `croaster/` and
+  `boards/` (`./format.sh` in place, `--check` to verify, `--diff` to preview);
+  new root `.clang-format` (Google base, 4-space indent, 120-col limit)
+- **ESP32-S3 display commands** — `boards/esp32s3` now handles
+  `{"command":{"darkMode":…}}` and `{"command":{"brightness":…}}` over
+  WebSocket / BLE, driving `CroasterDisplayS3::setDarkMode()/setBrightness()`
+
+### Changed
+- **Reformatted all sources** to the new `.clang-format` (library + boards,
+  including the LVGL UI)
+
 ## [0.62] — 2026-08-29 (Current)
 
 ### Changed

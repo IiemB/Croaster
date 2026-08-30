@@ -1,7 +1,8 @@
 #pragma once
 #include <Arduino.h>
-#include <lvgl.h>
 #include <Wire.h>
+#include <lvgl.h>
+
 #include <functional>
 
 /**
@@ -13,8 +14,7 @@
  * the panel's native portrait orientation (240x320). The read callback maps
  * them to the display orientation (landscape 320x240 by default).
  */
-class LvglTouch
-{
+class LvglTouch {
 public:
     LvglTouch() = default;
 
@@ -23,17 +23,21 @@ public:
      * @param disp The LVGL display the touch should drive.
      * @return True on success.
      */
-    bool begin(lv_display_t *disp);
+    bool begin(lv_display_t* disp);
 
     /** @brief Set the display rotation so touch coords stay aligned (0-3). */
-    void setRotation(uint8_t rotation) { this->rotation = rotation & 0x03; }
+    void setRotation(uint8_t rotation) {
+        this->rotation = rotation & 0x03;
+    }
 
     /**
      * @brief Register a callback fired when a double tap (two quick taps) is
      *        detected on the touchscreen.
      * @param cb The callback to invoke on double tap.
      */
-    void setDoubleTapCb(std::function<void()> cb) { doubleTapCb = std::move(cb); }
+    void setDoubleTapCb(std::function<void()> cb) {
+        doubleTapCb = std::move(cb);
+    }
 
     /**
      * @brief Register a callback fired on a horizontal swipe gesture.
@@ -41,7 +45,9 @@ public:
      *           the left. Fires on release when the finger moved a clear
      *           horizontal distance without much vertical travel.
      */
-    void setSwipeCb(std::function<void(int dir)> cb) { swipeCb = std::move(cb); }
+    void setSwipeCb(std::function<void(int dir)> cb) {
+        swipeCb = std::move(cb);
+    }
 
 private:
     void resetChip();
@@ -69,8 +75,8 @@ private:
     int16_t pressStartY = 0;
     std::function<void(int dir)> swipeCb;
 
-    lv_indev_t *indev = nullptr;
+    lv_indev_t* indev = nullptr;
 
-    static LvglTouch *s_instance;
-    static void readCb(lv_indev_t *indev, lv_indev_data_t *data);
+    static LvglTouch* s_instance;
+    static void readCb(lv_indev_t* indev, lv_indev_data_t* data);
 };

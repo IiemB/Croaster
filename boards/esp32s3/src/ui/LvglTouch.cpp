@@ -1,8 +1,10 @@
 #include "LvglTouch.h"
-#include "pins.h"
+
 #include <CroasterConstants.h>
 
-LvglTouch *LvglTouch::s_instance = nullptr;
+#include "pins.h"
+
+LvglTouch* LvglTouch::s_instance = nullptr;
 
 // FT6336 registers
 #define FT6336_TD_STATUS 0x02         // number of touch points (0-2)
@@ -15,8 +17,7 @@ LvglTouch *LvglTouch::s_instance = nullptr;
 // A horizontal finger move of at least this many px counts as a swipe.
 #define SWIPE_THRESHOLD_PX 60
 
-bool LvglTouch::begin(lv_display_t *disp)
-{
+bool LvglTouch::begin(lv_display_t* disp) {
     s_instance = this;
 
     Wire.begin(TOUCH_SDA_PIN, TOUCH_SCL_PIN);
@@ -35,8 +36,7 @@ bool LvglTouch::begin(lv_display_t *disp)
     return true;
 }
 
-void LvglTouch::resetChip()
-{
+void LvglTouch::resetChip() {
     pinMode(TOUCH_INT_PIN, INPUT);
     pinMode(TOUCH_RST_PIN, OUTPUT);
     digitalWrite(TOUCH_RST_PIN, HIGH);
@@ -47,8 +47,7 @@ void LvglTouch::resetChip()
     delay(50);
 }
 
-uint8_t LvglTouch::readByte(uint8_t reg)
-{
+uint8_t LvglTouch::readByte(uint8_t reg) {
     Wire.beginTransmission(i2cAddr);
     Wire.write(reg);
     Wire.endTransmission();
@@ -56,8 +55,7 @@ uint8_t LvglTouch::readByte(uint8_t reg)
     return Wire.available() ? Wire.read() : 0;
 }
 
-bool LvglTouch::readPoints()
-{
+bool LvglTouch::readPoints() {
     uint8_t touches = readByte(FT6336_TD_STATUS);
     touched = (touches > 0 && touches < 3);
     if (!touched)
@@ -77,8 +75,7 @@ bool LvglTouch::readPoints()
     uint16_t ty = (uint16_t)((data[2] & 0x0F) << 8) | data[3];
 
     // Map portrait (240x320) touch coords to the active display orientation.
-    switch (rotation)
-    {
+    switch (rotation) {
     case 0: // portrait
         x = tx;
         y = ty;
@@ -99,11 +96,9 @@ bool LvglTouch::readPoints()
     return true;
 }
 
-void LvglTouch::readCb(lv_indev_t *indev, lv_indev_data_t *data)
-{
-    LvglTouch *touch = s_instance;
-    if (!touch)
-    {
+void LvglTouch::readCb(lv_indev_t* indev, lv_indev_data_t* data) {
+    LvglTouch* touch = s_instance;
+    if (!touch) {
         data->state = LV_INDEV_STATE_RELEASED;
         return;
     }
@@ -111,14 +106,12 @@ void LvglTouch::readCb(lv_indev_t *indev, lv_indev_data_t *data)
     touch->readPoints();
 
     // Detect a horizontal swipe when the finger lifts.
-    if (touch->prevPressed && !touch->touched)
-    {
+    if (touch->prevPressed && !touch->touched) {
         int32_t dx = touch->x - touch->pressStartX;
         int32_t dy = touch->y - touch->pressStartY;
 
         // A clear horizontal move (mostly left/right, not vertical).
-        if ((dx >= SWIPE_THRESHOLD_PX || dx <= -SWIPE_THRESHOLD_PX) && abs(dx) > abs(dy) * 2)
-        {
+        if ((dx >= SWIPE_THRESHOLD_PX || dx <= -SWIPE_THRESHOLD_PX) && abs(dx) > abs(dy) * 2) {
             if (touch->swipeCb)
                 touch->swipeCb(dx > 0 ? 1 : -1);
             // Consume this release: don't also arm a double tap.
@@ -130,25 +123,20 @@ void LvglTouch::readCb(lv_indev_t *indev, lv_indev_data_t *data)
 
         // Double tap: two quick press→release cycles within the window.
         unsigned long now = millis();
-        if (touch->dblArmed && (now - touch->dblArmStartMs) <= DOUBLE_TAP_WINDOW_MS)
-        {
+        if (touch->dblArmed && (now - touch->dblArmStartMs) <= DOUBLE_TAP_WINDOW_MS) {
             touch->dblArmed = false;
             if (touch->doubleTapCb)
                 touch->doubleTapCb();
-        }
-        else
-        {
+        } else {
             touch->dblArmed = true;
             touch->dblArmStartMs = now;
         }
     }
     touch->prevPressed = touch->touched;
 
-    if (touch->touched)
-    {
+    if (touch->touched) {
         // Record where the press started (once per touch) for swipe math.
-        if (!touch->pressActive)
-        {
+        if (!touch->pressActive) {
             touch->pressActive = true;
             touch->pressStartX = touch->x;
             touch->pressStartY = touch->y;
@@ -156,9 +144,7 @@ void LvglTouch::readCb(lv_indev_t *indev, lv_indev_data_t *data)
         data->state = LV_INDEV_STATE_PRESSED;
         data->point.x = touch->x;
         data->point.y = touch->y;
-    }
-    else
-    {
+    } else {
         data->state = LV_INDEV_STATE_RELEASED;
         touch->pressActive = false;
     }

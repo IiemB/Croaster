@@ -1,28 +1,25 @@
 #include "CroasterDisplaySSD1306.h"
+
 #include <CroasterConstants.h>
 #include <CroasterDeviceIdentity.h>
-#include "CroasterDisplayAnimation.h"
 #include <Wire.h>
 
-CroasterDisplaySSD1306::CroasterDisplaySSD1306(CroasterCore &croaster, uint8_t i2cAddr)
-    : CroasterDisplay(croaster),
-      display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET),
-      i2cAddress(i2cAddr)
-{
-}
+#include "CroasterDisplayAnimation.h"
 
-void CroasterDisplaySSD1306::begin()
-{
+CroasterDisplaySSD1306::CroasterDisplaySSD1306(CroasterCore& croaster, uint8_t i2cAddr)
+    : CroasterDisplay(croaster)
+    , display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET)
+    , i2cAddress(i2cAddr) {}
+
+void CroasterDisplaySSD1306::begin() {
     hasDisplay = isOledPresent();
 
-    if (!hasDisplay)
-    {
+    if (!hasDisplay) {
         debugln(F("# No display found"));
         return;
     }
 
-    if (!display.begin(SSD1306_SWITCHCAPVCC, i2cAddress))
-    {
+    if (!display.begin(SSD1306_SWITCHCAPVCC, i2cAddress)) {
         debugln(F("# SSD1306 allocation failed"));
         return;
     }
@@ -35,15 +32,13 @@ void CroasterDisplaySSD1306::begin()
     display.setTextWrap(false);
 }
 
-void CroasterDisplaySSD1306::drawHeader()
-{
+void CroasterDisplaySSD1306::drawHeader() {
     if (!hasDisplay)
         return;
 
     String text = "CROASTER V" + String(version);
 
-    if (isIpShowed && !ipAddr.isEmpty())
-    {
+    if (isIpShowed && !ipAddr.isEmpty()) {
         text = ipAddr;
     }
 
@@ -52,8 +47,7 @@ void CroasterDisplaySSD1306::drawHeader()
     display.print(text);
 }
 
-void CroasterDisplaySSD1306::drawTemperature(String label, double temp, double ror, int yCursor)
-{
+void CroasterDisplaySSD1306::drawTemperature(String label, double temp, double ror, int yCursor) {
     if (!hasDisplay)
         return;
 
@@ -68,8 +62,7 @@ void CroasterDisplaySSD1306::drawTemperature(String label, double temp, double r
     display.setCursor(tempX, yCursor);
     display.print(tempText);
 
-    if (!isnan(temp))
-    {
+    if (!isnan(temp)) {
         String rorText = String((int)round(ror));
 
         if (ror >= 0 && ror < 10)
@@ -81,23 +74,20 @@ void CroasterDisplaySSD1306::drawTemperature(String label, double temp, double r
     }
 }
 
-void CroasterDisplaySSD1306::splash()
-{
+void CroasterDisplaySSD1306::splash() {
     if (!hasDisplay)
         return;
 
     display.clearDisplay();
     CroasterDisplayAnimation animation;
 
-    for (int16_t i = 0; i < 50; i += 1)
-    {
+    for (int16_t i = 0; i < 50; i += 1) {
         animation.showFire(display);
         delay(1);
     }
 }
 
-bool CroasterDisplaySSD1306::isOledPresent()
-{
+bool CroasterDisplaySSD1306::isOledPresent() {
     Wire.begin();
     delay(100);
 
@@ -105,24 +95,21 @@ bool CroasterDisplaySSD1306::isOledPresent()
     return Wire.endTransmission() == 0;
 }
 
-void CroasterDisplaySSD1306::loop()
-{
+void CroasterDisplaySSD1306::loop() {
     if (!hasDisplay)
         return;
 
     unsigned long now = millis();
 
     // === Invert screen ===
-    if (now - lastInversionToggle >= (isDisplayInverted ? inversionDuration : inversionInterval))
-    {
+    if (now - lastInversionToggle >= (isDisplayInverted ? inversionDuration : inversionInterval)) {
         isDisplayInverted = !isDisplayInverted;
         lastInversionToggle = now;
         display.invertDisplay(isDisplayInverted);
         debugln(isDisplayInverted ? "# Display Inverted to Prevent Burn-In" : "# Display Reverted to Normal");
     }
 
-    if (isUpdatingFirmware)
-    {
+    if (isUpdatingFirmware) {
         if (!isDisplayOn)
             displayToggle();
 
@@ -130,8 +117,7 @@ void CroasterDisplaySSD1306::loop()
     }
 
     // === Update screen ===
-    if (now - lastUpdate >= 1000)
-    {
+    if (now - lastUpdate >= 1000) {
         lastUpdate = now;
 
         et = _core->tempEt;
@@ -151,15 +137,13 @@ void CroasterDisplaySSD1306::loop()
     }
 
     // === Show ip address ===
-    if (now - lastShowIpToggle >= (isIpShowed ? 5000 : 10000))
-    {
+    if (now - lastShowIpToggle >= (isIpShowed ? 5000 : 10000)) {
         isIpShowed = !isIpShowed;
         lastShowIpToggle = now;
     }
 }
 
-void CroasterDisplaySSD1306::rotateScreen()
-{
+void CroasterDisplaySSD1306::rotateScreen() {
     if (!hasDisplay)
         return;
 
@@ -172,8 +156,7 @@ void CroasterDisplaySSD1306::rotateScreen()
     display.display();
 }
 
-void CroasterDisplaySSD1306::blinkIndicator(bool state)
-{
+void CroasterDisplaySSD1306::blinkIndicator(bool state) {
     if (!hasDisplay)
         return;
 
@@ -181,8 +164,7 @@ void CroasterDisplaySSD1306::blinkIndicator(bool state)
     display.display();
 }
 
-void CroasterDisplaySSD1306::displayToggle()
-{
+void CroasterDisplaySSD1306::displayToggle() {
     if (!hasDisplay)
         return;
 
@@ -191,8 +173,7 @@ void CroasterDisplaySSD1306::displayToggle()
     display.ssd1306_command(isDisplayOn ? SSD1306_DISPLAYON : SSD1306_DISPLAYOFF);
 }
 
-void CroasterDisplaySSD1306::updateFirmwareUpdateProgress(int progress)
-{
+void CroasterDisplaySSD1306::updateFirmwareUpdateProgress(int progress) {
     if (!hasDisplay)
         return;
 
@@ -219,15 +200,13 @@ void CroasterDisplaySSD1306::updateFirmwareUpdateProgress(int progress)
     display.display();
 }
 
-void CroasterDisplaySSD1306::updatingStatusToggle(bool isUpdating)
-{
+void CroasterDisplaySSD1306::updatingStatusToggle(bool isUpdating) {
     if (isUpdatingFirmware == isUpdating)
         return;
 
     isUpdatingFirmware = isUpdating;
 }
 
-bool CroasterDisplaySSD1306::isFirmwareUpdating() const
-{
+bool CroasterDisplaySSD1306::isFirmwareUpdating() const {
     return isUpdatingFirmware;
 }

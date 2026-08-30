@@ -1,8 +1,10 @@
 #pragma once
 #include <Arduino.h>
 #include <ArduinoJson.h>
+
 #include <functional>
 #include <map>
+
 #include "CroasterConstants.h"
 #include "CroasterCore.h"
 #include "CroasterDisplay.h"
@@ -11,15 +13,14 @@
  * @class CroasterCommandHandler
  * @brief Handles incoming commands and manages device behavior accordingly.
  */
-class CroasterCommandHandler
-{
+class CroasterCommandHandler {
 public:
     /// Signature for custom command callbacks.
-    using CommandFn = std::function<String(const JsonObject &json)>;
+    using CommandFn = std::function<String(const JsonObject& json)>;
 
 private:
-    CroasterCore &croaster;
-    CroasterDisplay *display; ///< Optional display (may be nullptr).
+    CroasterCore& croaster;
+    CroasterDisplay* display; ///< Optional display (may be nullptr).
 
     bool blinking = false;
     uint8_t blinkCount = 0;
@@ -39,14 +40,14 @@ private:
      * @param json The JSON object containing the command.
      * @param responseOut The response to send back.
      */
-    void handleBasicCommand(const JsonObject &json, String &responseOut);
+    void handleBasicCommand(const JsonObject& json, String& responseOut);
 
     /**
      * @brief Handles JSON-formatted commands.
      * @param json The JSON object containing the command.
      * @param responseOut The response to send back.
      */
-    void handleJsonCommand(const JsonObject &json, String &responseOut);
+    void handleJsonCommand(const JsonObject& json, String& responseOut);
 
     /**
      * @brief Blinks the built-in LED a specified number of times.
@@ -76,8 +77,8 @@ public:
      * @param ledPin Built-in LED pin (defaults to LED_BUILTIN; pass -1 to disable).
      * @param ledOnLevel Active level for the LED (LOW = active-low, HIGH = active-high).
      */
-    CroasterCommandHandler(CroasterCore &core, CroasterDisplay *display = nullptr,
-                           int8_t ledPin = LED_BUILTIN, uint8_t ledOnLevel = LOW);
+    CroasterCommandHandler(CroasterCore& core, CroasterDisplay* display = nullptr, int8_t ledPin = LED_BUILTIN,
+                           uint8_t ledOnLevel = LOW);
 
     /**
      * @brief Initializes the CroasterCommandHandler.
@@ -95,7 +96,7 @@ public:
      * @param responseOut The response to send back.
      * @return True if the command was handled successfully, false otherwise.
      */
-    bool handle(const String &json, String &responseOut);
+    bool handle(const String& json, String& responseOut);
 
     /**
      * @brief Registers a custom basic (string) command without modifying the
@@ -104,7 +105,7 @@ public:
      * @param fn Callback invoked when the command arrives; returns a response
      *           string (empty = no response sent).
      */
-    void onCommand(const String &command, CommandFn fn);
+    void onCommand(const String& command, CommandFn fn);
 
     /**
      * @brief Registers a custom nested JSON command key without modifying the
@@ -113,7 +114,7 @@ public:
      * @param fn Callback invoked when the key is present; receives the nested
      *           "command" object and returns a response string (empty = none).
      */
-    void onJsonCommand(const String &key, CommandFn fn);
+    void onJsonCommand(const String& key, CommandFn fn);
 
     /**
      * @brief Generates a JSON response for a given command (usable by custom

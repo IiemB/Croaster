@@ -16,15 +16,14 @@
  * the implementation, not in the library — a consuming project with a different
  * screen provides its own CroasterDisplay subclass instead.
  */
-class CroasterDisplaySSD1306 : public CroasterDisplay
-{
+class CroasterDisplaySSD1306 : public CroasterDisplay {
 public:
     /**
      * @brief Constructs a CroasterDisplaySSD1306 instance.
      * @param croaster Reference to the CroasterCore instance.
      * @param i2cAddress The I2C address of the display (default is 0x3C).
      */
-    CroasterDisplaySSD1306(CroasterCore &croaster, uint8_t i2cAddress = 0x3C);
+    CroasterDisplaySSD1306(CroasterCore& croaster, uint8_t i2cAddress = 0x3C);
 
     void begin() override;
     void loop() override;

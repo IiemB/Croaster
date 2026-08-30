@@ -4,14 +4,15 @@
 
 #if CROASTER_HAS_BLE
 
-#include <BLEDevice.h>
-#include <BLEUtils.h>
-#include <BLEServer.h>
-#include <BLE2902.h>
-#include "CroasterCore.h"
-#include "CroasterDisplay.h"
-#include "CroasterCommandHandler.h"
-#include "CroasterOtaHandler.h"
+#    include <BLE2902.h>
+#    include <BLEDevice.h>
+#    include <BLEServer.h>
+#    include <BLEUtils.h>
+
+#    include "CroasterCommandHandler.h"
+#    include "CroasterCore.h"
+#    include "CroasterDisplay.h"
+#    include "CroasterOtaHandler.h"
 
 /**
  * @class CroasterBleManager
@@ -20,8 +21,7 @@
  * Only compiled on boards that provide BLE (see CROASTER_HAS_BLE in
  * CroasterConstants.h). The display is optional and may be nullptr.
  */
-class CroasterBleManager
-{
+class CroasterBleManager {
 public:
     /**
      * @brief Constructs a CroasterBleManager instance.
@@ -29,7 +29,7 @@ public:
      * @param commandHandler Reference to the CroasterCommandHandler instance.
      * @param display Optional display for OTA progress (may be nullptr).
      */
-    CroasterBleManager(CroasterCore &croaster, CroasterCommandHandler &commandHandler, CroasterDisplay *display);
+    CroasterBleManager(CroasterCore& croaster, CroasterCommandHandler& commandHandler, CroasterDisplay* display);
 
     /**
      * @brief Initializes the BLE server and characteristics.
@@ -48,12 +48,12 @@ public:
     bool isClientConnected() const;
 
 private:
-    BLEServer *pServer = nullptr;                     ///< Pointer to the BLE server instance.
-    BLECharacteristic *pDataCharacteristic = nullptr; ///< Pointer to the BLE data characteristic.
+    BLEServer* pServer = nullptr;                     ///< Pointer to the BLE server instance.
+    BLECharacteristic* pDataCharacteristic = nullptr; ///< Pointer to the BLE data characteristic.
 
-    CroasterCommandHandler *commandHandler = nullptr; ///< Pointer to the CroasterCommandHandler instance.
-    CroasterCore *croaster = nullptr;                 ///< Pointer to the CroasterCore instance.
-    CroasterDisplay *display = nullptr;               ///< Optional display (may be nullptr).
+    CroasterCommandHandler* commandHandler = nullptr; ///< Pointer to the CroasterCommandHandler instance.
+    CroasterCore* croaster = nullptr;                 ///< Pointer to the CroasterCore instance.
+    CroasterDisplay* display = nullptr;               ///< Optional display (may be nullptr).
 
     CroasterOtaHandler otaHandler; ///< Handles OTA firmware updates over BLE.
 
@@ -77,7 +77,7 @@ private:
      * @brief Sends data to the BLE client.
      * @param data The data to send as a string.
      */
-    void sendData(const String &data);
+    void sendData(const String& data);
 
     /**
      * @class ServerCallbacks

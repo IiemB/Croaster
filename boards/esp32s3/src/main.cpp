@@ -32,14 +32,35 @@ CroasterApp app(core, &display, ledPin, ledOnLevel);
 // Here we expose the S3-only display controls (backlight brightness and the
 // light/dark theme) so a client can drive them over WebSocket / BLE.
 // ---------------------------------------------------------------------------
-void registerCustomCommands()
-{
+void registerCustomCommands() {
+    // {"command":{"brightness":25}} -> set backlight (0-100), echo the new value
+    app.commands().onJsonCommand("brightness", [](const JsonObject& json) -> String {
+        if (!json["brightness"].is<int>())
+            return ""; // ignore if not an integer
+
+        int value = json["brightness"].as<int>();
+        if (value < 0)
+            value = 0;
+        if (value > 100)
+            value = 100;
+        display.setBrightness(value);
+        return "";
+    });
+
+    // {"command":{"darkMode":true}} -> switch light/dark theme, echo the new state
+    app.commands().onJsonCommand("darkMode", [](const JsonObject& json) -> String {
+        if (!json["darkMode"].is<bool>())
+            return ""; // ignore if not a boolean
+
+        bool value = json["darkMode"].as<bool>();
+        display.setDarkMode(value);
+        return "";
+    });
 }
 
-void setup()
-{
+void setup() {
     // Hardcode this board's id (matches the app's CroasterBoardTypes enum).
-    CroasterDeviceIdentity::setBoardName("esp32s3");
+    CroasterDeviceIdentity::setBoardName("ESP32-S3");
 
     registerCustomCommands();
     app.begin();
@@ -49,8 +70,7 @@ void setup()
     display.finishSplash();
 }
 
-void loop()
-{
+void loop() {
     // Keep the LVGL status chip in sync with the BLE client connection.
     display.setBtConnected(app.ble().isClientConnected());
 

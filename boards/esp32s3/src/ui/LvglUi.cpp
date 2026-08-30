@@ -1,7 +1,9 @@
 #include "LvglUi.h"
-#include "pins.h"
+
 #include <CroasterConstants.h>
 #include <esp_heap_caps.h>
+
+#include "pins.h"
 
 // Partial-screen draw buffer size in pixels (two buffers, allocated from PSRAM).
 #define LVGL_BUF_PX (320 * 40)
@@ -12,16 +14,14 @@
 // RAII guard that serializes LVGL access between the app loop (Core 1) and
 // the dedicated LVGL render task (Core 0). Recursive so LVGL-internal
 // callbacks (touch -> page/display toggle) can safely re-enter the lock.
-struct LvglLock
-{
+struct LvglLock {
     SemaphoreHandle_t mtx;
-    explicit LvglLock(SemaphoreHandle_t m) : mtx(m)
-    {
+    explicit LvglLock(SemaphoreHandle_t m)
+        : mtx(m) {
         if (mtx)
             xSemaphoreTakeRecursive(mtx, portMAX_DELAY);
     }
-    ~LvglLock()
-    {
+    ~LvglLock() {
         if (mtx)
             xSemaphoreGiveRecursive(mtx);
     }
@@ -29,13 +29,11 @@ struct LvglLock
 
 // Animation exec callback for the splash progress bar. Sets the value with
 // LV_ANIM_OFF (the 3rd arg of lv_bar_set_value must not be left as garbage).
-static void splashBarAnimCb(void *var, int32_t v)
-{
-    lv_bar_set_value((lv_obj_t *)var, v, LV_ANIM_OFF);
+static void splashBarAnimCb(void* var, int32_t v) {
+    lv_bar_set_value((lv_obj_t*)var, v, LV_ANIM_OFF);
 }
 
-bool LvglUi::begin()
-{
+bool LvglUi::begin() {
     // Backlight via LEDC PWM (IO45) so brightness can be dimmed (0-100%).
     ledcSetup(LCD_BL_CHANNEL, 5000, 8); // 5 kHz, 8-bit resolution (0-255)
     ledcAttachPin(LCD_BL_PIN, LCD_BL_CHANNEL);
@@ -48,8 +46,9 @@ bool LvglUi::begin()
     lv_init();
 
     // Drive the LVGL tick from millis().
-    lv_tick_set_cb([]() -> uint32_t
-                   { return millis(); });
+    lv_tick_set_cb([]() -> uint32_t {
+        return millis();
+    });
 
     // LVGL 9 display driver.
     disp = lv_display_create(320, 240);
@@ -58,10 +57,9 @@ bool LvglUi::begin()
     // Draw buffers in PSRAM (keep the limited internal SRAM for the stack).
     // LVGL 9 expresses the buffer size in bytes (RGB565 = 2 bytes/pixel).
     uint32_t bufBytes = LVGL_BUF_PX * sizeof(uint16_t);
-    void *buf1 = heap_caps_malloc(bufBytes, MALLOC_CAP_SPIRAM);
-    void *buf2 = heap_caps_malloc(bufBytes, MALLOC_CAP_SPIRAM);
-    if (!buf1 || !buf2)
-    {
+    void* buf1 = heap_caps_malloc(bufBytes, MALLOC_CAP_SPIRAM);
+    void* buf2 = heap_caps_malloc(bufBytes, MALLOC_CAP_SPIRAM);
+    if (!buf1 || !buf2) {
         debugln(F("# LVGL draw buffer allocation failed"));
         return false;
     }
@@ -76,20 +74,20 @@ bool LvglUi::begin()
     createUi();
 
     // Double tap toggles the display (backlight) on/off.
-    touch.setDoubleTapCb([this]()
-                         {
-        if (displayToggleCb) displayToggleCb(); });
+    touch.setDoubleTapCb([this]() {
+        if (displayToggleCb)
+            displayToggleCb();
+    });
 
     // Horizontal swipe pages between the instrument and the roast chart.
-    touch.setSwipeCb([this](int dir)
-                     {
-                         if (!screenOn)
-                             return; // display off -> no navigation
-                         if (dir < 0 && !onChartPage)
-                             showChartPage(); // swipe left  -> chart
-                         else if (dir > 0 && onChartPage)
-                             showMainPage(); // swipe right -> back
-                     });
+    touch.setSwipeCb([this](int dir) {
+        if (!screenOn)
+            return; // display off -> no navigation
+        if (dir < 0 && !onChartPage)
+            showChartPage(); // swipe left  -> chart
+        else if (dir > 0 && onChartPage)
+            showMainPage(); // swipe right -> back
+    });
 
     debugln(F("# LVGL UI initialization succeed"));
 
@@ -109,20 +107,16 @@ bool LvglUi::begin()
     return true;
 }
 
-void LvglUi::loop()
-{
+void LvglUi::loop() {
     // LVGL runs on its own pinned task (see lvglTaskEntry / Core 0); nothing
     // for the app-loop side to do here.
 }
 
-void LvglUi::lvglTaskEntry(void *arg)
-{
-    LvglUi *ui = (LvglUi *)arg;
-    while (true)
-    {
+void LvglUi::lvglTaskEntry(void* arg) {
+    LvglUi* ui = (LvglUi*)arg;
+    while (true) {
         uint32_t idleMs = 0;
-        if (ui->lvglMutex && xSemaphoreTakeRecursive(ui->lvglMutex, portMAX_DELAY) == pdTRUE)
-        {
+        if (ui->lvglMutex && xSemaphoreTakeRecursive(ui->lvglMutex, portMAX_DELAY) == pdTRUE) {
             if (ui->themeRebuildPending)
                 ui->rebuildTheme(); // full UI rebuild runs here (LVGL owns the context)
             idleMs = lv_timer_handler();
@@ -133,11 +127,9 @@ void LvglUi::lvglTaskEntry(void *arg)
     }
 }
 
-void LvglUi::flushCb(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map)
-{
-    LvglUi *ui = (LvglUi *)lv_display_get_user_data(disp);
-    if (!ui || !ui->tft)
-    {
+void LvglUi::flushCb(lv_display_t* disp, const lv_area_t* area, uint8_t* px_map) {
+    LvglUi* ui = (LvglUi*)lv_display_get_user_data(disp);
+    if (!ui || !ui->tft) {
         lv_display_flush_ready(disp);
         return;
     }
@@ -147,16 +139,14 @@ void LvglUi::flushCb(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map)
 
     ui->tft->startWrite();
     ui->tft->setAddrWindow(area->x1, area->y1, w, h);
-    ui->tft->writePixels((uint16_t *)px_map, w * h, true);
+    ui->tft->writePixels((uint16_t*)px_map, w * h, true);
     ui->tft->endWrite();
 
     lv_display_flush_ready(disp);
 }
 
-void LvglUi::loadTheme()
-{
-    if (!darkMode)
-    {
+void LvglUi::loadTheme() {
+    if (!darkMode) {
         // Warm near-black instrument look.
         theme_.bg = lv_color_hex(0x0F0E0D);
         theme_.cardBg = lv_color_hex(0x171615);
@@ -178,9 +168,7 @@ void LvglUi::loadTheme()
         theme_.btnResetText = lv_color_hex(0xEDECE9);
         theme_.btnResetBorder = lv_color_hex(0x262522);
         theme_.btnResetPress = lv_color_hex(0x22211F);
-    }
-    else
-    {
+    } else {
         // Warm paper light look.
         theme_.bg = lv_color_hex(0xF7F6F3);
         theme_.cardBg = lv_color_hex(0xFFFFFF);
@@ -205,8 +193,7 @@ void LvglUi::loadTheme()
     }
 }
 
-void LvglUi::createUi()
-{
+void LvglUi::createUi() {
     // Palette driven by the active theme (dark by default, light optional).
     loadTheme();
 
@@ -228,8 +215,7 @@ void LvglUi::createUi()
     lv_screen_load(scrMain);
 }
 
-void LvglUi::buildFirmwareScreen(lv_obj_t *scr)
-{
+void LvglUi::buildFirmwareScreen(lv_obj_t* scr) {
     lv_obj_set_style_bg_color(scr, theme_.bg, 0);
 
     fwTitleLabel = lv_label_create(scr);
@@ -250,33 +236,32 @@ void LvglUi::buildFirmwareScreen(lv_obj_t *scr)
     lv_bar_set_range(fwBar, 0, 100);
     lv_bar_set_value(fwBar, 0, LV_ANIM_OFF);
 
-    lv_obj_t *hint = lv_label_create(scr);
+    lv_obj_t* hint = lv_label_create(scr);
     lv_obj_set_style_text_color(hint, theme_.textMuted, 0);
     lv_obj_set_style_text_font(hint, &lv_font_montserrat_12, 0);
     lv_label_set_text(hint, "Do not disconnect the device");
     lv_obj_align(hint, LV_ALIGN_CENTER, 0, 70);
 }
 
-void LvglUi::buildSplashScreen(lv_obj_t *scr)
-{
+void LvglUi::buildSplashScreen(lv_obj_t* scr) {
     lv_obj_set_style_bg_color(scr, theme_.bg, 0);
 
     // Brand
-    lv_obj_t *brand = lv_label_create(scr);
+    lv_obj_t* brand = lv_label_create(scr);
     lv_obj_set_style_text_color(brand, theme_.textPrimary, 0);
     lv_obj_set_style_text_font(brand, &lv_font_montserrat_32, 0);
     lv_label_set_text(brand, "CROASTER");
     lv_obj_align(brand, LV_ALIGN_CENTER, 0, -36);
 
     // Version
-    lv_obj_t *ver = lv_label_create(scr);
+    lv_obj_t* ver = lv_label_create(scr);
     lv_obj_set_style_text_color(ver, theme_.textMuted, 0);
     lv_obj_set_style_text_font(ver, &lv_font_montserrat_14, 0);
     lv_label_set_text(ver, ("V" + String(version)).c_str());
     lv_obj_align(ver, LV_ALIGN_CENTER, 0, -6);
 
     // Progress bar, animated 0 → 100 over the minimum splash duration.
-    lv_obj_t *bar = lv_bar_create(scr);
+    lv_obj_t* bar = lv_bar_create(scr);
     lv_obj_set_size(bar, 220, 6);
     lv_obj_align(bar, LV_ALIGN_CENTER, 0, 24);
     lv_bar_set_range(bar, 0, 100);
@@ -292,15 +277,14 @@ void LvglUi::buildSplashScreen(lv_obj_t *scr)
     lv_anim_start(&a);
 
     // Status
-    lv_obj_t *status = lv_label_create(scr);
+    lv_obj_t* status = lv_label_create(scr);
     lv_obj_set_style_text_color(status, theme_.textMuted, 0);
     lv_obj_set_style_text_font(status, &lv_font_montserrat_12, 0);
     lv_label_set_text(status, "Initializing...");
     lv_obj_align(status, LV_ALIGN_CENTER, 0, 46);
 }
 
-void LvglUi::buildTopBar(lv_obj_t *scr, TopBar &bar)
-{
+void LvglUi::buildTopBar(lv_obj_t* scr, TopBar& bar) {
     const lv_color_t cardBg = theme_.cardBg;
     const lv_color_t border = theme_.border;
     const lv_color_t textMuted = theme_.textMuted;
@@ -319,7 +303,7 @@ void LvglUi::buildTopBar(lv_obj_t *scr, TopBar &bar)
     lv_obj_align(bar.ipLabel, LV_ALIGN_TOP_LEFT, 12, 24);
 
     // WiFi status chip (top-right).
-    lv_obj_t *wifiChip = lv_obj_create(scr);
+    lv_obj_t* wifiChip = lv_obj_create(scr);
     lv_obj_remove_style_all(wifiChip);
     lv_obj_set_size(wifiChip, 52, 22);
     lv_obj_align(wifiChip, LV_ALIGN_TOP_RIGHT, -4, 6);
@@ -337,14 +321,14 @@ void LvglUi::buildTopBar(lv_obj_t *scr, TopBar &bar)
     lv_obj_set_style_bg_color(bar.wifiDot, theme_.dotOff, 0);
     lv_obj_set_style_bg_opa(bar.wifiDot, LV_OPA_COVER, 0);
 
-    lv_obj_t *wifiLabel = lv_label_create(wifiChip);
+    lv_obj_t* wifiLabel = lv_label_create(wifiChip);
     lv_obj_set_style_text_color(wifiLabel, textMuted, 0);
     lv_obj_set_style_text_font(wifiLabel, &lv_font_montserrat_12, 0);
     lv_label_set_text(wifiLabel, "WIFI");
     lv_obj_align(wifiLabel, LV_ALIGN_LEFT_MID, 20, 0);
 
     // BLE status chip (next to WiFi).
-    lv_obj_t *btChip = lv_obj_create(scr);
+    lv_obj_t* btChip = lv_obj_create(scr);
     lv_obj_remove_style_all(btChip);
     lv_obj_set_size(btChip, 44, 22);
     lv_obj_align(btChip, LV_ALIGN_TOP_RIGHT, -60, 6);
@@ -362,14 +346,14 @@ void LvglUi::buildTopBar(lv_obj_t *scr, TopBar &bar)
     lv_obj_set_style_bg_color(bar.btDot, theme_.dotOff, 0);
     lv_obj_set_style_bg_opa(bar.btDot, LV_OPA_COVER, 0);
 
-    lv_obj_t *btChipLabel = lv_label_create(btChip);
+    lv_obj_t* btChipLabel = lv_label_create(btChip);
     lv_obj_set_style_text_color(btChipLabel, textMuted, 0);
     lv_obj_set_style_text_font(btChipLabel, &lv_font_montserrat_12, 0);
     lv_label_set_text(btChipLabel, "BT");
     lv_obj_align(btChipLabel, LV_ALIGN_LEFT_MID, 20, 0);
 
     // Subtle divider under the top bar.
-    lv_obj_t *topLine = lv_obj_create(scr);
+    lv_obj_t* topLine = lv_obj_create(scr);
     lv_obj_remove_style_all(topLine);
     lv_obj_set_size(topLine, 320, 1);
     lv_obj_set_pos(topLine, 0, 38);
@@ -377,8 +361,7 @@ void LvglUi::buildTopBar(lv_obj_t *scr, TopBar &bar)
     lv_obj_set_style_bg_opa(topLine, LV_OPA_COVER, 0);
 }
 
-void LvglUi::buildMainScreen(lv_obj_t *scr)
-{
+void LvglUi::buildMainScreen(lv_obj_t* scr) {
     const lv_color_t bg = theme_.bg;
     const lv_color_t cardBg = theme_.cardBg;
     const lv_color_t border = theme_.border;
@@ -394,7 +377,7 @@ void LvglUi::buildMainScreen(lv_obj_t *scr)
     // --- Temperature cards -------------------------------------------------
 
     // BT card (left)
-    lv_obj_t *btCard = lv_obj_create(scr);
+    lv_obj_t* btCard = lv_obj_create(scr);
     lv_obj_remove_style_all(btCard);
     lv_obj_set_pos(btCard, 12, 46);
     lv_obj_set_size(btCard, 142, 112);
@@ -404,7 +387,7 @@ void LvglUi::buildMainScreen(lv_obj_t *scr)
     lv_obj_set_style_border_width(btCard, 1, 0);
     lv_obj_set_style_radius(btCard, 8, 0);
 
-    lv_obj_t *btTag = lv_label_create(btCard);
+    lv_obj_t* btTag = lv_label_create(btCard);
     lv_obj_set_style_text_color(btTag, accentBt, 0);
     lv_obj_set_style_text_font(btTag, &lv_font_montserrat_14, 0);
     lv_label_set_text(btTag, "BT");
@@ -423,7 +406,7 @@ void LvglUi::buildMainScreen(lv_obj_t *scr)
     lv_obj_align(btRorLabel, LV_ALIGN_TOP_LEFT, 14, 80);
 
     // ET card (right)
-    lv_obj_t *etCard = lv_obj_create(scr);
+    lv_obj_t* etCard = lv_obj_create(scr);
     lv_obj_remove_style_all(etCard);
     lv_obj_set_pos(etCard, 166, 46);
     lv_obj_set_size(etCard, 142, 112);
@@ -433,7 +416,7 @@ void LvglUi::buildMainScreen(lv_obj_t *scr)
     lv_obj_set_style_border_width(etCard, 1, 0);
     lv_obj_set_style_radius(etCard, 8, 0);
 
-    lv_obj_t *etTag = lv_label_create(etCard);
+    lv_obj_t* etTag = lv_label_create(etCard);
     lv_obj_set_style_text_color(etTag, accentEt, 0);
     lv_obj_set_style_text_font(etTag, &lv_font_montserrat_14, 0);
     lv_label_set_text(etTag, "ET");
@@ -484,8 +467,7 @@ void LvglUi::buildMainScreen(lv_obj_t *scr)
     applyTimerState(TimerState::START);
 }
 
-void LvglUi::buildChartScreen(lv_obj_t *scr)
-{
+void LvglUi::buildChartScreen(lv_obj_t* scr) {
     const lv_color_t bg = theme_.bg;
     const lv_color_t cardBg = theme_.cardBg;
     const lv_color_t border = theme_.border;
@@ -499,7 +481,7 @@ void LvglUi::buildChartScreen(lv_obj_t *scr)
     buildTopBar(scr, chartBar_);
 
     // --- BT card: own container + line chart --------------------------------
-    lv_obj_t *btCard = lv_obj_create(scr);
+    lv_obj_t* btCard = lv_obj_create(scr);
     lv_obj_remove_style_all(btCard);
     lv_obj_set_pos(btCard, 12, 46);
     lv_obj_set_size(btCard, 296, 88);
@@ -521,7 +503,7 @@ void LvglUi::buildChartScreen(lv_obj_t *scr)
     chartSerBt = lv_chart_add_series(chartBt, accentBt, LV_CHART_AXIS_PRIMARY_Y);
 
     // --- ET card: own container + line chart --------------------------------
-    lv_obj_t *etCard = lv_obj_create(scr);
+    lv_obj_t* etCard = lv_obj_create(scr);
     lv_obj_remove_style_all(etCard);
     lv_obj_set_pos(etCard, 12, 140);
     lv_obj_set_size(etCard, 296, 88);
@@ -543,9 +525,8 @@ void LvglUi::buildChartScreen(lv_obj_t *scr)
     chartSerEt = lv_chart_add_series(chartEt, accentEt, LV_CHART_AXIS_PRIMARY_Y);
 }
 
-lv_obj_t *LvglUi::createChartWidget(lv_obj_t *parent)
-{
-    lv_obj_t *ch = lv_chart_create(parent);
+lv_obj_t* LvglUi::createChartWidget(lv_obj_t* parent) {
+    lv_obj_t* ch = lv_chart_create(parent);
     lv_obj_set_style_bg_opa(ch, LV_OPA_TRANSP, 0); // the card provides the bg
     lv_obj_set_style_border_width(ch, 0, 0);
     lv_obj_set_style_radius(ch, 0, 0);
@@ -566,8 +547,7 @@ lv_obj_t *LvglUi::createChartWidget(lv_obj_t *parent)
     return ch;
 }
 
-void LvglUi::showChartPage()
-{
+void LvglUi::showChartPage() {
     LvglLock lock(lvglMutex);
 
     if (onFirmwarePage || onChartPage || !scrChart)
@@ -576,8 +556,7 @@ void LvglUi::showChartPage()
     lv_screen_load_anim(scrChart, LV_SCREEN_LOAD_ANIM_MOVE_LEFT, 200, 0, false);
 }
 
-void LvglUi::showMainPage()
-{
+void LvglUi::showMainPage() {
     LvglLock lock(lvglMutex);
 
     if (onFirmwarePage || !onChartPage || !scrMain)
@@ -586,26 +565,20 @@ void LvglUi::showMainPage()
     lv_screen_load_anim(scrMain, LV_SCREEN_LOAD_ANIM_MOVE_RIGHT, 200, 0, false);
 }
 
-void LvglUi::showFirmwarePage(bool updating)
-{
+void LvglUi::showFirmwarePage(bool updating) {
     LvglLock lock(lvglMutex);
 
-    if (updating)
-    {
+    if (updating) {
         // Remember where to return so the update page REPLACES the content
         // instead of stacking on top of it.
-        if (!onFirmwarePage)
-        {
+        if (!onFirmwarePage) {
             onFirmwarePage = true;
             prevPageWasChart = onChartPage;
         }
         if (scrFw)
             lv_screen_load(scrFw);
-    }
-    else
-    {
-        if (onFirmwarePage)
-        {
+    } else {
+        if (onFirmwarePage) {
             onFirmwarePage = false;
             onChartPage = prevPageWasChart;
             if (onChartPage && scrChart)
@@ -616,16 +589,14 @@ void LvglUi::showFirmwarePage(bool updating)
     }
 }
 
-void LvglUi::finishSplash()
-{
+void LvglUi::finishSplash() {
     LvglLock lock(lvglMutex);
     // Flag setup() as done; the LVGL task performs the switch once the
     // minimum splash duration has also elapsed.
     splashDone = true;
 }
 
-void LvglUi::checkSplashTransition()
-{
+void LvglUi::checkSplashTransition() {
     // Runs on the LVGL task (caller holds lvglMutex). Switch from the boot
     // splash to the main page once setup() has finished AND the minimum
     // splash duration has elapsed.
@@ -638,8 +609,7 @@ void LvglUi::checkSplashTransition()
     lv_screen_load(scrMain);
 }
 
-void LvglUi::refreshChart()
-{
+void LvglUi::refreshChart() {
     if (!chartBt || !chartEt || !chartSerBt || !chartSerEt)
         return;
 
@@ -648,8 +618,7 @@ void LvglUi::refreshChart()
     lv_chart_set_all_values(chartEt, chartSerEt, 0);
 
     int oldest = (chartHead - chartCount + 1 + kChartPoints) % kChartPoints;
-    for (int i = 0; i < chartCount; i++)
-    {
+    for (int i = 0; i < chartCount; i++) {
         int idx = (oldest + i) % kChartPoints;
         lv_chart_set_next_value(chartBt, chartSerBt, btHistory[idx]);
         lv_chart_set_next_value(chartEt, chartSerEt, etHistory[idx]);
@@ -658,9 +627,8 @@ void LvglUi::refreshChart()
     lv_chart_refresh(chartEt);
 }
 
-void LvglUi::btnCb(lv_event_t *e)
-{
-    LvglUi *ui = (LvglUi *)lv_event_get_user_data(e);
+void LvglUi::btnCb(lv_event_t* e) {
+    LvglUi* ui = (LvglUi*)lv_event_get_user_data(e);
     if (!ui || !ui->commandCb)
         return;
 
@@ -668,8 +636,7 @@ void LvglUi::btnCb(lv_event_t *e)
     if (!ui->screenOn)
         return;
 
-    switch (ui->timerState)
-    {
+    switch (ui->timerState) {
     case TimerState::START:
         ui->commandCb("timerStart");
         break;
@@ -682,11 +649,8 @@ void LvglUi::btnCb(lv_event_t *e)
     }
 }
 
-void LvglUi::updateData(double bt, double rorBt, double et, double rorEt,
-                        const String &unit, const String &title,
-                        unsigned long timerSecs, const String &ipAddr,
-                        bool timerRunning)
-{
+void LvglUi::updateData(double bt, double rorBt, double et, double rorEt, const String& unit, const String& title,
+                        unsigned long timerSecs, const String& ipAddr, bool timerRunning) {
     LvglLock lock(lvglMutex);
 
     this->timerRunning = timerRunning;
@@ -702,31 +666,25 @@ void LvglUi::updateData(double bt, double rorBt, double et, double rorEt,
     lv_label_set_text(timerLabel, timerTxt.c_str());
 
     // IP address (show a hint until WiFi connects)
-    const char *ipTxt = ipAddr.isEmpty() ? "--" : ipAddr.c_str();
+    const char* ipTxt = ipAddr.isEmpty() ? "--" : ipAddr.c_str();
     lv_label_set_text(mainBar_.ipLabel, ipTxt);
     lv_label_set_text(chartBar_.ipLabel, ipTxt);
 
     // Single control button reflects the timer state (START/STOP/RESET).
     applyTimerState(timerStateFrom(timerRunning, timerSecs));
 
-    if (isnan(bt))
-    {
+    if (isnan(bt)) {
         lv_label_set_text(btLabel, "--");
         lv_label_set_text(btRorLabel, "");
-    }
-    else
-    {
+    } else {
         lv_label_set_text(btLabel, (String(bt, 1) + unit).c_str());
         lv_label_set_text(btRorLabel, rorText(rorBt).c_str());
     }
 
-    if (isnan(et))
-    {
+    if (isnan(et)) {
         lv_label_set_text(etLabel, "--");
         lv_label_set_text(etRorLabel, "");
-    }
-    else
-    {
+    } else {
         lv_label_set_text(etLabel, (String(et, 1) + unit).c_str());
         lv_label_set_text(etRorLabel, rorText(rorEt).c_str());
     }
@@ -734,12 +692,10 @@ void LvglUi::updateData(double bt, double rorBt, double et, double rorEt,
     // --- Roast-profile charts -----------------------------------------------
     // Sample the temps every kChartSampleMs into the rolling ring buffer.
     unsigned long now = millis();
-    if (now - lastChartSampleMs >= kChartSampleMs)
-    {
+    if (now - lastChartSampleMs >= kChartSampleMs) {
         lastChartSampleMs = now;
 
-        if (!isnan(bt) && !isnan(et))
-        {
+        if (!isnan(bt) && !isnan(et)) {
             int btVal = (int)round(bt);
             int etVal = (int)round(et);
 
@@ -749,13 +705,11 @@ void LvglUi::updateData(double bt, double rorBt, double et, double rorEt,
             if (chartCount < kChartPoints)
                 chartCount++;
 
-            if (chartBt)
-            {
+            if (chartBt) {
                 lv_chart_set_next_value(chartBt, chartSerBt, btVal);
                 lv_chart_refresh(chartBt);
             }
-            if (chartEt)
-            {
+            if (chartEt) {
                 lv_chart_set_next_value(chartEt, chartSerEt, etVal);
                 lv_chart_refresh(chartEt);
             }
@@ -764,8 +718,7 @@ void LvglUi::updateData(double bt, double rorBt, double et, double rorEt,
 
     // Keep the chart Y-range in step with the temperature unit.
     bool isF = (unit == "F" || unit == "f");
-    if (isF != unitF)
-    {
+    if (isF != unitF) {
         unitF = isF;
         int rangeMax = unitF ? 580 : 300;
         if (chartBt)
@@ -781,8 +734,7 @@ void LvglUi::updateData(double bt, double rorBt, double et, double rorEt,
         lv_label_set_text(chartEtLabel, (String("ET ") + (isnan(et) ? "--" : String(et, 1) + unit)).c_str());
 }
 
-String LvglUi::rorText(double ror)
-{
+String LvglUi::rorText(double ror) {
     if (isnan(ror))
         return "";
 
@@ -793,8 +745,7 @@ String LvglUi::rorText(double ror)
     return "ROR " + t;
 }
 
-LvglUi::TimerState LvglUi::timerStateFrom(bool running, unsigned long secs)
-{
+LvglUi::TimerState LvglUi::timerStateFrom(bool running, unsigned long secs) {
     if (running)
         return TimerState::STOP;
     if (secs > 0)
@@ -802,14 +753,12 @@ LvglUi::TimerState LvglUi::timerStateFrom(bool running, unsigned long secs)
     return TimerState::START;
 }
 
-void LvglUi::applyTimerState(TimerState st)
-{
+void LvglUi::applyTimerState(TimerState st) {
     timerState = st;
     if (!stateBtn || !stateBtnLabel)
         return;
 
-    switch (st)
-    {
+    switch (st) {
     case TimerState::START: // primary: start the roast
         lv_obj_set_style_bg_color(stateBtn, theme_.btnStartBg, 0);
         lv_obj_set_style_bg_color(stateBtn, theme_.btnStartPress, LV_STATE_PRESSED);
@@ -835,8 +784,7 @@ void LvglUi::applyTimerState(TimerState st)
     }
 }
 
-void LvglUi::setDarkMode(bool dark)
-{
+void LvglUi::setDarkMode(bool dark) {
     LvglLock lock(lvglMutex);
 
     if (dark == darkMode)
@@ -853,8 +801,7 @@ void LvglUi::setDarkMode(bool dark)
     themeRebuildPending = true;
 }
 
-void LvglUi::rebuildTheme()
-{
+void LvglUi::rebuildTheme() {
     // Runs on the LVGL task (lvglTaskEntry → just before lv_timer_handler),
     // already holding the recursive mutex. LVGL owns the context here, so the
     // full rebuild is safe and never stalls the app loop.
@@ -869,11 +816,11 @@ void LvglUi::rebuildTheme()
     // 4 old screens were still alive, which could exhaust the LV_MEM_SIZE pool
     // (LV_USE_ASSERT_MALLOC → abort → reboot → BLE client dropped → BLE-JSON
     // stopped).
-    lv_obj_t *oldMain = scrMain;
-    lv_obj_t *oldChart = scrChart;
-    lv_obj_t *oldFw = scrFw;
-    lv_obj_t *oldSplash = scrSplash;
-    lv_obj_t *active = lv_screen_active();
+    lv_obj_t* oldMain = scrMain;
+    lv_obj_t* oldChart = scrChart;
+    lv_obj_t* oldFw = scrFw;
+    lv_obj_t* oldSplash = scrSplash;
+    lv_obj_t* active = lv_screen_active();
 
     // Reset widget pointers — the rebuild recreates them all.
     scrMain = nullptr;
@@ -895,23 +842,19 @@ void LvglUi::rebuildTheme()
     chartBar_ = TopBar();
 
     // Free the non-active old screens first (the active one waits below).
-    if (oldMain && oldMain != active)
-    {
+    if (oldMain && oldMain != active) {
         lv_obj_delete(oldMain);
         oldMain = nullptr;
     }
-    if (oldChart && oldChart != active)
-    {
+    if (oldChart && oldChart != active) {
         lv_obj_delete(oldChart);
         oldChart = nullptr;
     }
-    if (oldFw && oldFw != active)
-    {
+    if (oldFw && oldFw != active) {
         lv_obj_delete(oldFw);
         oldFw = nullptr;
     }
-    if (oldSplash && oldSplash != active)
-    {
+    if (oldSplash && oldSplash != active) {
         lv_obj_delete(oldSplash);
         oldSplash = nullptr;
     }
@@ -941,8 +884,7 @@ void LvglUi::rebuildTheme()
         showChartPage();
 }
 
-void LvglUi::setWiFiConnected(bool connected)
-{
+void LvglUi::setWiFiConnected(bool connected) {
     LvglLock lock(lvglMutex);
 
     wifiConnected = connected;
@@ -953,8 +895,7 @@ void LvglUi::setWiFiConnected(bool connected)
         lv_obj_set_style_bg_color(chartBar_.wifiDot, c, 0);
 }
 
-void LvglUi::setBtConnected(bool connected)
-{
+void LvglUi::setBtConnected(bool connected) {
     LvglLock lock(lvglMutex);
 
     btConnected = connected;
@@ -965,16 +906,14 @@ void LvglUi::setBtConnected(bool connected)
         lv_obj_set_style_bg_color(chartBar_.btDot, c, 0);
 }
 
-void LvglUi::displayOn(bool on)
-{
+void LvglUi::displayOn(bool on) {
     screenOn = on;
     // Backlit LCD: backlight fully off, or back to the last set brightness.
     if (LCD_BL_PIN >= 0)
         ledcWrite(LCD_BL_CHANNEL, on ? dutyFromPct(brightnessPct) : 0);
 }
 
-void LvglUi::setBrightness(int percent)
-{
+void LvglUi::setBrightness(int percent) {
     if (percent < 0)
         percent = 0;
     if (percent > 100)
@@ -987,8 +926,7 @@ void LvglUi::setBrightness(int percent)
         ledcWrite(LCD_BL_CHANNEL, dutyFromPct(brightnessPct));
 }
 
-void LvglUi::updateFirmwareProgress(int progress)
-{
+void LvglUi::updateFirmwareProgress(int progress) {
     LvglLock lock(lvglMutex);
 
     // The widgets live on the dedicated firmware-update screen (built in
@@ -1005,8 +943,7 @@ void LvglUi::updateFirmwareProgress(int progress)
     lv_label_set_text(fwLabel, (String(progress) + " %").c_str());
 }
 
-void LvglUi::rotateScreen()
-{
+void LvglUi::rotateScreen() {
     // Runtime rotation in LVGL 8 requires re-registering the display driver;
     // not supported here — the S3 LCD is fixed to landscape.
     debugln(F("# LVGL rotation not supported (fixed landscape)"));

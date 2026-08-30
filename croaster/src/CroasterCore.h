@@ -1,8 +1,9 @@
 #pragma once
 #include <Arduino.h>
-#include <Thermocouple.h>
 #include <MAX6675_Thermocouple.h>
 #include <SmoothThermocouple.h>
+#include <Thermocouple.h>
+
 #include "CroasterConstants.h"
 #include "CroasterPinConfig.h"
 
@@ -10,11 +11,10 @@
  * @class CroasterCore
  * @brief Core functionality for managing sensors and data in the Croaster device.
  */
-class CroasterCore
-{
+class CroasterCore {
 private:
-    Thermocouple *thermocoupleBT;
-    Thermocouple *thermocoupleET;
+    Thermocouple* thermocoupleBT;
+    Thermocouple* thermocoupleET;
 
     CroasterPinConfig _pins;
 
@@ -54,7 +54,7 @@ private:
      * @param thermocouple Pointer to the thermocouple instance.
      * @return The temperature in Celsius.
      */
-    double readCelcius(Thermocouple *thermocouple);
+    double readCelcius(Thermocouple* thermocouple);
 
     /**
      * @brief Reads sensor data and updates internal state.

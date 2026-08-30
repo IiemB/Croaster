@@ -1,5 +1,6 @@
 #pragma once
 #include <CroasterDisplay.h>
+
 #include "ui/LvglUi.h"
 
 /**
@@ -11,10 +12,9 @@
  * backlight toggle back into this class. Lives in the esp32s3 implementation
  * only — it is never compiled by the shared library.
  */
-class CroasterDisplayS3 : public CroasterDisplay
-{
+class CroasterDisplayS3 : public CroasterDisplay {
 public:
-    explicit CroasterDisplayS3(CroasterCore &core);
+    explicit CroasterDisplayS3(CroasterCore& core);
 
     // --- CroasterDisplay interface ---
     void begin() override;
