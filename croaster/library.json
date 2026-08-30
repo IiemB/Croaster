@@ -41,7 +41,7 @@
   ],
   "dependencies": {
     "bblanchon/ArduinoJson": "^7.4.3",
-    "Links2004/arduinoWebSockets": "https://github.com/Links2004/arduinoWebSockets.git",
+    "links2004/WebSockets": "^2.7.3",
     "tzapu/WiFiManager": "^2.0.17",
     "yuriisalimov/MAX6675_Thermocouple": "^2.0.2"
   }
