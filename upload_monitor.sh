@@ -1,12 +1,21 @@
 #!/usr/bin/env bash
 # ============================================================================
-# upload_monitor.sh — build + upload ONE board's firmware in DEBUG mode to a
-# connected device (USB), then open the serial monitor. Release firmware is
-# only produced by build_all.sh.
+# upload_monitor.sh — build + upload a board's DEBUG firmware to a connected
+# device (USB) and/or open its serial monitor. Release firmware is only
+# produced by build_all.sh.
 #
-#   ./upload_monitor.sh                      # interactive: choose board, then port
-#   ./upload_monitor.sh esp32s3              # board given, still choose the port
-#   ./upload_monitor.sh esp32s3 /dev/ttyUSB0 # fully specified, non-interactive
+#   ./upload_monitor.sh [mode] [board] [port]
+#
+#     mode   upload | monitor           (default: upload + monitor)
+#     board  esp32c3 / esp8266 / esp32s3 (default: interactive menu)
+#     port   serial device              (default: auto-detect / menu)
+#
+# Examples:
+#   ./upload_monitor.sh                      # upload + monitor (default)
+#   ./upload_monitor.sh upload               # build + upload only
+#   ./upload_monitor.sh monitor              # serial monitor only
+#   ./upload_monitor.sh upload esp32c3 /dev/cu.usbmodem101
+#   ./upload_monitor.sh monitor esp32c3
 #
 # Uses each board's [env:<board>-debug] (extends the release env with
 # build_type = debug). Requires PlatformIO — same PIO override as
@@ -16,6 +25,12 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PIO="${PIO:-$HOME/.platformio/penv/bin/pio}"
+
+# ---- mode: optional first arg (upload | monitor); default = upload + monitor
+MODE=""
+case "${1:-}" in
+    upload | monitor) MODE="$1"; shift ;;
+esac
 
 # ---- available boards -------------------------------------------------------
 boards=()
@@ -85,15 +100,38 @@ if [ -z "$PORT" ]; then
     fi
 fi
 
-# The <board>-debug env is a throwaway; drop its stale .pio/libdeps snapshot
-# so a config change never triggers PlatformIO's "Removing unused dependencies"
-# (which can hang on leftover plain-path specs such as ../.. / ../common).
-rm -rf "$dir"/.pio/libdeps/"$BOARD-debug"
+case "$MODE" in
+    monitor)
+        # Serial monitor only — no build, no libdeps refresh.
+        ARGS=(device monitor -e "$BOARD-debug")
+        if [ -n "$PORT" ]; then
+            ARGS+=(-p "$PORT")
+        fi
+        echo "=== Monitoring $BOARD (debug env) ==="
+        ;;
+    upload)
+        # The <board>-debug env is a throwaway; drop its stale .pio/libdeps
+        # snapshot so a config change never triggers PlatformIO's "Removing
+        # unused dependencies" (which can hang on leftover plain-path specs).
+        rm -rf "$dir"/.pio/libdeps/"$BOARD-debug"
+        ARGS=(run -e "$BOARD-debug" -t upload)
+        if [ -n "$PORT" ]; then
+            ARGS+=(--upload-port "$PORT")
+        fi
+        echo "=== Uploading $BOARD (debug build) ==="
+        ;;
+    *)
+        # Default: upload + monitor.
+        rm -rf "$dir"/.pio/libdeps/"$BOARD-debug"
+        ARGS=(run -e "$BOARD-debug" -t upload -t monitor)
+        if [ -n "$PORT" ]; then
+            ARGS+=(--upload-port "$PORT" --monitor-port "$PORT")
+        fi
+        echo "=== Uploading + monitoring $BOARD (debug build) ==="
+        ;;
+esac
 
-echo "=== Uploading $BOARD (debug build) ==="
-ARGS=(run -e "$BOARD-debug" -t upload -t monitor)
 if [ -n "$PORT" ]; then
-    ARGS+=(--upload-port "$PORT")
     echo "    port: $PORT"
 fi
 (cd "$dir" && "$PIO" "${ARGS[@]}")
