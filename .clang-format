@@ -1,6 +1,4 @@
 BasedOnStyle: LLVM
-Language: Cpp
-Standard: Cpp11
 
 ColumnLimit: 120
 
