@@ -149,29 +149,18 @@ Ini menerapkan offset `+1.5°` pada BT dan offset `-0.5°` pada ET. Koreksi dite
 
 ### Metode build mana yang sebaiknya saya gunakan?
 
-| Skenario | Metode yang Direkomendasikan |
-|:---|:---|
-| ESP8266 | PlatformIO atau Arduino IDE |
-| ESP32C3 (dengan dukungan OTA) | Arduino IDE dengan partisi Custom SuperMini |
-| ESP32C3 (tanpa OTA, ukuran sketch maksimal) | Arduino IDE dengan partisi Huge APP |
+**PlatformIO adalah satu-satunya alur kerja yang didukung** (Arduino IDE tidak digunakan). Setiap board memiliki folder sendiri:
 
----
-
-### Mengapa saya tidak bisa menggunakan PlatformIO untuk ESP32C3 Super Mini?
-
-Definisi board **Makergo ESP32C3 SuperMini** tidak tersedia secara resmi di registry board PlatformIO. Anda dapat menambahkannya secara manual menggunakan konfigurasi komunitas dari [repositori ini](https://github.com/sigmdel/supermini_esp32c3_sketches.git), namun metode yang didukung secara resmi adalah menggunakan **Arduino IDE** dengan paket board Makergo.
-
----
-
-### Apa itu `copy_to_ino.sh`?
-
-Ini adalah shell script yang menyalin file sumber dari direktori `src/` (struktur PlatformIO) ke folder `croaster-arduino/` dengan konvensi penamaan sketch Arduino yang benar. Jalankan sebelum membuka project di Arduino IDE.
+| Board | Folder | Perintah |
+|:---|:---|:---|
+| ESP8266 (NodeMCU / ESP-12E) | `boards/esp8266/` | `pio run -e esp8266 -t upload` |
+| ESP32-C3 Super Mini | `boards/esp32c3/` | `pio run -e esp32c3 -t upload` |
 
 ---
 
 ### Apa itu file `custom32c3sm.csv`?
 
-Ini adalah **tabel partisi kustom** untuk ESP32C3 Super Mini. Tata letak partisi ini mengalokasikan lebih banyak penyimpanan untuk aplikasi (`1900544` byte) sekaligus menyisihkan ruang untuk update OTA. Tanpanya, update OTA tidak dapat berjalan berdampingan dengan binary firmware yang besar. Lihat [references.md](references.md) untuk langkah instalasi.
+Ini adalah **tabel partisi kustom** untuk ESP32C3 Super Mini. Tata letak partisi ini mengalokasikan lebih banyak penyimpanan untuk aplikasi (`1900544` byte) sekaligus menyisihkan ruang untuk update OTA. Tanpanya, update OTA tidak dapat berjalan berdampingan dengan binary firmware yang besar. File ini berada di `boards/esp32c3/` dan dirujuk oleh `boards/esp32c3/platformio.ini` (`board_build.partitions = custom32c3sm.csv`).
 
 ---
 
@@ -182,13 +171,13 @@ Ini adalah **tabel partisi kustom** untuk ESP32C3 Super Mini. Tata letak partisi
 Gunakan **aplikasi ICRM** di Android. Aplikasi mendukung OTA melalui WiFi (WebSocket) maupun BLE (khusus ESP32):
 
 - **OTA via WiFi:** Aplikasi mengirimkan binary firmware yang telah dikompilasi melalui WebSocket. Croaster menerimanya dalam potongan-potongan, menuliskannya ke flash, dan restart otomatis setelah selesai.
-- **OTA via BLE:** Aplikasi mengirimkan binary firmware melalui BLE. `BleManager` meneruskan data ke `OtaHandler`, yang memprosesnya secara bertahap dengan pemeriksaan timeout. Progres dilaporkan kembali ke aplikasi sebagai JSON.
+- **OTA via BLE:** Aplikasi mengirimkan binary firmware melalui BLE. `CroasterBleManager` meneruskan data ke `CroasterOtaHandler`, yang memprosesnya secara bertahap dengan pemeriksaan timeout. Progres dilaporkan kembali ke aplikasi sebagai JSON.
 
 ---
 
 ### OTA tidak bekerja di ESP32C3 saya. Mengapa?
 
-Alasan paling umum adalah Anda menggunakan skema partisi **Huge APP**, yang tidak menyisihkan ruang untuk OTA. Ganti ke partisi **Custom SuperMini** seperti yang dijelaskan di [references.md](references.md). Setelah flash ulang dengan partisi yang benar, OTA akan berfungsi.
+Alasan paling umum adalah skema partisi tidak menyisihkan ruang untuk OTA. Implementasi ESP32-C3 menggunakan partisi kustom `custom32c3sm.csv` (diatur di `platformio.ini`), yang menyisihkan slot OTA. Flash ulang dengan partisi tersebut dan OTA akan berfungsi.
 
 ---
 
@@ -202,7 +191,7 @@ OTA via WiFi (WebSocket) menggunakan aplikasi ICRM didukung di ESP8266, selama A
 
 ### Bagaimana cara menguji Croaster tanpa sensor fisik?
 
-Atur `dummyMode = true` di `Constants.h`:
+Atur `dummyMode = true` di `boards/esp32c3/src/config.h`:
 ```cpp
 const bool dummyMode = true;
 ```
@@ -212,21 +201,24 @@ Dalam mode ini, Croaster menghasilkan data suhu simulasi, sehingga Anda dapat me
 
 ### Bagaimana cara menambahkan perintah kustom?
 
-Untuk **perintah dasar (string)**, tambahkan cabang `else if` baru di dalam `handleBasicCommand` di `CommandHandler.cpp`:
+Perintah kustom didaftarkan di `main.cpp` implementasi Anda — **tanpa perlu
+mengubah library**. Callback mengembalikan string respons (kosong = tanpa respons):
+
+Untuk **perintah dasar (string)**, gunakan `onCommand`:
 ```cpp
-else if (command == "perintahsaya") {
-    // logika Anda di sini
-    responseOut = "{\"status\": \"ok\"}";
-}
+app.commands().onCommand("perintahsaya", [](const JsonObject &json) -> String {
+    return "{\"status\": \"ok\"}";
+});
 ```
 Kirim sebagai: `{"command": "perintahsaya"}`
 
-Untuk **perintah konfigurasi** (format key-value), tambahkan kondisi baru di dalam `handleJsonCommand`:
+Untuk **perintah konfigurasi** (format key-value), gunakan `onJsonCommand`:
 ```cpp
-if (json["kuncisaya"].is<String>()) {
+app.commands().onJsonCommand("kuncisaya", [](const JsonObject &json) -> String {
     String nilai = json["kuncisaya"].as<String>();
     // logika Anda di sini
-}
+    return "";
+});
 ```
 Kirim sebagai: `{"command": {"kuncisaya": "nilaitertentu"}}`
 
@@ -236,7 +228,7 @@ Kedua tipe tersedia melalui WebSocket maupun BLE secara otomatis.
 
 ### Format JSON apa yang di-broadcast oleh Croaster?
 
-Croaster mengirimkan payload JSON melalui WebSocket dan BLE di setiap interval. Payload tersebut mencakup pembacaan suhu, nilai RoR, timer, dan versi firmware. Struktur lengkapnya dapat ditemukan di `CroasterCore.cpp` dan `WebSocketManager.cpp`.
+Croaster mengirimkan payload JSON melalui WebSocket dan BLE di setiap interval. Payload tersebut mencakup pembacaan suhu, nilai RoR, timer, dan versi firmware. Struktur lengkapnya dapat ditemukan di `CroasterCore.cpp` dan `CroasterWebSocketManager.cpp`.
 
 ---
 
@@ -253,7 +245,7 @@ Croaster mengirimkan payload JSON melalui WebSocket dan BLE di setiap interval. 
 ### Layar OLED kosong atau menampilkan karakter tidak jelas.
 
 - Verifikasi bahwa kabel SDA/SCL tidak tertukar.
-- Konfirmasi alamat I2C. SSD1306 biasanya menggunakan `0x3C`. Jika milik Anda menggunakan `0x3D`, perbarui `DisplayManager.cpp`.
+- Konfirmasi alamat I2C. SSD1306 biasanya menggunakan `0x3C`. Jika milik Anda menggunakan `0x3D`, perbarui `CroasterDisplaySSD1306.cpp` di `boards/esp32c3/src/`.
 - Periksa suplai 3.3V ke layar.
 
 ---

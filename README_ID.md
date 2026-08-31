@@ -2,9 +2,9 @@
 
 > 🇬🇧 English version available at [README.md](README.md)
 
-**Croaster** adalah sistem pemantau suhu ringan dan open-source yang dibangun di atas mikrokontroler berbasis ESP. Dirancang untuk para pecinta dan profesional sangrai kopi, sistem ini membaca dua sensor termokopel (Suhu Biji dan Suhu Lingkungan) dan menampilkan data secara real-time di layar OLED yang ringkas. Croaster terhubung mulus ke perangkat lunak sangrai populer melalui WiFi (WebSocket) dan BLE (khusus ESP32), sehingga kompatibel dengan aplikasi sangrai di desktop maupun ponsel.
+**Croaster** adalah sistem pemantau suhu ringan dan open-source yang dibangun di atas mikrokontroler berbasis ESP. Dirancang untuk para pecinta dan profesional sangrai kopi, sistem ini membaca dua sensor termokopel (Suhu Biji dan Suhu Lingkungan) dan menampilkan data secara real-time di layar OLED yang ringkas. Croaster terhubung mulus ke perangkat lunak sangrai populer melalui WiFi (WebSocket) dan BLE (pada board yang mendukung), sehingga kompatibel dengan aplikasi sangrai di desktop maupun ponsel.
 
-**Versi Firmware Saat Ini:** `0.51`
+**Versi Firmware Saat Ini:** `0.52`
 
 ---
 
@@ -14,17 +14,15 @@
   - [📑 Daftar Isi](#-daftar-isi)
   - [🚀 Fitur](#-fitur)
   - [🧩 Komponen Hardware](#-komponen-hardware)
-  - [🔌 Diagram Pengkabelan](#-diagram-pengkabelan)
   - [🛠 Arsitektur Software](#-arsitektur-software)
     - [Alur Data](#alur-data)
   - [📦 Library \& Dependensi](#-library--dependensi)
   - [🔧 Cara Build dan Upload](#-cara-build-dan-upload)
-    - [✅ PlatformIO (direkomendasikan untuk ESP8266 \& ESP32C3)](#-platformio-direkomendasikan-untuk-esp8266--esp32c3)
-    - [✅ Arduino IDE (alternatif, diperlukan untuk board Makergo ESP32C3)](#-arduino-ide-alternatif-diperlukan-untuk-board-makergo-esp32c3)
+  - [📦 Menggunakan Croaster sebagai library di proyek Anda](#-menggunakan-croaster-sebagai-library-di-proyek-anda)
   - [🔗 Panduan Setup WiFi](#-panduan-setup-wifi)
   - [📡 Gambaran Komunikasi](#-gambaran-komunikasi)
     - [WebSocket (WiFi)](#websocket-wifi)
-    - [BLE (khusus ESP32)](#ble-khusus-esp32)
+    - [BLE](#ble)
   - [🔌 Cara Menghubungkan Croaster dengan Artisan](#-cara-menghubungkan-croaster-dengan-artisan)
     - [🖥️ Opsi 1: Koneksi Langsung (Croaster sebagai Access Point)](#️-opsi-1-koneksi-langsung-croaster-sebagai-access-point)
     - [🌐 Opsi 2: Jaringan WiFi yang Sama (Croaster bergabung ke WiFi Anda)](#-opsi-2-jaringan-wifi-yang-sama-croaster-bergabung-ke-wifi-anda)
@@ -40,8 +38,7 @@
 
 ## 🚀 Fitur
 
-* Mendukung **NodeMCU ESP8266** (hanya WiFi)
-* Mendukung **ESP32C3 Super Mini** (WiFi & BLE)
+* Mendukung **board berbasis ESP8266 dan ESP32** melalui implementasi per board
 * Pemantauan real-time dua sensor termokopel **MAX6675**:
   - **BT** — Bean Temperature / Suhu Biji (di dalam drum)
   - **ET** — Environment Temperature / Suhu Lingkungan (exhaust/inlet)
@@ -53,12 +50,12 @@
 * Komunikasi WiFi via **WebSocket** di port **81**, kompatibel dengan:
   + [**Artisan Roaster Scope**](https://artisan-scope.org/) — logger sangrai standar industri
   + [**Aplikasi ICRM**](https://iiemb.github.io/#/icrm) — aplikasi pendamping mobile (Android)
-* **Komunikasi BLE** (khusus ESP32) untuk [**aplikasi ICRM**](https://iiemb.github.io/#/icrm)
-* **Update firmware OTA (Over-The-Air)** via WebSocket (WiFi) dan **BLE** (khusus ESP32)
+* **Komunikasi BLE** (pada board yang mendukung) untuk [**aplikasi ICRM**](https://iiemb.github.io/#/icrm)
+* **Update firmware OTA (Over-The-Air)** via WebSocket (WiFi) dan **BLE** (pada board yang mendukung)
 * **Captive portal WiFiManager** untuk setup WiFi yang mudah — tanpa perlu flash ulang
 * Penamaan perangkat unik berdasarkan chip ID (contoh: `Croaster-A1B2`)
 * **Mode dummy** untuk pengembangan dan pengujian tanpa sensor fisik
-* Sistem perintah JSON kustom melalui kelas `CommandHandler` yang terpusat
+* Sistem perintah JSON kustom melalui kelas `CroasterCommandHandler` yang terpusat
 * Mudah diperluas dengan perintah buatan pengguna
 
 ---
@@ -67,54 +64,48 @@
 
 | Komponen | Keterangan |
 |:---|:---|
-| 1× [NodeMCU ESP8266](images/NodeMCU-ESP8266.png) **atau** [ESP32C3 Super Mini](images/ESP32C3-Super-Mini.png) | Mikrokontroler utama |
+| 1× Mikrokontroler berbasis ESP (WiFi dan/atau BLE) | Mikrokontroler utama — lihat `boards/<board>/README.md` untuk board yang didukung |
 | 1× [Layar OLED 128×64 (SSD1306, I2C)](images/OLED-Display.png) | Tampilan suhu real-time |
 | 2× [Modul termokopel MAX6675](images/MAX6675.png) | ADC termokopel K-type berbasis SPI |
 | 2× [Probe termokopel K-type](images/Type-K-thermocouple.png) | Probe suhu (BT & ET) |
 
 > Semua komponen beroperasi pada **3.3V**. Pastikan catu daya Anda dapat menangani total konsumsi arus dari kedua sensor dan layar.
 
----
-
-## 🔌 Diagram Pengkabelan
-
-|  |**NodeMCU ESP8266**|**ESP32C3 Super Mini**|
-|:---|:---:|:---:|
-|**Layar OLED**|GND → **GND**|GND → **GND**|
-| |VCC → **3.3V**|VCC → **3.3V**|
-| |SCL → **D1**|SCL → **GPIO9**|
-| |SDA → **D2**|SDA → **GPIO8**|
-|||⠀|
-|**Sensor ET** (Suhu Lingkungan)|GND → **GND**|GND → **GND**|
-| |VCC → **3.3V**|VCC → **3.3V**|
-| |SCK → **D5**|SCK → **GPIO4**|
-| |SO  → **D7**|SO  → **GPIO5**|
-| |CS  → **D6**|CS  → **GPIO6**|
-|||⠀|
-|**Sensor BT** (Suhu Biji)|GND → **GND**|GND → **GND**|
-| |VCC → **3.3V**|VCC → **3.3V**|
-| |SCK → **D5**|SCK → **GPIO4**|
-| |SO  → **D7**|SO  → **GPIO5**|
-| |CS  → **D8**|CS  → **GPIO7**|
-
-> Kedua sensor berbagi jalur **SCK** dan **SO** (bus SPI). Keduanya dibedakan oleh pin **CS** masing-masing.
+> 🔌 **Diagram pengkabelan bersifat per board** — lihat `boards/<board>/README.md`.
 
 ---
 
 ## 🛠 Arsitektur Software
 
-Croaster menggunakan **arsitektur C++ modular** yang bersih, dibangun dengan framework Arduino. Setiap subsistem dikemas dalam kelasnya sendiri:
+Croaster menggunakan **arsitektur C++ modular** yang bersih, dibangun dengan framework Arduino. Setiap subsistem dikemas dalam kelasnya sendiri.
+
+Repositori disusun sebagai **library yang dapat digunakan ulang** (`croaster/`: `croaster/src/` + `croaster/library.json`) ditambah **proyek per board** di `boards/<board>/`. Library ini **agnostik terhadap display dan konfigurasi pin** — setiap board menyediakan display, tata letak pin, LED, dan konfigurasi dummy mode mereka sendiri.
+
+### Modul library (`croaster/src/`)
 
 | Modul | File | Tanggung Jawab |
 |:---|:---|:---|
-| `CroasterCore` | `CroasterCore.h/.cpp` | Pembacaan sensor, kalkulasi RoR, penghalusan suhu, state data |
-| `DisplayManager` | `DisplayManager.h/.cpp` | Loop rendering OLED, layar status |
-| `CommandHandler` | `CommandHandler.h/.cpp` | Parsing dan dispatching perintah JSON (BLE & WebSocket) |
-| `WebSocketManager` | `WebSocketManager.h/.cpp` | Server WebSocket, broadcast data, trigger OTA |
-| `BleManager` | `BleManager.h/.cpp` | Server BLE, notify karakteristik, penerimaan perintah *(khusus ESP32)* |
-| `OtaHandler` | `OtaHandler.h/.cpp` | Penanganan update OTA biner via WebSocket dan BLE |
-| `WiFiManagerUtil` | `WiFiManagerUtil.h/.cpp` | Setup dan lifecycle captive portal WiFiManager |
-| `DeviceIdentity` | `DeviceIdentity.h/.cpp` | Helper chip ID, nama perangkat, alamat IP |
+| `CroasterCore` | `croaster/src/CroasterCore.h/.cpp` | Pembacaan sensor, kalkulasi RoR, penghalusan suhu, state data |
+| `CroasterDisplay` | `croaster/src/CroasterDisplay.h` | **Antarmuka display abstrak** — diimplementasikan oleh proyek pengguna |
+| `CroasterPinConfig` | `croaster/src/CroasterPinConfig.h` | Tata letak pin termokopel (diteruskan ke `CroasterCore`) |
+| `CroasterCommandHandler` | `croaster/src/CroasterCommandHandler.h/.cpp` | Parsing dan dispatching perintah JSON (BLE & WebSocket) |
+| `CroasterWebSocketManager` | `croaster/src/CroasterWebSocketManager.h/.cpp` | Server WebSocket, broadcast data, trigger OTA |
+| `CroasterBleManager` | `croaster/src/CroasterBleManager.h/.cpp` | Server BLE, notify karakteristik, penerimaan perintah *(hanya dikompilasi bila board punya BLE)* |
+| `CroasterOtaHandler` | `croaster/src/CroasterOtaHandler.h/.cpp` | Penanganan update OTA biner via WebSocket dan BLE |
+| `CroasterWiFiManager` | `croaster/src/CroasterWiFiManager.h/.cpp` | Setup dan lifecycle captive portal WiFiManager |
+| `CroasterDeviceIdentity` | `croaster/src/CroasterDeviceIdentity.h/.cpp` | Helper chip ID, nama perangkat, alamat IP |
+| `CroasterApp` | `croaster/src/CroasterApp.h/.cpp` | **Titik masuk `begin()`/`loop()` tunggal** — agnostik display; menerima `CroasterCore&` + `CroasterDisplay*` (+ pin/level LED) |
+
+### Proyek board (`boards/`)
+
+Komponen bersama dan proyek per board berada di bawah `boards/`:
+
+| Path | Kegunaan |
+|:---|:---|
+| `boards/common/` | Display SSD1306 + animasi bersama (`CroasterDisplaySSD1306`, `CroasterDisplayAnimation`) untuk board berbasis OLED |
+| `boards/<board>/` | Proyek per board: `platformio.ini`, `main.cpp`, `config.h`, plus `README.md` yang mendokumentasikan board tersebut (pengkabelan, build flags, partisi) |
+
+Setiap folder board adalah proyek PlatformIO mandiri (`main.cpp` + `config.h`) yang mengonsumsi library Croaster (`../../croaster`) dan komponen bersama (`../common`), lalu merangkainya ke `CroasterApp` milik library yang agnostik display.
 
 ### Alur Data
 
@@ -122,7 +113,7 @@ Croaster menggunakan **arsitektur C++ modular** yang bersih, dibangun dengan fra
 Sensor MAX6675 → CroasterCore (baca + halus + RoR)
                        ↓
           ┌────────────┴────────────┐
-    WebSocketManager           BleManager (ESP32)
+  CroasterWebSocketManager  CroasterBleManager (board dengan BLE)
           ↓                         ↓
    Artisan / ICRM              ICRM (Android)
 ```
@@ -144,52 +135,91 @@ Sensor MAX6675 → CroasterCore (baca + halus + RoR)
 
 ## 🔧 Cara Build dan Upload
 
-### ✅ PlatformIO (direkomendasikan untuk ESP8266 & ESP32C3)
+> PlatformIO adalah satu-satunya alur kerja yang didukung (Arduino IDE tidak digunakan).
+
+Library berada di `croaster/`. Setiap board yang didukung memiliki folder sendiri di bawah `boards/` — pilih dan build/upload dari folder tersebut:
 
 1. Install [PlatformIO](https://platformio.org/) (ekstensi VS Code atau CLI)
-2. Clone repositori:
+2. Clone repositori dan masuk ke folder board Anda:
 
    ```bash
    git clone git@github.com:IiemB/Croaster.git
-   cd Croaster
+   cd Croaster/boards/<board>
    ```
 
 3. Periksa `platformio.ini` dan pilih environment target Anda
 4. Upload firmware:
 
    ```bash
-   # Untuk ESP8266
-   pio run -e esp8266 -t upload
-
-   # Untuk ESP32C3
-   pio run -e esp32c3 -t upload
+   pio run -t upload
    ```
 
-> **Catatan:** ESP32C3 Super Mini menggunakan skema partisi kustom (`custom32c3sm.csv`) untuk memaksimalkan penyimpanan aplikasi. Lihat [references.md](references.md) untuk detail setup.
+`README.md` setiap board mendokumentasikan perintah build, pengkabelan, dan build
+flags khususnya (mis. tabel partisi kustom).
 
-### ✅ Arduino IDE (alternatif, diperlukan untuk board Makergo ESP32C3)
+---
 
-> Arduino IDE diperlukan jika Anda menggunakan definisi board **Makergo ESP32C3 SuperMini**, yang belum sepenuhnya didukung oleh PlatformIO.
+## 📦 Menggunakan Croaster sebagai library di proyek Anda
 
-1. Jalankan skrip konversi untuk menyalin file sumber ke folder sketch Arduino:
+`croaster/` adalah library PlatformIO standar (berisi `library.json` sendiri). Tambahkan ke `platformio.ini` proyek lain:
 
-   ```bash
-   ./copy_to_ino.sh
-   ```
+```ini
+[env:board_anda]
+lib_deps =
+    https://github.com/IiemB/Croaster.git
+```
 
-2. Buka folder `croaster-arduino/` di **Arduino IDE 2.x**
-3. Pilih board Anda:
-   - **ESP8266** → `NodeMCU 1.0 (ESP-12E Module)`
-   - **ESP32C3** → `Makergo ESP32C3 SuperMini`
-4. Untuk **ESP32C3**, pilih skema partisi:
-   - Gunakan `Huge APP` untuk ukuran sketch maksimum (OTA tidak didukung)
-   - Gunakan `Custom SuperMini` untuk mendukung OTA (lihat [references.md](references.md) untuk setup)
+Cara termudah adalah menyalin sebuah board (`boards/<board>/`) lalu menyesuaikannya. Board ini mengekspos API `begin()`/`loop()` tunggal lewat `CroasterApp`, dan semua konfigurasi khusus board (pin, dummy mode, LED, display) berada di sisi board — bukan di library:
 
-   > [!NOTE]
-   > Partisi `Huge APP` **tidak** mendukung OTA via Aplikasi ICRM. Untuk mengaktifkan OTA, ikuti langkah partisi kustom di [references.md](references.md).
+```cpp
+#include <Arduino.h>
+#include <ArduinoJson.h>
+#include "config.h"                 // pins, dummyMode, ledPin/ledOnLevel (sunting di sini)
+#include "CroasterDisplaySSD1306.h" // atau subclass CroasterDisplay Anda
+#include "CroasterApp.h"
 
-5. Install semua library yang diperlukan via Arduino Library Manager (lihat [Library & Dependensi](#-library--dependensi))
-6. Upload via `Sketch → Upload`
+CroasterCore core(dummyMode, pins);
+CroasterDisplaySSD1306 display(core);     // display didefinisikan di implementasi
+CroasterApp app(core, &display, ledPin, ledOnLevel);
+
+void setup() { app.begin(); }
+void loop()  { app.loop(); }
+```
+
+Atau rangkai sendiri (lihat `CroasterApp.cpp` untuk rangkaian lengkap):
+
+```cpp
+#include <CroasterCore.h>
+#include <CroasterPinConfig.h>
+#include <CroasterCommandHandler.h>
+#include <CroasterWebSocketManager.h>
+#include <CroasterBleManager.h>
+#include <CroasterWiFiManager.h>
+
+CroasterPinConfig myPins = { /* sckPin, soPin, csPinBt, csPinEt */ };
+
+CroasterCore croaster(false, myPins);  // tata letak pin Anda
+MyDisplay display(croaster);           // subclass CroasterDisplay Anda
+CroasterCommandHandler commands(croaster, &display);
+CroasterWebSocketManager ws(croaster, commands, &display);
+
+#if CROASTER_HAS_BLE  // terdeteksi otomatis: 1 di ESP32, 0 lainnya
+CroasterBleManager ble(croaster, commands, &display);
+#endif
+```
+
+- **Display** — implementasikan `CroasterDisplay` (`begin`, `loop`, `rotateScreen`,
+  `blinkIndicator`, `displayToggle`, dan metode progres OTA). Teruskan `nullptr`
+  bila board tidak memiliki display.
+- **Pin, dummy mode & LED** — buat `CroasterPinConfig` Anda sendiri dan teruskan
+  ke `CroasterCore`; pilih `dummyMode`, `ledPin`/`ledOnLevel` di `config.h`
+  implementasi.
+- **BLE** — library mendeteksi dukungan BLE saat kompilasi melalui
+  `CROASTER_HAS_BLE` (1 di ESP32, 0 di tempat lain) dan hanya mengompilasi
+  `CroasterBleManager` bila tersedia.
+- **Perintah kustom** — tambahkan perintah tanpa menyentuh library:
+  `app.commands().onCommand("ping", ...)` untuk perintah string dan
+  `app.commands().onJsonCommand("myKey", ...)` untuk perintah JSON bersarang.
 
 ---
 
@@ -215,12 +245,12 @@ Untuk panduan visual, lihat: ➡️ [Cara Menghubungkan ke WiFi - YouTube](https
 - **Format data:** JSON, di-broadcast setiap `intervalSend` detik (default: 3 detik)
 - Kompatibel dengan **Artisan Roaster Scope** dan **aplikasi ICRM** (Android)
 
-### BLE (khusus ESP32)
+### BLE
 
 - **UUID Service:** `1cc9b045-a6e9-4bd5-b874-07d4f2d57843`
 - **UUID Karakteristik Data:** `d56d0059-ad65-43f3-b971-431d48f89a69`
 - Mendukung notify (push data) dan write (penerimaan perintah)
-- Kompatibel dengan **aplikasi ICRM** (khusus Android)
+- Tersedia pada board yang mendukung BLE (mis. ESP32) — kompatibel dengan **aplikasi ICRM** (khusus Android)
 
 ---
 
@@ -258,19 +288,19 @@ Gunakan metode ini ketika Croaster sudah terhubung ke jaringan WiFi rumah/kantor
 
 ## ⬆️ Update OTA (Over-The-Air)
 
-Croaster mendukung pembaruan firmware tanpa kabel USB, melalui **aplikasi ICRM** via WebSocket (WiFi) atau BLE (khusus ESP32).
+Croaster mendukung pembaruan firmware tanpa kabel USB, melalui **aplikasi ICRM** via WebSocket (WiFi) atau BLE (pada board yang mendukung).
 
-- OTA ditangani oleh kelas `OtaHandler`, yang menerima data firmware biner secara bertahap dan mengembalikan payload JSON progres setelah setiap potongan
+- OTA ditangani oleh kelas `CroasterOtaHandler`, yang menerima data firmware biner secara bertahap dan mengembalikan payload JSON progres setelah setiap potongan
 - Kemajuan update ditampilkan di layar OLED selama proses berlangsung
 - OTA via BLE dilengkapi pemeriksaan timeout untuk menangani transfer yang terhenti
-- OTA memerlukan **skema partisi kustom** (`custom32c3sm`) pada ESP32C3 — partisi `Huge APP` **tidak** mendukung OTA
+- Beberapa board memerlukan tabel partisi dengan slot OTA — lihat `README.md` board tersebut
 - Setelah update OTA berhasil, Croaster restart otomatis
 
 ---
 
 ## 🧪 Perintah Kustom
 
-Croaster menerima perintah berformat JSON melalui WebSocket maupun BLE. Kelas `CommandHandler` mengelola semua perintah yang masuk.
+Croaster menerima perintah berformat JSON melalui WebSocket maupun BLE. Kelas `CroasterCommandHandler` mengelola semua perintah yang masuk.
 
 ### Perintah Bawaan
 
@@ -299,7 +329,18 @@ Perintah konfigurasi menggunakan **objek JSON bersarang** di bawah `"command"`:
 
 ### Menambahkan Perintah Kustom
 
-Untuk menambahkan perintah dasar (string), tambahkan cabang `else if` baru di dalam `handleBasicCommand` di `CommandHandler.cpp`. Untuk menambahkan perintah konfigurasi, tambahkan kondisi baru di dalam `handleJsonCommand`. Kedua metode menerima `JsonObject` yang sudah di-parse, sehingga Anda dapat membaca key/value apapun dari payload JSON.
+Perintah kustom didaftarkan di `main.cpp` implementasi Anda — **tanpa perlu
+mengubah library**:
+
+```cpp
+app.commands().onCommand("ping", [](const JsonObject &json) -> String { ... });
+app.commands().onJsonCommand("myKey", [](const JsonObject &json) -> String { ... });
+```
+
+`onCommand` menangani perintah string dasar (`{"command":"ping"}`); `onJsonCommand`
+menangani key JSON bersarang (`{"command":{"myKey":...}}`). Setiap callback
+mengembalikan string respons (kosong = tanpa respons). Keduanya tersedia melalui
+WebSocket maupun BLE.
 
 ---
 
@@ -320,5 +361,4 @@ Pull request, laporan bug, dan permintaan fitur sangat disambut! Jangan ragu unt
 - [Aplikasi ICRM](https://iiemb.github.io/#/icrm) — aplikasi Android pendamping untuk Croaster
 - [Artisan Roaster Scope](https://artisan-scope.org/) — logger sangrai kopi open-source
 - [Video Setup WiFi](https://www.youtube.com/watch?v=esNiudoCEcU&t=434s) — panduan visual singkat
-- [Referensi & Setup Lanjutan](references.md) — partisi kustom, OTA, tips PlatformIO
 - [FAQ (Bahasa Indonesia)](FAQ_ID.md) — pertanyaan yang sering diajukan

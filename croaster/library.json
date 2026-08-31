@@ -1,0 +1,48 @@
+{
+  "name": "Croaster",
+  "version": "0.62.0",
+  "description": "Open-source coffee roaster monitor firmware core for ESP8266 / ESP32. Reads two MAX6675 thermocouples, computes RoR, and exposes live data over WebSocket and BLE with OTA and WiFiManager. Display- and pin-config-agnostic: bring your own display and pins.",
+  "keywords": [
+    "roaster",
+    "coffee",
+    "thermocouple",
+    "max6675",
+    "websocket",
+    "ble",
+    "ota",
+    "esp32",
+    "esp8266"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/IiemB/Croaster.git"
+  },
+  "authors": [
+    {
+      "name": "IiemB",
+      "url": "https://github.com/IiemB"
+    }
+  ],
+  "license": "MIT",
+  "frameworks": "arduino",
+  "platforms": ["espressif32", "espressif8266"],
+  "headers": [
+    "CroasterApp.h",
+    "CroasterCore.h",
+    "CroasterDisplay.h",
+    "CroasterPinConfig.h",
+    "CroasterBleManager.h",
+    "CroasterCommandHandler.h",
+    "CroasterWebSocketManager.h",
+    "CroasterOtaHandler.h",
+    "CroasterWiFiManager.h",
+    "CroasterDeviceIdentity.h",
+    "CroasterConstants.h"
+  ],
+  "dependencies": {
+    "bblanchon/ArduinoJson": "^7.4.3",
+    "links2004/WebSockets": "^2.7.3",
+    "tzapu/WiFiManager": "^2.0.17",
+    "yuriisalimov/MAX6675_Thermocouple": "^2.0.2"
+  }
+}

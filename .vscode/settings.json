@@ -9,7 +9,6 @@
         "new": "cpp"
     },
     "files.exclude": {
-        "**/croaster-arduino": true,
         "**/.pio": true
     },
     "C_Cpp.default.compilerPath": "/Users/iiemb/.platformio/packages/toolchain-riscv32-esp/bin/riscv32-esp-elf-gcc"

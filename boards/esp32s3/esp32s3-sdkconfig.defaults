@@ -1,0 +1,68 @@
+#
+# ESP32-S3 (ES3C28P) — ESP-IDF Kconfig defaults
+#
+# Referenced from platformio.ini [env:esp32s3]:
+#   board_build.sdkconfig_path = esp32s3-sdkconfig.defaults
+#
+# These are real ESP-IDF Kconfig options (NOT preprocessor defines). They are
+# merged into the SDK config at build time, so they must NOT be passed as -D
+# build_flags.
+
+# --- mbedTLS: fix MBEDTLS_ERR_SSL_ALLOC_FAILED (-32512) on WSS connect --------
+# Default mbedTLS buffers need ~40KB contiguous DRAM; internal SRAM gets
+# fragmented after all the modules initialize. WebSocket frames are <1KB, so
+# the buffer sizes and allocation strategy below keep TLS working.
+#
+# Fix 1 — Reduce SSL buffer sizes (most impactful).
+# Default is 16384 each (TLS max record size). WebSocket frames are <1KB;
+# 4096 is more than sufficient and cuts the contiguous-heap requirement
+# from ~40KB to ~12KB.
+CONFIG_MBEDTLS_SSL_IN_CONTENT_LEN=4096
+CONFIG_MBEDTLS_SSL_OUT_CONTENT_LEN=4096
+
+# Fix 2 — Route mbedTLS allocations to PSRAM.
+# ESP32-S3 (ES3C28P) has 8MB PSRAM free; SSL context (~4-8KB) fits there with
+# no fragmentation risk.
+CONFIG_MBEDTLS_EXTERNAL_MEM_ALLOC=y
+
+# Fix 3 — Allow large heap allocations to spill into PSRAM automatically.
+# Allocations <=4KB stay in internal SRAM (FreeRTOS internals, small structs,
+# ISR data). Anything larger (SSL contexts, HTTP buffers, etc.) can fall back
+# to PSRAM when internal SRAM is under pressure.
+# NOTE: This only affects malloc()/calloc() — FreeRTOS xTaskCreate() uses its
+# own allocator that always targets internal DRAM.
+CONFIG_SPIRAM_USE_MALLOC=y
+CONFIG_SPIRAM_MALLOC_ALWAYSINTERNAL=4096
+
+# Fix 4 — Allow WiFi stack and LwIP to use PSRAM, freeing ~30KB of internal heap.
+CONFIG_SPIRAM_TRY_ALLOCATE_WIFI_LWIP=y
+
+# Fix 5 — Disable hardware AES accelerator so AES uses software implementation.
+# Hardware AES (default) calls heap_caps_malloc(MALLOC_CAP_DMA | MALLOC_CAP_INTERNAL)
+# for each TLS record — bypassing the mbedTLS PSRAM allocator entirely. During
+# heavy streaming these DMA allocations (up to 16KB per record) exhaust internal
+# SRAM and cause MBEDTLS_ERR_SSL_INTERNAL_ERROR → WS disconnect. Software AES
+# routes through the mbedTLS allocator instead. Throughput cost is negligible
+# for <1KB WebSocket frames.
+CONFIG_MBEDTLS_HARDWARE_AES=n
+
+# --- NimBLE tuning — minimize RAM usage -------------------------------------
+CONFIG_BT_NIMBLE_MAX_CONNECTIONS=1
+CONFIG_BT_NIMBLE_MAX_BONDS=3
+
+# GATT callbacks (onWrite etc.) run on the NimBLE host task. The default 4096
+# stack overflows when callbacks build JSON responses (ArduinoJson) → "Double
+# exception" crash on connect. Give it more room (BleManager also defers heavy
+# work to the loop task as a second line of defense).
+CONFIG_BT_NIMBLE_HOST_TASK_STACK_SIZE=8192
+
+# Broadcaster role needed for BLE advertising (provisioning + presence)
+CONFIG_BT_NIMBLE_PINNED_TO_CORE=0
+CONFIG_BT_NIMBLE_EXT_ADV=0
+
+# --- Bluedroid tuning — btc_task stack -------------------------------------
+# GATT callbacks run on the Bluedroid btc_task (default 2 KB). BLE OTA binary
+# chunks are deferred to the loop task (BleManager), but the remaining callback
+# work (String copies, OTA_BEGIN -> Update.begin) still runs there — give it
+# headroom.
+CONFIG_BT_BTC_TASK_STACK_SIZE=4096

@@ -2,9 +2,9 @@
 
 > 🇮🇩 Versi Bahasa Indonesia tersedia di [README_ID.md](README_ID.md)
 
-**Croaster** is a lightweight, open-source temperature monitoring system built on ESP-based microcontrollers. Designed for coffee roasting enthusiasts and professionals, it reads from two thermocouple sensors (Bean Temperature and Environment Temperature) and displays real-time data on a compact OLED screen. Croaster connects seamlessly to popular roasting software via WiFi (WebSocket) and BLE (ESP32 only), making it compatible with both desktop and mobile roasting apps.
+**Croaster** is a lightweight, open-source temperature monitoring system built on ESP-based microcontrollers. Designed for coffee roasting enthusiasts and professionals, it reads from two thermocouple sensors (Bean Temperature and Environment Temperature) and displays real-time data on a compact OLED screen. Croaster connects seamlessly to popular roasting software via WiFi (WebSocket) and BLE (on boards that support it), making it compatible with both desktop and mobile roasting apps.
 
-**Current Firmware Version:** `0.51`
+**Current Firmware Version:** `0.52`
 
 ---
 
@@ -14,17 +14,15 @@
   - [📑 Table of Contents](#-table-of-contents)
   - [🚀 Features](#-features)
   - [🧩 Hardware Components](#-hardware-components)
-  - [🔌 Wiring Diagram](#-wiring-diagram)
   - [🛠 Software Architecture](#-software-architecture)
     - [Data Flow](#data-flow)
   - [📦 Libraries \& Dependencies](#-libraries--dependencies)
   - [🔧 How to Build and Upload](#-how-to-build-and-upload)
-    - [✅ PlatformIO (recommended for ESP8266 \& ESP32C3)](#-platformio-recommended-for-esp8266--esp32c3)
-    - [✅ Arduino IDE (alternative, required for Makergo ESP32C3 board)](#-arduino-ide-alternative-required-for-makergo-esp32c3-board)
+  - [📦 Using Croaster as a library in your own project](#-using-croaster-as-a-library-in-your-own-project)
   - [🔗 WiFi Setup Guide](#-wifi-setup-guide)
   - [📡 Communication Overview](#-communication-overview)
     - [WebSocket (WiFi)](#websocket-wifi)
-    - [BLE (ESP32 only)](#ble-esp32-only)
+    - [BLE](#ble)
   - [🔌 How to Connect Croaster with Artisan](#-how-to-connect-croaster-with-artisan)
     - [🖥️ Option 1: Direct Connection (Croaster as Access Point)](#️-option-1-direct-connection-croaster-as-access-point)
     - [🌐 Option 2: Same WiFi Network (Croaster joins your WiFi)](#-option-2-same-wifi-network-croaster-joins-your-wifi)
@@ -40,8 +38,7 @@
 
 ## 🚀 Features
 
-* Supports **NodeMCU ESP8266** (WiFi only)
-* Supports **ESP32C3 Super Mini** (WiFi & BLE)
+* Supports **ESP8266 and ESP32** based boards via per-board implementations
 * Real-time monitoring of **two MAX6675 thermocouple sensors**:
   - **BT** — Bean Temperature (inside the drum)
   - **ET** — Environment Temperature (exhaust/inlet)
@@ -53,12 +50,12 @@
 * WiFi communication via **WebSocket** on port **81**, compatible with:
   + [**Artisan Roaster Scope**](https://artisan-scope.org/) — industry-standard roasting logger
   + [**ICRM app**](https://iiemb.github.io/#/icrm) — companion mobile app (Android)
-* **BLE communication** (ESP32 only) for the [**ICRM app**](https://iiemb.github.io/#/icrm)
-* **OTA (Over-The-Air) firmware updates** via WebSocket (WiFi) and **BLE** (ESP32 only)
+* **BLE communication** (on boards that support it) for the [**ICRM app**](https://iiemb.github.io/#/icrm)
+* **OTA (Over-The-Air) firmware updates** via WebSocket (WiFi) and **BLE** (on boards that support it)
 * **WiFiManager** captive portal for easy WiFi credential setup — no re-flashing needed
 * Unique device naming based on chip ID (e.g. `Croaster-A1B2`)
 * **Dummy mode** for development and testing without physical sensors
-* Custom JSON command system via the centralized `CommandHandler` class
+* Custom JSON command system via the centralized `CroasterCommandHandler` class
 * Easily extendable with user-defined commands
 
 ---
@@ -67,54 +64,48 @@
 
 | Component | Description |
 |:---|:---|
-| 1× [NodeMCU ESP8266](images/NodeMCU-ESP8266.png) **or** [ESP32C3 Super Mini](images/ESP32C3-Super-Mini.png) | Main microcontroller |
+| 1× ESP-based microcontroller (WiFi and/or BLE) | Main microcontroller — see `boards/<board>/README.md` for the supported boards |
 | 1× [128×64 OLED display (SSD1306, I2C)](images/OLED-Display.png) | Real-time temperature display |
 | 2× [MAX6675 thermocouple modules](images/MAX6675.png) | SPI-based K-type thermocouple ADC |
 | 2× [K-type thermocouple probes](images/Type-K-thermocouple.png) | Temperature probes (BT & ET) |
 
 > All components run on **3.3V**. Ensure your power supply can handle the combined current draw of both sensors and the display.
 
----
-
-## 🔌 Wiring Diagram
-
-|  |**NodeMCU ESP8266**|**ESP32C3 Super Mini**|
-|:---|:---:|:---:|
-|**OLED Display**|GND → **GND**|GND → **GND**|
-| |VCC → **3.3V**|VCC → **3.3V**|
-| |SCL → **D1**|SCL → **GPIO9**|
-| |SDA → **D2**|SDA → **GPIO8**|
-|||⠀|
-|**ET Sensor** (Environment Temp)|GND → **GND**|GND → **GND**|
-| |VCC → **3.3V**|VCC → **3.3V**|
-| |SCK → **D5**|SCK → **GPIO4**|
-| |SO  → **D7**|SO  → **GPIO5**|
-| |CS  → **D6**|CS  → **GPIO6**|
-|||⠀|
-|**BT Sensor** (Bean Temp)|GND → **GND**|GND → **GND**|
-| |VCC → **3.3V**|VCC → **3.3V**|
-| |SCK → **D5**|SCK → **GPIO4**|
-| |SO  → **D7**|SO  → **GPIO5**|
-| |CS  → **D8**|CS  → **GPIO7**|
-
-> Both sensors share the **SCK** and **SO** lines (SPI bus). They are distinguished by their individual **CS** pins.
+> 🔌 **Wiring diagrams are per board** — see `boards/<board>/README.md`.
 
 ---
 
 ## 🛠 Software Architecture
 
-Croaster uses a clean, **modular C++ architecture** built with the Arduino framework. Each subsystem is encapsulated in its own class:
+Croaster uses a clean, **modular C++ architecture** built with the Arduino framework. Each subsystem is encapsulated in its own class.
+
+The repository is structured as a **reusable library** (`croaster/`: `croaster/src/` + `croaster/library.json`) plus per-board **projects** in `boards/<board>/`. The library is **display- and pin-config-agnostic** — each board supplies its own display, pin layout, LED and dummy-mode configuration.
+
+### Library modules (`croaster/src/`)
 
 | Module | File | Responsibility |
 |:---|:---|:---|
-| `CroasterCore` | `CroasterCore.h/.cpp` | Sensor reading, RoR calculation, temperature smoothing, data state |
-| `DisplayManager` | `DisplayManager.h/.cpp` | OLED rendering loop, status screens |
-| `CommandHandler` | `CommandHandler.h/.cpp` | JSON command parsing and dispatching (BLE & WebSocket) |
-| `WebSocketManager` | `WebSocketManager.h/.cpp` | WebSocket server, data broadcast, OTA trigger |
-| `BleManager` | `BleManager.h/.cpp` | BLE server, characteristic notify, command receive *(ESP32 only)* |
-| `OtaHandler` | `OtaHandler.h/.cpp` | Binary OTA update handling over WebSocket and BLE |
-| `WiFiManagerUtil` | `WiFiManagerUtil.h/.cpp` | WiFiManager captive portal setup and lifecycle |
-| `DeviceIdentity` | `DeviceIdentity.h/.cpp` | Chip ID, device name, IP address helpers |
+| `CroasterCore` | `croaster/src/CroasterCore.h/.cpp` | Sensor reading, RoR calculation, temperature smoothing, data state |
+| `CroasterDisplay` | `croaster/src/CroasterDisplay.h` | **Abstract display interface** — implemented by the consuming project |
+| `CroasterPinConfig` | `croaster/src/CroasterPinConfig.h` | Thermocouple pin layout (passed to `CroasterCore`) |
+| `CroasterCommandHandler` | `croaster/src/CroasterCommandHandler.h/.cpp` | JSON command parsing and dispatching (BLE & WebSocket) |
+| `CroasterWebSocketManager` | `croaster/src/CroasterWebSocketManager.h/.cpp` | WebSocket server, data broadcast, OTA trigger |
+| `CroasterBleManager` | `croaster/src/CroasterBleManager.h/.cpp` | BLE server, characteristic notify, command receive *(only compiled when the board has BLE)* |
+| `CroasterOtaHandler` | `croaster/src/CroasterOtaHandler.h/.cpp` | Binary OTA update handling over WebSocket and BLE |
+| `CroasterWiFiManager` | `croaster/src/CroasterWiFiManager.h/.cpp` | WiFiManager captive portal setup and lifecycle |
+| `CroasterDeviceIdentity` | `croaster/src/CroasterDeviceIdentity.h/.cpp` | Chip ID, device name, IP address helpers |
+| `CroasterApp` | `croaster/src/CroasterApp.h/.cpp` | **Single `begin()`/`loop()` entry point** — display-agnostic; takes `CroasterCore&` + `CroasterDisplay*` (+ LED pin/level) |
+
+### Board projects (`boards/`)
+
+Shared components and per-board projects live under `boards/`:
+
+| Path | Purpose |
+|:---|:---|
+| `boards/common/` | Shared SSD1306 display + animation (`CroasterDisplaySSD1306`, `CroasterDisplayAnimation`) used by the OLED-based boards |
+| `boards/<board>/` | Per-board project: `platformio.ini`, `main.cpp`, `config.h`, plus a `README.md` documenting that board (wiring, build flags, partitions) |
+
+Each board folder is a standalone PlatformIO project (`main.cpp` + `config.h`) that consumes the Croaster library (`../../croaster`) and any shared components (`../common`), then wires them into the library's display-agnostic `CroasterApp`.
 
 ### Data Flow
 
@@ -122,7 +113,7 @@ Croaster uses a clean, **modular C++ architecture** built with the Arduino frame
 MAX6675 Sensors → CroasterCore (read + smooth + RoR)
                        ↓
           ┌────────────┴────────────┐
-    WebSocketManager           BleManager (ESP32)
+  CroasterWebSocketManager  CroasterBleManager (boards with BLE)
           ↓                         ↓
    Artisan / ICRM              ICRM (Android)
 ```
@@ -144,52 +135,96 @@ MAX6675 Sensors → CroasterCore (read + smooth + RoR)
 
 ## 🔧 How to Build and Upload
 
-### ✅ PlatformIO (recommended for ESP8266 & ESP32C3)
+> PlatformIO is the only supported workflow (Arduino IDE is not used).
+
+The library lives in `croaster/`. Each supported board has its own folder under
+`boards/` — pick it and build/upload from there:
 
 1. Install [PlatformIO](https://platformio.org/) (VS Code extension or CLI)
-2. Clone the repository:
+2. Clone the repository and enter your board's folder:
 
    ```bash
    git clone git@github.com:IiemB/Croaster.git
-   cd Croaster
+   cd Croaster/boards/<board>
    ```
 
 3. Review `platformio.ini` and select your target environment
 4. Upload the firmware:
 
    ```bash
-   # For ESP8266
-   pio run -e esp8266 -t upload
-
-   # For ESP32C3
-   pio run -e esp32c3 -t upload
+   pio run -t upload
    ```
 
-> **Note:** ESP32C3 Super Mini uses a custom partition scheme (`custom32c3sm.csv`) to maximize app storage. See [references.md](references.md) for setup details.
+Each board's `README.md` documents its own build command, wiring and any special
+build flags (e.g. custom partition tables).
 
-### ✅ Arduino IDE (alternative, required for Makergo ESP32C3 board)
+---
 
-> Arduino IDE is required if you use the **Makergo ESP32C3 SuperMini** board definition, which is not yet fully supported by PlatformIO.
+## 📦 Using Croaster as a library in your own project
 
-1. Run the conversion script to copy source files into the Arduino sketch folder:
+`croaster/` is a standard PlatformIO library (it ships its own `library.json`).
+Add it to another project's `platformio.ini`:
 
-   ```bash
-   ./copy_to_ino.sh
-   ```
+```ini
+[env:your_board]
+lib_deps =
+    https://github.com/IiemB/Croaster.git
+```
 
-2. Open the `croaster-arduino/` folder in **Arduino IDE 2.x**
-3. Select your board:
-   - **ESP8266** → `NodeMCU 1.0 (ESP-12E Module)`
-   - **ESP32C3** → `Makergo ESP32C3 SuperMini`
-4. For **ESP32C3**, select the partition scheme:
-   - Use `Huge APP` for maximum sketch size (OTA not supported)
-   - Use `Custom SuperMini` for OTA support (see [references.md](references.md) for setup)
+The easiest way to start is to copy a board (`boards/<board>/`) and adapt it.
+It exposes a single `begin()`/`loop()`
+API via `CroasterApp`, and all board-specific config (pins, dummy mode, LED,
+display) lives in the implementation — not the library:
 
-   > [!NOTE]
-   > The `Huge APP` partition does **not** support OTA via the ICRM App. To enable OTA, follow the custom partition steps in [references.md](references.md).
+```cpp
+#include <Arduino.h>
+#include <ArduinoJson.h>
+#include "config.h"                 // pins, dummyMode, ledPin/ledOnLevel (edit here)
+#include "CroasterDisplaySSD1306.h" // or your own CroasterDisplay subclass
+#include "CroasterApp.h"
 
-5. Install all required libraries via Arduino Library Manager (see [Libraries & Dependencies](#-libraries--dependencies))
-6. Upload via `Sketch → Upload`
+CroasterCore core(dummyMode, pins);
+CroasterDisplaySSD1306 display(core);     // display defined in the implementation
+CroasterApp app(core, &display, ledPin, ledOnLevel);
+
+void setup() { app.begin(); }
+void loop()  { app.loop(); }
+```
+
+Or wire it yourself (see `CroasterApp.cpp` for the full wiring):
+
+```cpp
+#include <CroasterCore.h>
+#include <CroasterPinConfig.h>
+#include <CroasterCommandHandler.h>
+#include <CroasterWebSocketManager.h>
+#include <CroasterBleManager.h>
+#include <CroasterWiFiManager.h>
+
+CroasterPinConfig myPins = { /* sckPin, soPin, csPinBt, csPinEt */ };
+
+CroasterCore croaster(false, myPins);   // your pin layout
+MyDisplay display(croaster);            // your CroasterDisplay subclass
+CroasterCommandHandler commands(croaster, &display);
+CroasterWebSocketManager ws(croaster, commands, &display);
+
+#if CROASTER_HAS_BLE  // auto-detected: 1 on ESP32, 0 otherwise
+CroasterBleManager ble(croaster, commands, &display);
+#endif
+```
+
+- **Display** — implement `CroasterDisplay` (`begin`, `loop`, `rotateScreen`,
+  `blinkIndicator`, `displayToggle`, and the OTA-progress methods). Pass
+  `nullptr` where the board has no display.
+- **Pins, dummy mode & LED** — build your own `CroasterPinConfig` and pass it
+  to `CroasterCore`; choose `dummyMode`, `ledPin`/`ledOnLevel` in the
+  implementation's `config.h`.
+- **BLE** — the library detects BLE support at compile time via
+  `CROASTER_HAS_BLE` (1 on ESP32, 0 elsewhere) and only compiles
+  `CroasterBleManager` when available.
+- **Custom commands** — add commands without touching the library:
+  `app.commands().onCommand("ping", ...)` for string commands and
+  `app.commands().onJsonCommand("myKey", ...)` for nested JSON commands.
 
 ---
 
@@ -215,12 +250,12 @@ For a visual walkthrough, see: ➡️ [How to Connect to WiFi - YouTube](https:/
 - **Data format:** JSON, broadcast every `intervalSend` seconds (default: 3s)
 - Compatible with **Artisan Roaster Scope** and **ICRM app** (Android)
 
-### BLE (ESP32 only)
+### BLE
 
 - **Service UUID:** `1cc9b045-a6e9-4bd5-b874-07d4f2d57843`
 - **Data Characteristic UUID:** `d56d0059-ad65-43f3-b971-431d48f89a69`
 - Supports notify (data push) and write (command receive)
-- Compatible with the **ICRM app** (Android only)
+- Available on boards that support BLE (e.g. ESP32) — compatible with the **ICRM app** (Android)
 
 ---
 
@@ -258,19 +293,19 @@ Use this method when Croaster is already connected to your home/office WiFi netw
 
 ## ⬆️ OTA (Over-The-Air) Updates
 
-Croaster supports firmware updates without a USB cable, via the **ICRM app** over WebSocket (WiFi) or BLE (ESP32 only).
+Croaster supports firmware updates without a USB cable, via the **ICRM app** over WebSocket (WiFi) or BLE (on boards that support it).
 
-- OTA is handled by the `OtaHandler` class, which receives binary firmware data in chunks and returns a JSON progress payload after each chunk
+- OTA is handled by the `CroasterOtaHandler` class, which receives binary firmware data in chunks and returns a JSON progress payload after each chunk
 - Progress is shown on the OLED display during the update
 - BLE OTA includes timeout checks to handle stalled transfers
-- OTA requires the **custom partition scheme** (`custom32c3sm`) on ESP32C3 — the `Huge APP` partition does **not** support OTA
+- Some boards need a partition table with an OTA slot — see the board's `README.md`
 - After a successful OTA update, Croaster restarts automatically
 
 ---
 
 ## 🧪 Custom Commands
 
-Croaster accepts JSON-formatted commands over both WebSocket and BLE. The `CommandHandler` class dispatches all incoming commands.
+Croaster accepts JSON-formatted commands over both WebSocket and BLE. The `CroasterCommandHandler` class dispatches all incoming commands.
 
 ### Built-in Commands
 
@@ -299,7 +334,17 @@ Configuration commands use a **nested JSON object** under `"command"`:
 
 ### Adding Custom Commands
 
-To add a basic (string) command, add a new `else if` branch inside `handleBasicCommand` in `CommandHandler.cpp`. To add a configuration command, add a new condition inside `handleJsonCommand`. Both methods receive a parsed `JsonObject`, so you can read any key/value from the JSON payload.
+Custom commands are registered in your implementation's `main.cpp` — **no library
+edits needed**:
+
+```cpp
+app.commands().onCommand("ping", [](const JsonObject &json) -> String { ... });
+app.commands().onJsonCommand("myKey", [](const JsonObject &json) -> String { ... });
+```
+
+`onCommand` handles basic string commands (`{"command":"ping"}`); `onJsonCommand`
+handles nested JSON keys (`{"command":{"myKey":...}}`). Each callback returns a
+response string (empty = no response). Both are available over WebSocket and BLE.
 
 ---
 
@@ -320,5 +365,4 @@ Pull requests, bug reports, and feature requests are welcome! Feel free to open 
 - [ICRM App](https://iiemb.github.io/#/icrm) — companion Android app for Croaster
 - [Artisan Roaster Scope](https://artisan-scope.org/) — open-source coffee roasting logger
 - [WiFi Setup Video](https://www.youtube.com/watch?v=esNiudoCEcU&t=434s) — quick visual guide
-- [References & Advanced Setup](references.md) — custom partitions, OTA, PlatformIO tips
 - [FAQ](FAQ.md) — frequently asked questions
