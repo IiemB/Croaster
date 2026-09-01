@@ -110,6 +110,17 @@ void LvglTouch::readCb(lv_indev_t* indev, lv_indev_data_t* data) {
         int32_t dx = touch->x - touch->pressStartX;
         int32_t dy = touch->y - touch->pressStartY;
 
+        // Vertical swipe detection (prefer vertical when clearly vertical).
+        if ((dy >= SWIPE_THRESHOLD_PX || dy <= -SWIPE_THRESHOLD_PX) && abs(dy) > abs(dx) * 2) {
+            if (touch->vSwipeCb)
+                touch->vSwipeCb(dy > 0 ? 1 : -1);
+            // Consume this release: don't also arm a double tap.
+            touch->dblArmed = false;
+            touch->prevPressed = false;
+            data->state = LV_INDEV_STATE_RELEASED;
+            return;
+        }
+
         // A clear horizontal move (mostly left/right, not vertical).
         if ((dx >= SWIPE_THRESHOLD_PX || dx <= -SWIPE_THRESHOLD_PX) && abs(dx) > abs(dy) * 2) {
             if (touch->swipeCb)

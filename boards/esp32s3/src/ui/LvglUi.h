@@ -80,7 +80,8 @@ public:
 
     void displayOn(bool on);
 
-    /** @brief Sets the backlight brightness (0-100 percent). */
+    /** @brief Sets the backlight brightness (10-100 percent). Minimum 10% to
+     *         avoid turning the panel fully off via the slider. */
     void setBrightness(int percent);
 
     /** @brief Sets the light/dark theme (dark = true, light = false). */
@@ -114,6 +115,8 @@ private:
     void buildFirmwareScreen(lv_obj_t* scr);
     void buildSplashScreen(lv_obj_t* scr);
     void buildTopBar(lv_obj_t* scr, TopBar& bar);
+    void buildAboutScreen(lv_obj_t* scr);
+    void showAboutPage();
     static String rorText(double ror);
     static void btnCb(lv_event_t* e);
     static void flushCb(lv_display_t* disp, const lv_area_t* area, uint8_t* px_map);
@@ -207,6 +210,11 @@ private:
     bool onFirmwarePage = false;   ///< Firmware page is currently shown.
     bool prevPageWasChart = false; ///< Page to return to after the update.
 
+    // About page
+    lv_obj_t* scrAbout = nullptr;
+    TopBar aboutBar_;
+    bool onAboutPage = false;
+
     // Boot splash screen (shown during setup(); switches to the main page
     // after finishSplash() + a minimum timed duration, driven by the LVGL task).
     lv_obj_t* scrSplash = nullptr;
@@ -235,8 +243,13 @@ private:
     bool timerRunning = false;
     unsigned long timerSecs = 0;
 
+    // Current page tracker for roll navigation (Main -> Chart -> About)
+    enum class Page : uint8_t { MAIN = 0, CHART = 1, ABOUT = 2 };
+    Page currentPage = Page::MAIN;
+
     // Deferred theme rebuild — queued by setDarkMode(), executed on the LVGL
     // task before its next lv_timer_handler() pass (see rebuildTheme).
     bool themeRebuildPending = false;  ///< A theme rebuild is queued.
     bool themeRebuildWasChart = false; ///< Page active when the rebuild was queued.
+    bool themeRebuildWasAbout = false; ///< About page active when rebuild queued.
 };

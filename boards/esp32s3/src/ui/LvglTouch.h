@@ -49,6 +49,15 @@ public:
         swipeCb = std::move(cb);
     }
 
+    /** @brief Register a callback fired on a vertical swipe gesture.
+     * @param cb Called with +1 for a swipe down, -1 for a swipe up. Fires on
+     *           release when the finger moved a clear vertical distance
+     *           without much horizontal travel.
+     */
+    void setVSwipeCb(std::function<void(int dir)> cb) {
+        vSwipeCb = std::move(cb);
+    }
+
 private:
     void resetChip();
     uint8_t readByte(uint8_t reg);
@@ -74,6 +83,7 @@ private:
     int16_t pressStartX = 0;
     int16_t pressStartY = 0;
     std::function<void(int dir)> swipeCb;
+    std::function<void(int dir)> vSwipeCb;
 
     lv_indev_t* indev = nullptr;
 

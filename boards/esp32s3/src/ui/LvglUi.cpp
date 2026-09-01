@@ -3,6 +3,8 @@
 #include <CroasterConstants.h>
 #include <esp_heap_caps.h>
 
+#include <CroasterDeviceIdentity.h>
+
 #include "pins.h"
 
 // Partial-screen draw buffer size in pixels (two buffers, allocated from PSRAM).
@@ -79,14 +81,68 @@ bool LvglUi::begin() {
             displayToggleCb();
     });
 
-    // Horizontal swipe pages between the instrument and the roast chart.
-    touch.setSwipeCb([this](int dir) {
-        if (!screenOn)
-            return; // display off -> no navigation
-        if (dir < 0 && !onChartPage)
-            showChartPage(); // swipe left  -> chart
-        else if (dir > 0 && onChartPage)
-            showMainPage(); // swipe right -> back
+    // Horizontal swipes are ignored; use vertical swipe for navigation (down
+    // advances, up goes back). Firmware page blocks navigation.
+    touch.setSwipeCb([this](int) {
+        /* no-op */
+    });
+
+    // Vertical swipe: roll through Main -> Chart -> About (swipe down
+    // advances, swipe up goes back). Firmware page blocks navigation.
+    touch.setVSwipeCb([this](int dir) {
+        if (!screenOn || onFirmwarePage)
+            return;
+
+        LvglLock lock(lvglMutex);
+
+        if (dir > 0) { // swipe down -> advance
+            if (currentPage == Page::MAIN) {
+                if (scrChart) {
+                    currentPage = Page::CHART;
+                    onChartPage = true;
+                    onAboutPage = false;
+                    lv_screen_load_anim(scrChart, LV_SCREEN_LOAD_ANIM_MOVE_TOP, 120, 0, false);
+                }
+            } else if (currentPage == Page::CHART) {
+                if (scrAbout) {
+                    currentPage = Page::ABOUT;
+                    onAboutPage = true;
+                    onChartPage = false;
+                    lv_screen_load_anim(scrAbout, LV_SCREEN_LOAD_ANIM_MOVE_TOP, 150, 0, false);
+                }
+            } else { // ABOUT -> wrap to MAIN
+                if (scrMain) {
+                    currentPage = Page::MAIN;
+                    onAboutPage = false;
+                    onChartPage = false;
+                    lv_screen_load_anim(scrMain, LV_SCREEN_LOAD_ANIM_MOVE_TOP, 150, 0, false);
+                }
+            }
+        } else if (dir < 0) { // swipe up -> go back
+            if (currentPage == Page::MAIN) {
+                // wrap backward to ABOUT
+                if (scrAbout) {
+                    currentPage = Page::ABOUT;
+                    onAboutPage = true;
+                    onChartPage = false;
+                    lv_screen_load_anim(scrAbout, LV_SCREEN_LOAD_ANIM_MOVE_BOTTOM, 150, 0, false);
+                }
+            } else if (currentPage == Page::CHART) {
+                if (scrMain) {
+                    currentPage = Page::MAIN;
+                    onChartPage = false;
+                    onAboutPage = false;
+                    lv_screen_load_anim(scrMain, LV_SCREEN_LOAD_ANIM_MOVE_BOTTOM, 120, 0, false);
+                }
+            } else { // ABOUT -> CHART
+                if (scrChart) {
+                    currentPage = Page::CHART;
+                    onChartPage = true;
+                    onAboutPage = false;
+                    lv_screen_load_anim(scrChart, LV_SCREEN_LOAD_ANIM_MOVE_BOTTOM, 150, 0, false);
+                }
+            }
+        }
     });
 
     debugln(F("# LVGL UI initialization succeed"));
@@ -208,6 +264,10 @@ void LvglUi::createUi() {
     scrFw = lv_obj_create(NULL);
     buildFirmwareScreen(scrFw);
 
+    // About screen (accessed via vertical swipe)
+    scrAbout = lv_obj_create(NULL);
+    buildAboutScreen(scrAbout);
+
     // Boot splash screen (loaded by begin(); switches to scrMain after setup).
     scrSplash = lv_obj_create(NULL);
     buildSplashScreen(scrSplash);
@@ -241,6 +301,90 @@ void LvglUi::buildFirmwareScreen(lv_obj_t* scr) {
     lv_obj_set_style_text_font(hint, &lv_font_montserrat_12, 0);
     lv_label_set_text(hint, "Do not disconnect the device");
     lv_obj_align(hint, LV_ALIGN_CENTER, 0, 70);
+}
+
+void LvglUi::buildAboutScreen(lv_obj_t* scr) {
+    lv_obj_set_style_bg_color(scr, theme_.bg, 0);
+
+    // Top bar (brand/IP/status chips)
+    buildTopBar(scr, aboutBar_);
+
+    // Title
+    lv_obj_t* title = lv_label_create(scr);
+    lv_obj_set_style_text_color(title, theme_.textPrimary, 0);
+    lv_obj_set_style_text_font(title, &lv_font_montserrat_20, 0);
+    lv_label_set_text(title, "About");
+    lv_obj_align(title, LV_ALIGN_CENTER, 0, -40);
+
+    // Version + board id
+    lv_obj_t* ver = lv_label_create(scr);
+    lv_obj_set_style_text_color(ver, theme_.textMuted, 0);
+    lv_obj_set_style_text_font(ver, &lv_font_montserrat_14, 0);
+    lv_label_set_text(ver, (String("V") + String(version)).c_str());
+    lv_obj_align(ver, LV_ALIGN_CENTER, 0, -12);
+
+    lv_obj_t* board = lv_label_create(scr);
+    lv_obj_set_style_text_color(board, theme_.textMuted, 0);
+    lv_obj_set_style_text_font(board, &lv_font_montserrat_12, 0);
+    lv_label_set_text(board, (String("Board: ") + CroasterDeviceIdentity::boardName()).c_str());
+    lv_obj_align(board, LV_ALIGN_CENTER, 0, 6);
+
+    // Chip short ID
+    lv_obj_t* chip = lv_label_create(scr);
+    lv_obj_set_style_text_color(chip, theme_.textMuted, 0);
+    lv_obj_set_style_text_font(chip, &lv_font_montserrat_12, 0);
+    lv_label_set_text(chip, (String("Chip ID: ") + CroasterDeviceIdentity::shortChipId(6)).c_str());
+    lv_obj_align(chip, LV_ALIGN_CENTER, 0, 24);
+
+    // Dark mode toggle
+    lv_obj_t* dmLabel = lv_label_create(scr);
+    lv_obj_set_style_text_color(dmLabel, theme_.textPrimary, 0);
+    lv_obj_set_style_text_font(dmLabel, &lv_font_montserrat_14, 0);
+    lv_label_set_text(dmLabel, "Dark Mode");
+    lv_obj_align(dmLabel, LV_ALIGN_LEFT_MID, 20, 60);
+
+    lv_obj_t* dmSwitch = lv_switch_create(scr);
+    lv_obj_set_size(dmSwitch, 52, 28);
+    // Place switch to the right of the label with a small gap.
+    lv_obj_align_to(dmSwitch, dmLabel, LV_ALIGN_OUT_RIGHT_MID, 12, 0);
+    if (darkMode)
+        lv_obj_add_state(dmSwitch, LV_STATE_CHECKED);
+    lv_obj_add_event_cb(
+        dmSwitch,
+        [](lv_event_t* e) {
+            LvglUi* ui = (LvglUi*)lv_event_get_user_data(e);
+            if (!ui)
+                return;
+            lv_obj_t* obj = (lv_obj_t*)lv_event_get_target(e);
+            bool checked = lv_obj_has_state(obj, LV_STATE_CHECKED);
+            ui->setDarkMode(checked);
+        },
+        LV_EVENT_VALUE_CHANGED, this);
+
+    // Brightness slider
+    lv_obj_t* bLabel = lv_label_create(scr);
+    lv_obj_set_style_text_color(bLabel, theme_.textPrimary, 0);
+    lv_obj_set_style_text_font(bLabel, &lv_font_montserrat_14, 0);
+    lv_label_set_text(bLabel, "Brightness");
+    lv_obj_align(bLabel, LV_ALIGN_LEFT_MID, 20, 100);
+
+    lv_obj_t* slider = lv_slider_create(scr);
+    // Make slider narrower and position it to the right of the label.
+    lv_obj_set_size(slider, 180, 20);
+    lv_obj_align_to(slider, bLabel, LV_ALIGN_OUT_RIGHT_MID, 12, 0);
+    lv_slider_set_range(slider, 0, 100);
+    lv_slider_set_value(slider, brightnessPct, LV_ANIM_OFF);
+    lv_obj_add_event_cb(
+        slider,
+        [](lv_event_t* e) {
+            LvglUi* ui = (LvglUi*)lv_event_get_user_data(e);
+            if (!ui)
+                return;
+            lv_obj_t* obj = (lv_obj_t*)lv_event_get_target(e);
+            int val = lv_slider_get_value(obj);
+            ui->setBrightness(val);
+        },
+        LV_EVENT_VALUE_CHANGED, this);
 }
 
 void LvglUi::buildSplashScreen(lv_obj_t* scr) {
@@ -552,17 +696,39 @@ void LvglUi::showChartPage() {
 
     if (onFirmwarePage || onChartPage || !scrChart)
         return;
+    currentPage = Page::CHART;
     onChartPage = true;
-    lv_screen_load_anim(scrChart, LV_SCREEN_LOAD_ANIM_MOVE_LEFT, 200, 0, false);
+    // Vertical slide from top for Chart (short duration).
+    lv_screen_load_anim(scrChart, LV_SCREEN_LOAD_ANIM_MOVE_TOP, 120, 0, false);
+}
+
+void LvglUi::showAboutPage() {
+    LvglLock lock(lvglMutex);
+
+    if (onFirmwarePage || onAboutPage || !scrAbout)
+        return;
+    currentPage = Page::ABOUT;
+    onAboutPage = true;
+    onChartPage = false;
+    // Vertical slide from top for About (moderate duration).
+    lv_screen_load_anim(scrAbout, LV_SCREEN_LOAD_ANIM_MOVE_TOP, 150, 0, false);
 }
 
 void LvglUi::showMainPage() {
     LvglLock lock(lvglMutex);
 
-    if (onFirmwarePage || !onChartPage || !scrMain)
+    if (onFirmwarePage || (!onChartPage && !onAboutPage) || !scrMain)
         return;
-    onChartPage = false;
-    lv_screen_load_anim(scrMain, LV_SCREEN_LOAD_ANIM_MOVE_RIGHT, 200, 0, false);
+    // Set current page to MAIN and use a bottom animation when returning
+    // from another page.
+    currentPage = Page::MAIN;
+    if (onChartPage) {
+        onChartPage = false;
+        lv_screen_load_anim(scrMain, LV_SCREEN_LOAD_ANIM_MOVE_BOTTOM, 120, 0, false);
+    } else if (onAboutPage) {
+        onAboutPage = false;
+        lv_screen_load_anim(scrMain, LV_SCREEN_LOAD_ANIM_MOVE_BOTTOM, 150, 0, false);
+    }
 }
 
 void LvglUi::showFirmwarePage(bool updating) {
@@ -798,6 +964,7 @@ void LvglUi::setDarkMode(bool dark) {
     // — and it would run on a small-stack task. The LVGL task picks up the
     // flag before its next lv_timer_handler() pass, so broadcasts keep flowing.
     themeRebuildWasChart = onChartPage;
+    themeRebuildWasAbout = onAboutPage;
     themeRebuildPending = true;
 }
 
@@ -807,6 +974,7 @@ void LvglUi::rebuildTheme() {
     // full rebuild is safe and never stalls the app loop.
 
     bool wasChart = themeRebuildWasChart;
+    bool wasAbout = themeRebuildWasAbout;
     themeRebuildPending = false;
 
     // Remember the old screens. The currently-active one can't be deleted
@@ -878,10 +1046,13 @@ void LvglUi::rebuildTheme() {
     refreshChart(); // refill the chart from the ring buffer (kept across themes)
 
     // Restore whichever page was active before the theme change. createUi()
-    // loads the main page, so reset onChartPage before re-asserting it.
+    // loads the main page, so reset active flags before re-asserting.
     onChartPage = false;
+    onAboutPage = false;
     if (wasChart)
         showChartPage();
+    else if (wasAbout)
+        showAboutPage();
 }
 
 void LvglUi::setWiFiConnected(bool connected) {
@@ -914,8 +1085,10 @@ void LvglUi::displayOn(bool on) {
 }
 
 void LvglUi::setBrightness(int percent) {
-    if (percent < 0)
-        percent = 0;
+    // Enforce a minimum brightness of 10% to avoid turning the backlight
+    // effectively off via the UI control.
+    if (percent < 10)
+        percent = 10;
     if (percent > 100)
         percent = 100;
 

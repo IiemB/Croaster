@@ -63,3 +63,17 @@ describes.
 ## Before you finish a session
 - Working tree clean (or leftovers explicitly noted in CONTEXT.md → Next steps).
 - `CONTEXT.md` reflects exactly what is committed and what is pending.
+
+## Recent UI work (2026-09-01)
+
+- `esp32s3` LVGL UI: added an `About` page with firmware version, board id,
+  and short chip ID; `darkMode` switch and `brightness` slider live on the
+  About page.
+- Navigation changes: chart moved to a vertical swipe stack (swipe down →
+  chart, swipe up → main). Horizontal swipe toggles between Main ⇄ About.
+- `LvglTouch` now exposes a vertical-swipe callback. LVGL screen animations
+  were shortened for snappier transitions.
+- A build was produced after the changes: `builds/Croaster_esp32s3_0.62.bin`.
+
+When working on UI or navigation, update both `CONTEXT.md` and `AGENTS.md`
+in the same commit to preserve context for future sessions.

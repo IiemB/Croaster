@@ -53,6 +53,12 @@ Flutter app (remote `git@github.com:IiemB/Croaster.git`) and is consumed via
   from `croaster/src/CroasterConstants.h`).
 - This batch adds `format.sh` + `.clang-format` (all sources reformatted) and
   the esp32s3 `darkMode` / `brightness` custom commands.
+ - Recent esp32s3 UI changes (2026-09-01): added an `About` page (version,
+   board ID, short chip ID), `darkMode` switch and `brightness` slider in the
+   About page, vertical-swipe navigation for the chart (vertical stack), and
+   horizontal-swipe toggling between Main <-> About. LVGL animations were
+   shortened for snappier transitions; `LvglTouch` now exposes a vertical
+   swipe callback. Built firmware: `builds/Croaster_esp32s3_0.62.bin`.
 - ⚠️ **Downstream:** the ICRM app consumes this repo via
   `lib_deps = https://github.com/IiemB/Croaster.git`, which needs `library.json`
   at the repo root — update it to the `croaster/` subfolder (or add a root
@@ -61,8 +67,10 @@ Flutter app (remote `git@github.com:IiemB/Croaster.git`) and is consumed via
 ## Next steps
 - Update the ICRM app's `lib_deps` for the `croaster/` subfolder.
 - Flash + verify the esp32s3 build on real hardware (touch, chart swipe,
-  dark mode, OTA over BLE/WebSocket).
+ - Flash + verify the esp32s3 build on real hardware (touch, chart vertical
+   swipe, horizontal About toggle, dark mode, brightness, OTA over BLE/WebSocket).
 - Confirm `boardName()` strings against the ICRM app's `CroasterBoardTypes`.
+ - Consider persisting `darkMode`/`brightness` to NVS so settings survive reboots.
 
 ## Gotchas
 - PlatformIO not on PATH → `~/.platformio/penv/bin/pio` or `PIO=`.
